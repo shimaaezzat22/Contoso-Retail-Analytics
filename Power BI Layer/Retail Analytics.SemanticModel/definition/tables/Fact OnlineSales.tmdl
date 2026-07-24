@@ -1,0 +1,229 @@
+table 'Fact OnlineSales'
+	lineageTag: a2297bcb-7c41-4ea7-bdac-cee5ed2b2518
+
+	column OnlineSalesKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 485221e1-5ddb-47d4-ac9a-cca83d892556
+		summarizeBy: count
+		sourceColumn: OnlineSalesKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d422afde-9489-4e8d-8f8e-fe300bb6fb31
+		summarizeBy: none
+		sourceColumn: DateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: bd040d44-9ed8-4ed3-8273-fcd0f83e166d
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column StoreKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a7d86b5a-8a73-440a-b013-06abc5f852ef
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 44354f0b-2e2a-4d4f-930e-39d1ce42cb41
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 91d51100-c816-4a31-95b9-9fef90cafcdb
+		summarizeBy: none
+		sourceColumn: PromotionKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2ecde166-c762-4603-ad0e-f8348fcc60c9
+		summarizeBy: none
+		sourceColumn: CurrencyKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 17db461e-cd08-43cd-a943-ea5e01416969
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesOrderNumber
+		dataType: string
+		lineageTag: e6ae4374-5304-4e42-8717-f0dc12c2e6ff
+		summarizeBy: none
+		sourceColumn: SalesOrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesOrderLineNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: 2b3fadff-ed89-4f33-82d9-de1352c655c3
+		summarizeBy: sum
+		sourceColumn: SalesOrderLineNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 5d86cdb8-ebe5-41d3-8081-f3d3989227d4
+		summarizeBy: sum
+		sourceColumn: SalesQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesAmount
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: a7f23a44-cde2-4732-92a5-08075eb0e970
+		summarizeBy: sum
+		sourceColumn: SalesAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column ReturnQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: f8251eb3-f308-4f45-bb81-4fc36b6fb76a
+		summarizeBy: sum
+		sourceColumn: ReturnQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnAmount
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 62848c7e-2222-42a4-9d50-9b9d92ae505c
+		summarizeBy: sum
+		sourceColumn: ReturnAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column DiscountQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 619e386a-7033-4fa6-9cf0-c67d1592ca27
+		summarizeBy: sum
+		sourceColumn: DiscountQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiscountAmount
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 75795757-7f48-43ef-a5ae-9ba7c878f74e
+		summarizeBy: sum
+		sourceColumn: DiscountAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column TotalCost
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: f5c80948-81fb-4469-9847-cc44c30aab36
+		summarizeBy: sum
+		sourceColumn: TotalCost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column UnitCost
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 7b6151ac-61f9-4b0f-a7d5-e9a8618637d4
+		summarizeBy: sum
+		sourceColumn: UnitCost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column UnitPrice
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 7ac3789b-459b-48ed-89ef-bac5ff344ed6
+		summarizeBy: sum
+		sourceColumn: UnitPrice
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column GrossProfit
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: c7a070f6-bb58-4069-aab3-dc4526524605
+		summarizeBy: sum
+		sourceColumn: GrossProfit
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	partition 'Fact OnlineSales' = m
+		mode: import
+		queryGroup: 'Loaded Facts'
+		source =
+				let
+					FileRow = DataSource{[Name="fact_vOnlineSales.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadFactParquet(BinaryData, "fact_vOnlineSales.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

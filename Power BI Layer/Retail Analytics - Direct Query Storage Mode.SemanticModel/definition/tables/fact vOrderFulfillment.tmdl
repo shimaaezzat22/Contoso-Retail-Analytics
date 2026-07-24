@@ -1,0 +1,179 @@
+table 'fact vOrderFulfillment'
+	lineageTag: d2a37581-fc10-4f9f-ac65-f03bc758520a
+
+	column SalesOrderNumber
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(20)
+		lineageTag: bb99c7f6-a89f-4058-be96-f6625261e010
+		summarizeBy: none
+		sourceColumn: SalesOrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: db984558-910e-4fcd-be52-20642aad9112
+		summarizeBy: count
+		sourceColumn: OrderDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: 0a7c196c-3db8-452f-8d30-1eea7e39b6d7
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ShipDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: ec38b1d0-d2ff-41ef-8451-208dfb7ede94
+		summarizeBy: count
+		sourceColumn: ShipDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShipDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: fe1accdc-15b6-4361-b614-5a2851f50032
+		summarizeBy: none
+		sourceColumn: ShipDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DeliveryDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 145d2c36-094c-4cc2-a6ab-00935bde46f4
+		summarizeBy: count
+		sourceColumn: DeliveryDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DeliveryDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: 1cc68f45-a5fc-4cd4-b906-642f01bb5b36
+		summarizeBy: none
+		sourceColumn: DeliveryDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FulfillmentStatus
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(20)
+		lineageTag: 39990637-1ec5-4638-b8b3-ace0c01695e4
+		summarizeBy: none
+		sourceColumn: FulfillmentStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShippingMethod
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(20)
+		lineageTag: 79676228-9ad4-40f0-b678-b95ff17414b8
+		summarizeBy: none
+		sourceColumn: ShippingMethod
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProcessingDays
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: c5a6db60-d74e-4dd6-9d5d-a01391df317f
+		summarizeBy: sum
+		sourceColumn: ProcessingDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column TransitDays
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: b927d362-e9df-4e11-9de7-f56614e27456
+		summarizeBy: sum
+		sourceColumn: TransitDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalFulfillmentDays
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 846673be-e41f-4349-8fa1-86890d4c42f8
+		summarizeBy: sum
+		sourceColumn: TotalFulfillmentDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column SLAStatus
+		dataType: string
+		isNullable: false
+		sourceProviderType: varchar(16)
+		lineageTag: 44099bb4-e64f-45ac-937c-6f3d0dfa481f
+		summarizeBy: none
+		sourceColumn: SLAStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column FulfillmentTier
+		dataType: string
+		sourceProviderType: varchar(19)
+		lineageTag: 12780a11-a38d-4d9e-ae16-2ba6da998a28
+		summarizeBy: none
+		sourceColumn: FulfillmentTier
+
+		annotation SummarizationSetBy = Automatic
+
+	column DelayRootCause
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: a244b324-5e72-4d33-9a07-391cf5a53b67
+		summarizeBy: none
+		sourceColumn: DelayRootCause
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsOnTime
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: d4aa013a-4180-4dfc-9000-d95d9b600273
+		summarizeBy: sum
+		sourceColumn: IsOnTime
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'fact vOrderFulfillment' = m
+		mode: directQuery
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "fact", Item = "vOrderFulfillment"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

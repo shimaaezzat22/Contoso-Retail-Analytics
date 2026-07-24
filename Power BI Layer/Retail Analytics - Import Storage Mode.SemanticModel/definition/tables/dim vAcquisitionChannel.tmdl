@@ -1,0 +1,80 @@
+table 'dim vAcquisitionChannel'
+	lineageTag: 9a92769d-23a9-4de3-9572-552c710a4ee9
+
+	column AcquisitionChannelKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 1fc4792a-37ca-44f8-91d5-485713659bf3
+		summarizeBy: none
+		sourceColumn: AcquisitionChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelName
+		dataType: string
+		lineageTag: ae0a6a9c-1820-4887-8d4a-79fa8c56c171
+		summarizeBy: none
+		sourceColumn: ChannelName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelCategory
+		dataType: string
+		lineageTag: 957fd52e-8268-4e3e-a173-e85c9311b75f
+		summarizeBy: none
+		sourceColumn: ChannelCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsDigital
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: d9aad340-ff2d-423d-b676-2d8856e43777
+		summarizeBy: none
+		sourceColumn: IsDigital
+
+		annotation SummarizationSetBy = Automatic
+
+	column EstimatedCACLow
+		dataType: double
+		lineageTag: 68d13f78-bf42-40a7-a0bf-9bcc06283470
+		summarizeBy: sum
+		sourceColumn: EstimatedCACLow
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EstimatedCACHigh
+		dataType: double
+		lineageTag: 9ef2251d-1478-4c57-8042-a3995736b45d
+		summarizeBy: sum
+		sourceColumn: EstimatedCACHigh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CACMidpoint
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: f44f2f4b-44b8-41c5-b6ab-1bb5139dfed1
+		summarizeBy: sum
+		sourceColumn: CACMidpoint
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	partition 'dim vAcquisitionChannel' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "dim", Item = "vAcquisitionChannel"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

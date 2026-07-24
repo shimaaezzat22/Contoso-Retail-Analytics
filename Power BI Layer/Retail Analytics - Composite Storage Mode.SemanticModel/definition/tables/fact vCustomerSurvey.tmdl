@@ -1,0 +1,111 @@
+table 'fact vCustomerSurvey'
+	lineageTag: 4612d21f-a7df-4327-adc5-f3efa78d3c87
+
+	column SurveyResponseID
+		dataType: int64
+		formatString: 0
+		lineageTag: 6216d2ae-e30e-49ed-ae0e-85a3436ecd92
+		summarizeBy: count
+		sourceColumn: SurveyResponseID
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerKey
+		dataType: int64
+		formatString: 0
+		lineageTag: e6139853-351a-4691-a462-f7d1c50d2dbc
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SurveyDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 34192554-af6e-4cac-bf44-4512e32913a7
+		summarizeBy: count
+		sourceColumn: SurveyDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SurveyDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 09fcbb9b-20c7-4c2a-9f1e-976b3cb3e2c3
+		summarizeBy: none
+		sourceColumn: SurveyDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column NPSScore
+		dataType: int64
+		formatString: 0
+		lineageTag: 91b27f0b-3f85-4df9-baa9-591897d4968f
+		summarizeBy: sum
+		sourceColumn: NPSScore
+
+		annotation SummarizationSetBy = Automatic
+
+	column NPSCategory
+		dataType: string
+		lineageTag: c10ed180-a8bb-4963-91b7-2cf7685ae116
+		summarizeBy: none
+		sourceColumn: NPSCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column NPSContribution
+		dataType: int64
+		formatString: 0
+		lineageTag: ddaa6917-965e-4573-8550-b9b525acb735
+		summarizeBy: sum
+		sourceColumn: NPSContribution
+
+		annotation SummarizationSetBy = Automatic
+
+	column CSATScore
+		dataType: int64
+		formatString: 0
+		lineageTag: 1bf6f540-63ed-45aa-bb27-1d40685d3f98
+		summarizeBy: sum
+		sourceColumn: CSATScore
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsSatisfied
+		dataType: int64
+		formatString: 0
+		lineageTag: f2f59b1f-b841-4b84-8693-5a23f568001a
+		summarizeBy: sum
+		sourceColumn: IsSatisfied
+
+		annotation SummarizationSetBy = Automatic
+
+	column WouldRecommend
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: c056a7cf-a20d-4d56-9ee0-76da508879f7
+		summarizeBy: none
+		sourceColumn: WouldRecommend
+
+		annotation SummarizationSetBy = Automatic
+
+	column SurveyTrigger
+		dataType: string
+		lineageTag: 7479e216-71b4-4cbf-8974-bb57e6eb3c9c
+		summarizeBy: none
+		sourceColumn: SurveyTrigger
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'fact vCustomerSurvey' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("localhost\SQLEXPRESS", "ContosoRetailDW"),
+				    fact_vCustomerSurvey = Source{[Schema="fact",Item="vCustomerSurvey"]}[Data]
+				in
+				    fact_vCustomerSurvey
+

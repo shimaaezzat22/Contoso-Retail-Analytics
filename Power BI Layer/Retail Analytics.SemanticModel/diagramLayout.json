@@ -1,0 +1,1123 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 2190.4415958457903,
+            "y": 0
+          },
+          "nodeIndex": "Dim AcquisitionChannel",
+          "nodeLineageTag": "1db6a67a-7170-48f3-bbc3-92b6a4ce1b29",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 245.54244551382692,
+            "y": 0
+          },
+          "nodeIndex": "Dim Channel",
+          "nodeLineageTag": "086dd780-ea3e-4154-a317-3bc0301a01fb",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 21
+        },
+        {
+          "location": {
+            "x": 490.74054911585858,
+            "y": 0
+          },
+          "nodeIndex": "Dim Currency",
+          "nodeLineageTag": "275f7988-5fd4-4575-97e5-cd6ad64ea5d6",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 17
+        },
+        {
+          "location": {
+            "x": 741.51948051948068,
+            "y": 0
+          },
+          "nodeIndex": "Dim Customer",
+          "nodeLineageTag": "2fcb34be-cbea-41df-8da6-a72db26f1bf7",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 18
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 20
+        },
+        {
+          "location": {
+            "x": 984.77332108162227,
+            "y": 0
+          },
+          "nodeIndex": "Dim PaymentMethod",
+          "nodeLineageTag": "c2ffa6ad-a6cb-4a9a-8925-6bf4e858b5a1",
+          "size": {
+            "height": 169.57575757575773,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 1229.611315276936,
+            "y": 0
+          },
+          "nodeIndex": "Dim Product",
+          "nodeLineageTag": "884bad39-c879-45d6-9dd6-ba5ec3812312",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 1467.3850599349851,
+            "y": 0
+          },
+          "nodeIndex": "Dim Promotion",
+          "nodeLineageTag": "e30df995-048d-49b4-8f13-7eb61a2fa544",
+          "size": {
+            "height": 147.20829513633618,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 1705.9556962022709,
+            "y": 0
+          },
+          "nodeIndex": "Dim ReturnReason",
+          "nodeLineageTag": "ec187a16-dba8-44aa-a013-26e24a5868cc",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 1949.2268509155774,
+            "y": 0
+          },
+          "nodeIndex": "Dim Store",
+          "nodeLineageTag": "5a05de39-b4a5-457e-a127-3638649c7524",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 248.64882599870384,
+            "y": 459.36200471210509
+          },
+          "nodeIndex": "Fact CustomerAcquisition",
+          "nodeLineageTag": "56c8ad78-d623-4004-a3e6-8ddaa9248dd2",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 16
+        },
+        {
+          "location": {
+            "x": 503.86526994722885,
+            "y": 453.83747165194961
+          },
+          "nodeIndex": "Fact CustomerSurvey",
+          "nodeLineageTag": "98d46ec2-ff9c-4c18-8eb1-e7e7f93879aa",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 461.09122368663554
+          },
+          "nodeIndex": "Fact ExchangeRate",
+          "nodeLineageTag": "e9423c06-812a-43a0-9df5-35e309817248",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 24
+        },
+        {
+          "location": {
+            "x": 756.90993007514282,
+            "y": 453.91866139821155
+          },
+          "nodeIndex": "Fact Inventory",
+          "nodeLineageTag": "cfdb0289-913f-4657-bb2b-9ab27ff469a5",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 1005.8590160956396,
+            "y": 455.4855008802183
+          },
+          "nodeIndex": "Fact MarketingSpend",
+          "nodeLineageTag": "102607ae-33f2-4df7-ba14-7de04e04b90b",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 22
+        },
+        {
+          "location": {
+            "x": 2278.9176698787833,
+            "y": 456.30951549435258
+          },
+          "nodeIndex": "Fact OnlineSales",
+          "nodeLineageTag": "a2297bcb-7c41-4ea7-bdac-cee5ed2b2518",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 11
+        },
+        {
+          "location": {
+            "x": 2012.2662857468754,
+            "y": 465.7917421326564
+          },
+          "nodeIndex": "Fact OrderFulfillment",
+          "nodeLineageTag": "1c0a00ac-9cc2-4b0f-a15e-10127d982e08",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 23
+        },
+        {
+          "location": {
+            "x": 1256.2326367738569,
+            "y": 457.795165230098
+          },
+          "nodeIndex": "Fact OrderPayment",
+          "nodeLineageTag": "3df94ce1-ca2e-4e23-9e46-ed5f71ca34b2",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 12
+        },
+        {
+          "location": {
+            "x": 1510.7062558545081,
+            "y": 461.83404855450823
+          },
+          "nodeIndex": "Fact Returns",
+          "nodeLineageTag": "ed4f74ae-73b9-4561-b497-db23fdd95366",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 13
+        },
+        {
+          "location": {
+            "x": 1758.7501375146098,
+            "y": 464.96772751852222
+          },
+          "nodeIndex": "Fact SalesQuota",
+          "nodeLineageTag": "1a97ea07-7b96-4f5d-8862-48567d414d93",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 14
+        },
+        {
+          "location": {
+            "x": 2541.6025118425077,
+            "y": 451.36542780954653
+          },
+          "nodeIndex": "Fact StoreSales",
+          "nodeLineageTag": "a931ed6f-8a1e-4a4e-82b7-d1465e9a093a",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 15
+        },
+        {
+          "location": {
+            "x": 2736.3015057392149,
+            "y": 0
+          },
+          "nodeIndex": "_Measures",
+          "nodeLineageTag": "fd76aadb-cee9-4e79-adae-f41f56adba13",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 19
+        },
+        {
+          "location": {
+            "x": 2452.0244039937706,
+            "y": 0
+          },
+          "nodeIndex": "Dim Employee",
+          "nodeLineageTag": "ed43cdde-a125-40fe-ad39-24e96bb4bccf",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 3020.3015057392149,
+            "y": 210.24613028933879
+          },
+          "nodeIndex": "dim vChannel",
+          "nodeLineageTag": "5ed8f112-aa94-4abc-928a-11db0666ca7f",
+          "size": {
+            "height": 195,
+            "width": 234
+          },
+          "zIndex": 2
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 41.826057123849885,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 1,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 719.67699229083746,
+            "y": 409.31624068958394
+          },
+          "nodeIndex": "Fact OnlineSales",
+          "nodeLineageTag": "a2297bcb-7c41-4ea7-bdac-cee5ed2b2518",
+          "size": {
+            "height": 456.28175682281619,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 248.33333206176758,
+            "y": 0
+          },
+          "nodeIndex": "Dim Currency",
+          "nodeLineageTag": "275f7988-5fd4-4575-97e5-cd6ad64ea5d6",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 496.33333206176758,
+            "y": 0
+          },
+          "nodeIndex": "Dim Customer",
+          "nodeLineageTag": "2fcb34be-cbea-41df-8da6-a72db26f1bf7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 754.364305513095,
+            "y": 0
+          },
+          "nodeIndex": "Dim Product",
+          "nodeLineageTag": "884bad39-c879-45d6-9dd6-ba5ec3812312",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 1009.1441727697322,
+            "y": 0
+          },
+          "nodeIndex": "Dim Promotion",
+          "nodeLineageTag": "e30df995-048d-49b4-8f13-7eb61a2fa544",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 1272.1497037431836,
+            "y": 0
+          },
+          "nodeIndex": "Dim Store",
+          "nodeLineageTag": "5a05de39-b4a5-457e-a127-3638649c7524",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        }
+      ],
+      "name": "OnlineSales",
+      "zoomValue": 40,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 2,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 395.35005334274609,
+            "y": 305.89429670800854
+          },
+          "nodeIndex": "Fact StoreSales",
+          "nodeLineageTag": "a931ed6f-8a1e-4a4e-82b7-d1465e9a093a",
+          "size": {
+            "height": 471.66666666666663,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 244.33333206176758,
+            "y": 0
+          },
+          "nodeIndex": "Dim Channel",
+          "nodeLineageTag": "086dd780-ea3e-4154-a317-3bc0301a01fb",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 485.68977255244522,
+            "y": 0
+          },
+          "nodeIndex": "Dim Currency",
+          "nodeLineageTag": "275f7988-5fd4-4575-97e5-cd6ad64ea5d6",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 737.16322386299976,
+            "y": 6.6268439503897412
+          },
+          "nodeIndex": "Dim Product",
+          "nodeLineageTag": "884bad39-c879-45d6-9dd6-ba5ec3812312",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 986.18485598718871,
+            "y": 0
+          },
+          "nodeIndex": "Dim Promotion",
+          "nodeLineageTag": "e30df995-048d-49b4-8f13-7eb61a2fa544",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 1239.089477291501,
+            "y": 0
+          },
+          "nodeIndex": "Dim Store",
+          "nodeLineageTag": "5a05de39-b4a5-457e-a127-3638649c7524",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        }
+      ],
+      "name": "StoreSales",
+      "zoomValue": 60,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 3,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 243.33333206176758,
+            "y": 0
+          },
+          "nodeIndex": "Dim Customer",
+          "nodeLineageTag": "2fcb34be-cbea-41df-8da6-a72db26f1bf7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 494.65744710601541,
+            "y": 0
+          },
+          "nodeIndex": "Dim Product",
+          "nodeLineageTag": "884bad39-c879-45d6-9dd6-ba5ec3812312",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 741.95501347769675,
+            "y": 0
+          },
+          "nodeIndex": "Dim Store",
+          "nodeLineageTag": "5a05de39-b4a5-457e-a127-3638649c7524",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 1218.0797442710245,
+            "y": 270.94240445610461
+          },
+          "nodeIndex": "Fact Returns",
+          "nodeLineageTag": "ed4f74ae-73b9-4561-b497-db23fdd95366",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 989.45387792830934,
+            "y": 4.7831246573733246
+          },
+          "nodeIndex": "Dim ReturnReason",
+          "nodeLineageTag": "ec187a16-dba8-44aa-a013-26e24a5868cc",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Returns",
+      "zoomValue": 77.46181202513597,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 4,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1089.2404117077854,
+            "y": 277.30752212389376
+          },
+          "nodeIndex": "Fact SalesQuota",
+          "nodeLineageTag": "1a97ea07-7b96-4f5d-8862-48567d414d93",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 243.33333206176758,
+            "y": 0
+          },
+          "nodeIndex": "Dim Currency",
+          "nodeLineageTag": "275f7988-5fd4-4575-97e5-cd6ad64ea5d6",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 506.06563294672333,
+            "y": 0
+          },
+          "nodeIndex": "Dim Product",
+          "nodeLineageTag": "884bad39-c879-45d6-9dd6-ba5ec3812312",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 760.93288958389155,
+            "y": 0
+          },
+          "nodeIndex": "Dim Store",
+          "nodeLineageTag": "5a05de39-b4a5-457e-a127-3638649c7524",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        }
+      ],
+      "name": "SalesQuota",
+      "zoomValue": 62.147026704751141,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 5,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 425.33333206176758,
+            "y": 108
+          },
+          "nodeIndex": "Fact OrderFulfillment",
+          "nodeLineageTag": "1c0a00ac-9cc2-4b0f-a15e-10127d982e08",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        }
+      ],
+      "name": "OrderFulfillment",
+      "zoomValue": 81.003584229390682,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 6,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 556.33333206176758,
+            "y": 169.5
+          },
+          "nodeIndex": "Fact OrderPayment",
+          "nodeLineageTag": "3df94ce1-ca2e-4e23-9e46-ed5f71ca34b2",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 262.33333206176758,
+            "y": 0
+          },
+          "nodeIndex": "Dim PaymentMethod",
+          "nodeLineageTag": "c2ffa6ad-a6cb-4a9a-8925-6bf4e858b5a1",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 3
+        }
+      ],
+      "name": "OrderPayment",
+      "zoomValue": 87.006737247353229,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 7,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 556.33333206176758,
+            "y": 175.5
+          },
+          "nodeIndex": "Fact MarketingSpend",
+          "nodeLineageTag": "102607ae-33f2-4df7-ba14-7de04e04b90b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 245.33333206176758,
+            "y": 0
+          },
+          "nodeIndex": "Dim AcquisitionChannel",
+          "nodeLineageTag": "1db6a67a-7170-48f3-bbc3-92b6a4ce1b29",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        }
+      ],
+      "name": "MarketingSpend",
+      "zoomValue": 72.262190247801755,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 8,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1030.6563409113251,
+            "y": 261.13716814159289
+          },
+          "nodeIndex": "Fact Inventory",
+          "nodeLineageTag": "cfdb0289-913f-4657-bb2b-9ab27ff469a5",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 243.00368604406844,
+            "y": 0
+          },
+          "nodeIndex": "Dim Currency",
+          "nodeLineageTag": "275f7988-5fd4-4575-97e5-cd6ad64ea5d6",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 492.47381878743124,
+            "y": 0
+          },
+          "nodeIndex": "Dim Product",
+          "nodeLineageTag": "884bad39-c879-45d6-9dd6-ba5ec3812312",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 743.44173914141356,
+            "y": 0
+          },
+          "nodeIndex": "Dim Store",
+          "nodeLineageTag": "5a05de39-b4a5-457e-a127-3638649c7524",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        }
+      ],
+      "name": "Inventory",
+      "zoomValue": 63.560170983778953,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 9,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 528.33333206176758,
+            "y": 209.5
+          },
+          "nodeIndex": "Fact ExchangeRate",
+          "nodeLineageTag": "e9423c06-812a-43a0-9df5-35e309817248",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 252.33333206176758,
+            "y": 0
+          },
+          "nodeIndex": "Dim Currency",
+          "nodeLineageTag": "275f7988-5fd4-4575-97e5-cd6ad64ea5d6",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        }
+      ],
+      "name": "ExchangeRate",
+      "zoomValue": 71.575613618368962,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 10,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 523.33333206176758,
+            "y": 211.5
+          },
+          "nodeIndex": "Fact CustomerSurvey",
+          "nodeLineageTag": "98d46ec2-ff9c-4c18-8eb1-e7e7f93879aa",
+          "size": {
+            "height": 434.641592920354,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 249.33333206176758,
+            "y": 0
+          },
+          "nodeIndex": "Dim Customer",
+          "nodeLineageTag": "2fcb34be-cbea-41df-8da6-a72db26f1bf7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        }
+      ],
+      "name": "CustomerSurvey",
+      "zoomValue": 68.329554043839764,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 11,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 913.50368604406844,
+            "y": 291.950221238938
+          },
+          "nodeIndex": "Fact CustomerAcquisition",
+          "nodeLineageTag": "56c8ad78-d623-4004-a3e6-8ddaa9248dd2",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 256.33333206176758,
+            "y": 0
+          },
+          "nodeIndex": "Dim AcquisitionChannel",
+          "nodeLineageTag": "1db6a67a-7170-48f3-bbc3-92b6a4ce1b29",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Dim Date",
+          "nodeLineageTag": "1ad265b7-17ae-49e7-8beb-f82f0655e8f1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 511.73045595557289,
+            "y": 0
+          },
+          "nodeIndex": "Dim Customer",
+          "nodeLineageTag": "2fcb34be-cbea-41df-8da6-a72db26f1bf7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        }
+      ],
+      "name": "CustomerAcuqisition",
+      "zoomValue": 67.872940887247751,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": true,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

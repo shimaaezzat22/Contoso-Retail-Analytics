@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "a58210d21b011a53b848",
+  "position": {
+    "x": 273.33333333333331,
+    "y": 279.44444444444446,
+    "z": 1,
+    "height": 196.66666666666666,
+    "width": 637.77777777777771
+  },
+  "visual": {
+    "visualType": "card",
+    "autoSelectVisualType": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "IL3 On-Time Delivery Rate (IMPORT LIMIT - Schema Frozen at Refresh)"
+                }
+              },
+              "queryRef": "_Measures.IL3 On-Time Delivery Rate (IMPORT LIMIT - Schema Frozen at Refresh)",
+              "nativeQueryRef": "IL3 On-Time Delivery Rate (IMPORT LIMIT - Schema Frozen at Refresh)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

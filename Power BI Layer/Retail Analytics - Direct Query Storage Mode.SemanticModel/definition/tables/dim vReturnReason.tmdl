@@ -1,0 +1,77 @@
+table 'dim vReturnReason'
+	lineageTag: ed358ba7-d783-44e4-8d8c-9d1122ec0db3
+
+	column ReturnReasonKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: fbf1c6a7-71f2-478b-80c6-147d6781d505
+		summarizeBy: count
+		sourceColumn: ReturnReasonKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonCode
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(10)
+		lineageTag: 11866bfc-ccbd-475a-b28a-50d8d687bf06
+		summarizeBy: none
+		sourceColumn: ReturnReasonCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonName
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(100)
+		lineageTag: a2c1882b-5622-47b1-bea4-885024822ad8
+		summarizeBy: none
+		sourceColumn: ReturnReasonName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonCategory
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(50)
+		lineageTag: fc721d54-a3a9-4d39-8e71-7af9be877fa0
+		summarizeBy: none
+		sourceColumn: ReturnReasonCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsOperationalFailure
+		dataType: boolean
+		isNullable: false
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: bc076ee2-8305-44ab-b320-39e4ca2a539c
+		summarizeBy: none
+		sourceColumn: IsOperationalFailure
+
+		annotation SummarizationSetBy = Automatic
+
+	column AppliesTo
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(20)
+		lineageTag: 266cb91e-9a9c-48cc-ac39-9b1a80575b31
+		summarizeBy: none
+		sourceColumn: AppliesTo
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dim vReturnReason' = m
+		mode: directQuery
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "dim", Item = "vReturnReason"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,51 @@
+table 'Dim PaymentMethod'
+	lineageTag: c2ffa6ad-a6cb-4a9a-8925-6bf4e858b5a1
+
+	column PaymentMethodKey
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: 091e53c0-4fc6-49bd-b218-59c6d73b6e85
+		summarizeBy: none
+		sourceColumn: PaymentMethodKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PaymentMethodName
+		dataType: string
+		lineageTag: a602bac8-36ed-4d8e-b0b1-16771708e048
+		summarizeBy: none
+		sourceColumn: PaymentMethodName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PaymentCategory
+		dataType: string
+		lineageTag: caf67c3a-adc4-4afd-ac5c-22c3ba0a43e4
+		summarizeBy: none
+		sourceColumn: PaymentCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsDigital
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 880e5dbd-dcec-458c-818c-7c4e49ec2500
+		summarizeBy: none
+		sourceColumn: IsDigital
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim PaymentMethod' = m
+		mode: import
+		queryGroup: 'Loaded Dimensions'
+		source =
+				let
+					FileRow = DataSource{[Name="dim_vPaymentMethod.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadDimParquet(BinaryData, "dim_vPaymentMethod.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

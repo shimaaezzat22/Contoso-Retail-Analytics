@@ -1,0 +1,169 @@
+table 'Fact OrderFulfillment'
+	lineageTag: 1c0a00ac-9cc2-4b0f-a15e-10127d982e08
+
+	column SalesOrderNumber
+		dataType: string
+		lineageTag: 50a1d439-1a6d-4e0b-9454-dd1256841fe5
+		summarizeBy: none
+		sourceColumn: SalesOrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: ac1631e9-7763-42d2-9d0c-01e0217940c4
+		summarizeBy: count
+		sourceColumn: OrderDateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 34a9eb2b-afba-4221-9c94-b42fcdc6d0a1
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ShipDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3d901657-73ce-4217-8534-5de68955bec5
+		summarizeBy: count
+		sourceColumn: ShipDateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShipDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 89148486-ef72-40e9-bb3f-493d886d240e
+		summarizeBy: none
+		sourceColumn: ShipDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DeliveryDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4c8e9b7e-1049-4561-a77a-52049c54bf0a
+		summarizeBy: none
+		sourceColumn: DeliveryDateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DeliveryDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 62c9a6b7-2cbb-4ecf-a375-75e9b1432b0e
+		summarizeBy: none
+		sourceColumn: DeliveryDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FulfillmentStatus
+		dataType: string
+		lineageTag: 45fdb73f-14d4-4c00-8c28-9af1ef418520
+		summarizeBy: none
+		sourceColumn: FulfillmentStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShippingMethod
+		dataType: string
+		lineageTag: 26532ec5-5ec4-4e1a-932b-a39c1e1b9599
+		summarizeBy: none
+		sourceColumn: ShippingMethod
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProcessingDays
+		dataType: int64
+		formatString: 0
+		lineageTag: b8781c94-2e50-4a07-b095-b3f03aa60d6c
+		summarizeBy: sum
+		sourceColumn: ProcessingDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column TransitDays
+		dataType: int64
+		formatString: 0
+		lineageTag: 94267fe2-8d20-4b6d-8cb8-d7e00cf301a7
+		summarizeBy: sum
+		sourceColumn: TransitDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalFulfillmentDays
+		dataType: int64
+		formatString: 0
+		lineageTag: bf69dafb-fb1f-4d55-ab40-8d60d0644e80
+		summarizeBy: sum
+		sourceColumn: TotalFulfillmentDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column SLAStatus
+		dataType: string
+		lineageTag: feb97f26-4e32-493b-9fbc-bdcac2a9ef33
+		summarizeBy: none
+		sourceColumn: SLAStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column FulfillmentTier
+		dataType: string
+		lineageTag: bfe1364b-99f5-4144-a336-64d286ed118b
+		summarizeBy: none
+		sourceColumn: FulfillmentTier
+
+		annotation SummarizationSetBy = Automatic
+
+	column DelayRootCause
+		dataType: string
+		lineageTag: 37a0ebcd-e566-43c8-a280-cdbee1185e9e
+		summarizeBy: none
+		sourceColumn: DelayRootCause
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsOnTime
+		dataType: int64
+		formatString: 0
+		lineageTag: e18408b6-5ff7-4806-a6ea-41616ee18ccf
+		summarizeBy: sum
+		sourceColumn: IsOnTime
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact OrderFulfillment' = m
+		mode: import
+		queryGroup: 'Loaded Facts'
+		source =
+				let
+					FileRow = DataSource{[Name="fact_vOrderFulfillment.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadFactParquet(BinaryData, "fact_vOrderFulfillment.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

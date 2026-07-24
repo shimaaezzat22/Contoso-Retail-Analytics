@@ -1,0 +1,156 @@
+table 'fact vOrderFulfillment'
+	lineageTag: 00260bfc-fe08-4243-a618-a90821915eea
+
+	column SalesOrderNumber
+		dataType: string
+		lineageTag: 9728022a-7bcb-4450-b195-2bc098e300b1
+		summarizeBy: none
+		sourceColumn: SalesOrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: bfa8b4ee-2708-4c08-83c2-37a27aa146ed
+		summarizeBy: none
+		sourceColumn: OrderDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 95834184-6f38-40a6-a92d-69309db3e366
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ShipDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 77918f1e-236e-4fcd-8994-37368016a6e6
+		summarizeBy: none
+		sourceColumn: ShipDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShipDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9143d549-b1e7-4b16-82d6-e769ebb65a27
+		summarizeBy: none
+		sourceColumn: ShipDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DeliveryDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: f32640a5-3da4-4b79-9923-e8b27f0e13a2
+		summarizeBy: none
+		sourceColumn: DeliveryDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DeliveryDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: bcf94263-63e8-4470-b5d5-07d78f24f26b
+		summarizeBy: none
+		sourceColumn: DeliveryDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FulfillmentStatus
+		dataType: string
+		lineageTag: a08db329-fdf1-4031-9f3f-35d67e08135e
+		summarizeBy: none
+		sourceColumn: FulfillmentStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShippingMethod
+		dataType: string
+		lineageTag: c17a6aaf-df0d-4ba1-b0c4-29ce3ce0fe18
+		summarizeBy: none
+		sourceColumn: ShippingMethod
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProcessingDays
+		dataType: int64
+		formatString: 0
+		lineageTag: 1c04f7f7-f86f-4abd-95a8-0801ac1abd62
+		summarizeBy: none
+		sourceColumn: ProcessingDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column TransitDays
+		dataType: int64
+		formatString: 0
+		lineageTag: 200c963e-e75e-4ff5-8394-a9bfa4ae8ccf
+		summarizeBy: none
+		sourceColumn: TransitDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalFulfillmentDays
+		dataType: int64
+		formatString: 0
+		lineageTag: 7e9906c8-70a2-4b22-a0f2-cd656248ac61
+		summarizeBy: none
+		sourceColumn: TotalFulfillmentDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column SLAStatus
+		dataType: string
+		lineageTag: 053fd5fc-a7e4-4570-bbc7-546a3f6500d7
+		summarizeBy: none
+		sourceColumn: SLAStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column FulfillmentTier
+		dataType: string
+		lineageTag: 20ec7d67-f7af-4669-933c-997297fb9536
+		summarizeBy: none
+		sourceColumn: FulfillmentTier
+
+		annotation SummarizationSetBy = Automatic
+
+	column DelayRootCause
+		dataType: string
+		lineageTag: 3fec6458-0e7d-4f0a-be8c-42881f27ee12
+		summarizeBy: none
+		sourceColumn: DelayRootCause
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsOnTime
+		dataType: int64
+		formatString: 0
+		lineageTag: fb5902fd-ea20-40f2-af49-47694d4dc708
+		summarizeBy: none
+		sourceColumn: IsOnTime
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'fact vOrderFulfillment' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("localhost\SQLEXPRESS", "ContosoRetailDW"),
+				    fact_vOrderFulfillment = Source{[Schema="fact",Item="vOrderFulfillment"]}[Data]
+				in
+				    fact_vOrderFulfillment
+

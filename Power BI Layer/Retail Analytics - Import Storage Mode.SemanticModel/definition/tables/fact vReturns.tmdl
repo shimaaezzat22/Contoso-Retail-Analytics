@@ -1,0 +1,180 @@
+table 'fact vReturns'
+	lineageTag: 6443028c-dcd9-4072-80ee-3a109f39d68d
+
+	column ReturnEventKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 6627eb7d-41f9-4797-b6f7-12064ea472e5
+		summarizeBy: count
+		sourceColumn: ReturnEventKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnEventID
+		dataType: string
+		lineageTag: 4104878c-d364-4f26-bde8-8e356c0e75a6
+		summarizeBy: none
+		sourceColumn: ReturnEventID
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: f7a95e4c-64f1-473b-9c29-c9cf666e2850
+		summarizeBy: count
+		sourceColumn: ReturnDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f40d4d46-3017-498d-80ff-74583a45c89b
+		summarizeBy: none
+		sourceColumn: ReturnDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column OriginalSaleDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: b7e3ccbd-1f59-42f8-8d8b-24879486700b
+		summarizeBy: count
+		sourceColumn: OriginalSaleDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OriginalSaleDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 6d18919d-f46c-47a7-bf62-1082e951898a
+		summarizeBy: none
+		sourceColumn: OriginalSaleDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CustomerKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 1c2d8cbc-8002-4c2e-b5c8-cb6116639b85
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 20ddbf1f-19bf-4fe5-bb86-263976f44086
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductKey
+		dataType: int64
+		formatString: 0
+		lineageTag: cedc4836-717e-4e00-bdd0-6f4a01cbae2a
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonKey
+		dataType: int64
+		formatString: 0
+		lineageTag: c4ac2438-726d-433b-b954-6adce056866e
+		summarizeBy: none
+		sourceColumn: ReturnReasonKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesOrderNumber
+		dataType: string
+		lineageTag: 97f8512c-c476-42f6-84f0-8f83cbfa911b
+		summarizeBy: none
+		sourceColumn: SalesOrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesOrderLineNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: 7365f837-89ea-46c8-9623-c6b80f151b9f
+		summarizeBy: sum
+		sourceColumn: SalesOrderLineNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 6a51290f-68c3-4f2a-bc2c-6b1950e923e8
+		summarizeBy: sum
+		sourceColumn: ReturnQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnAmount
+		dataType: double
+		lineageTag: 1c557d89-dffe-4ac2-b64d-a3f1bb3d4f34
+		summarizeBy: sum
+		sourceColumn: ReturnAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column RefundAmount
+		dataType: double
+		lineageTag: fdd72c02-0909-4cdc-8514-fd1c048287a9
+		summarizeBy: sum
+		sourceColumn: RefundAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column IsRefunded
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2535edcc-4f33-425f-9689-25f4a78c9dff
+		summarizeBy: none
+		sourceColumn: IsRefunded
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnLagDays
+		dataType: int64
+		formatString: 0
+		lineageTag: 5decfca7-b7e7-4b0f-aeec-d57f97339c26
+		summarizeBy: sum
+		sourceColumn: ReturnLagDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnChannel
+		dataType: string
+		lineageTag: 633ed24a-97e3-4951-ba53-c3eff50265db
+		summarizeBy: none
+		sourceColumn: ReturnChannel
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'fact vReturns' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "fact", Item = "vReturns"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

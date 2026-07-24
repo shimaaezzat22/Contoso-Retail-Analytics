@@ -1,0 +1,62 @@
+table 'fact vOrderPayment'
+	lineageTag: b61affe8-f6cf-4ee1-9317-fbc1ddf5c5be
+
+	column SalesOrderNumber
+		dataType: string
+		lineageTag: e3b12488-e498-4cc6-a2a3-197489c0f6be
+		summarizeBy: none
+		sourceColumn: SalesOrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column PaymentMethodKey
+		dataType: int64
+		formatString: 0
+		lineageTag: be4334ad-f650-498a-8a8a-5aff5e104415
+		summarizeBy: none
+		sourceColumn: PaymentMethodKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 08fa9557-7342-4bd8-8864-160aea17db9e
+		summarizeBy: count
+		sourceColumn: OrderDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 3f0d04c6-9fd0-4ab0-a59d-a92011d7c553
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column OrderValue
+		dataType: double
+		lineageTag: a1810a44-5155-4332-8d2d-934da72935aa
+		summarizeBy: sum
+		sourceColumn: OrderValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'fact vOrderPayment' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "fact", Item = "vOrderPayment"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

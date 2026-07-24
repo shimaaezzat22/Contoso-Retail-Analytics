@@ -1,0 +1,242 @@
+table 'dim vStore'
+	lineageTag: 3e373e81-364b-4828-a195-8073fb255f4f
+
+	column StoreKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 7978cfe6-7429-4c36-bbf0-e785df8e361c
+		summarizeBy: count
+		sourceColumn: StoreKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreName
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(100)
+		lineageTag: 4efa1194-a208-4557-b955-983cdd1cc177
+		summarizeBy: none
+		sourceColumn: StoreName
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreType
+		dataType: string
+		sourceProviderType: nvarchar(15)
+		lineageTag: eef25f11-4de4-443b-95c8-e20015963375
+		summarizeBy: none
+		sourceColumn: StoreType
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreDescription
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(300)
+		lineageTag: 5c191a4f-85a5-40e9-a346-2095e2c7783c
+		summarizeBy: none
+		sourceColumn: StoreDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreManager
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: fb2d588b-c8fd-44e3-bc12-7a8575f1b1c9
+		summarizeBy: sum
+		sourceColumn: StoreManager
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeeCount
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 02bcabe3-3fac-4421-9064-506e60df567b
+		summarizeBy: sum
+		sourceColumn: EmployeeCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column SellingAreaSize
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 289da769-1f54-4308-a7aa-8a6a35ad890a
+		summarizeBy: sum
+		sourceColumn: SellingAreaSize
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column StoreSizeCategory
+		dataType: string
+		isNullable: false
+		sourceProviderType: varchar(8)
+		lineageTag: 242b3a01-9745-430e-9b75-d2a2a05e7f68
+		summarizeBy: none
+		sourceColumn: StoreSizeCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column OpenDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: bd2a18fb-9213-4929-924f-db638016e304
+		summarizeBy: none
+		sourceColumn: OpenDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CloseDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: e968b356-d167-4d1c-8303-e0f2ead40d0b
+		summarizeBy: none
+		sourceColumn: CloseDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column StoreStatus
+		dataType: string
+		isNullable: false
+		sourceProviderType: varchar(6)
+		lineageTag: 36825447-a34f-4f40-9d1b-993a7566a2e1
+		summarizeBy: none
+		sourceColumn: StoreStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreAgeYears
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 27b5a956-69db-43dc-8c6a-c80a807c3a0f
+		summarizeBy: sum
+		sourceColumn: StoreAgeYears
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastRemodelDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: 12aa9c6d-f981-4040-8a69-2a083e7b7fb9
+		summarizeBy: none
+		sourceColumn: LastRemodelDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CloseReason
+		dataType: string
+		sourceProviderType: nvarchar(20)
+		lineageTag: 8990bcda-a11b-47c6-88f2-f60bbb78f78d
+		summarizeBy: none
+		sourceColumn: CloseReason
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreContinent
+		dataType: string
+		sourceProviderType: nvarchar(50)
+		lineageTag: ddc82a51-ab43-43a9-a226-bb8bc563f33b
+		summarizeBy: none
+		sourceColumn: StoreContinent
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreCountry
+		dataType: string
+		sourceProviderType: nvarchar(100)
+		lineageTag: 53d01acb-e456-4c2e-bd98-843aa130fa3c
+		summarizeBy: none
+		sourceColumn: StoreCountry
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreState
+		dataType: string
+		sourceProviderType: nvarchar(100)
+		lineageTag: 717ac9d2-8de3-4772-a530-5e0c5fec2a24
+		summarizeBy: none
+		sourceColumn: StoreState
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreCity
+		dataType: string
+		sourceProviderType: nvarchar(100)
+		lineageTag: b749ac2e-a435-416a-9295-38f599b1966f
+		summarizeBy: none
+		sourceColumn: StoreCity
+
+		annotation SummarizationSetBy = Automatic
+
+	column StorePhone
+		dataType: string
+		sourceProviderType: nvarchar(15)
+		lineageTag: 91041abd-828c-47e3-bedc-1fb3d33eaefe
+		summarizeBy: none
+		sourceColumn: StorePhone
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreFax
+		dataType: string
+		sourceProviderType: nvarchar(14)
+		lineageTag: fdb6f55f-1e14-4274-8b55-df64900107f0
+		summarizeBy: none
+		sourceColumn: StoreFax
+
+		annotation SummarizationSetBy = Automatic
+
+	column AddressLine1
+		dataType: string
+		sourceProviderType: nvarchar(100)
+		lineageTag: 893b1408-48bd-40a8-ab6d-14dd45bd7c67
+		summarizeBy: none
+		sourceColumn: AddressLine1
+
+		annotation SummarizationSetBy = Automatic
+
+	column AddressLine2
+		dataType: string
+		sourceProviderType: nvarchar(100)
+		lineageTag: 7dc3d5db-d5e0-4fc8-bebe-923b478c45b0
+		summarizeBy: none
+		sourceColumn: AddressLine2
+
+		annotation SummarizationSetBy = Automatic
+
+	column ZipCode
+		dataType: string
+		sourceProviderType: nvarchar(20)
+		lineageTag: 6d02978d-eb9a-4a59-ab04-b9986c44971a
+		summarizeBy: none
+		sourceColumn: ZipCode
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dim vStore' = m
+		mode: directQuery
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "dim", Item = "vStore"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

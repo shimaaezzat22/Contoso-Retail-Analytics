@@ -1,0 +1,121 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "414e54f806645c46b0c5",
+  "position": {
+    "x": 10,
+    "y": 0,
+    "z": 0,
+    "height": 410,
+    "width": 515.71428571428578,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim vDate"
+                    }
+                  },
+                  "Property": "CalendarYear"
+                }
+              },
+              "queryRef": "dim vDate.CalendarYear",
+              "nativeQueryRef": "CalendarYear",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim vDate"
+                    }
+                  },
+                  "Property": "CalendarMonth"
+                }
+              },
+              "queryRef": "dim vDate.CalendarMonth",
+              "nativeQueryRef": "CalendarMonth",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "M1 YoY Revenue (DQ FAILS - Silent BLANK)"
+                }
+              },
+              "queryRef": "_Measures.M1 YoY Revenue (DQ FAILS - Silent BLANK)",
+              "nativeQueryRef": "M1 YoY Revenue (DQ FAILS - Silent BLANK)"
+            }
+          ]
+        }
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "dim vDate.CalendarYear"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim vDate"
+                    }
+                  },
+                  "Property": "CalendarYear"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "dim vDate.CalendarMonth"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "2023L"
+                  }
+                }
+              ],
+              "isToggled": true
+            }
+          ]
+        }
+      }
+    ],
+    "drillFilterOtherVisuals": true
+  }
+}

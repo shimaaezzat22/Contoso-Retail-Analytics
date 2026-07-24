@@ -1,0 +1,134 @@
+table 'fact vMarketingSpend'
+	lineageTag: 9eaece4f-c0b2-4bd4-84e8-987c8969ab8b
+
+	column MarketingSpendID
+		dataType: int64
+		formatString: 0
+		lineageTag: aa386a84-3844-49f6-8b08-863e828c103f
+		summarizeBy: count
+		sourceColumn: MarketingSpendID
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionChannelKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 07518237-66f8-4aff-b7d7-2913cbc5b91d
+		summarizeBy: none
+		sourceColumn: AcquisitionChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthStartDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: c5be99f7-b864-4f3d-a6a1-7e96c17c5f8d
+		summarizeBy: count
+		sourceColumn: MonthStartDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthStartDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0c29c5f7-423f-468a-a055-12713f9dd0a7
+		summarizeBy: none
+		sourceColumn: MonthStartDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column YearMonthKey
+		dataType: int64
+		formatString: 0
+		lineageTag: f6414441-05b5-4590-b2cd-4b877712c153
+		summarizeBy: count
+		sourceColumn: YearMonthKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthlySpend
+		dataType: double
+		lineageTag: 8821b4d3-7d92-4615-b45e-db14437c2c6a
+		summarizeBy: sum
+		sourceColumn: MonthlySpend
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Impressions
+		dataType: int64
+		formatString: 0
+		lineageTag: 79ee3060-582f-4724-af1e-5c613f3c0d2a
+		summarizeBy: sum
+		sourceColumn: Impressions
+
+		annotation SummarizationSetBy = Automatic
+
+	column Clicks
+		dataType: int64
+		formatString: 0
+		lineageTag: 93d21e71-2439-4a43-a670-d9ae22379b8e
+		summarizeBy: sum
+		sourceColumn: Clicks
+
+		annotation SummarizationSetBy = Automatic
+
+	column NewCustomersAcquired
+		dataType: int64
+		formatString: 0
+		lineageTag: 68ec4fe9-73d5-4707-bb2a-bf7a8aa9084c
+		summarizeBy: sum
+		sourceColumn: NewCustomersAcquired
+
+		annotation SummarizationSetBy = Automatic
+
+	column CostPerClick
+		dataType: double
+		lineageTag: d0eab6ec-81d5-463c-a740-9ad617667bcf
+		summarizeBy: sum
+		sourceColumn: CostPerClick
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CostPerAcquisition
+		dataType: double
+		lineageTag: d1ff6f85-6265-49b9-a553-31b641aa39a7
+		summarizeBy: sum
+		sourceColumn: CostPerAcquisition
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ClickThroughRate
+		dataType: double
+		lineageTag: f3679ecc-3b80-4caf-a37e-37e9ab29a8be
+		summarizeBy: sum
+		sourceColumn: ClickThroughRate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column SpendEfficiencyTier
+		dataType: string
+		lineageTag: faf96d9a-77ce-461f-8324-42cd646d38a1
+		summarizeBy: none
+		sourceColumn: SpendEfficiencyTier
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'fact vMarketingSpend' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("localhost\SQLEXPRESS", "ContosoRetailDW"),
+				    fact_vMarketingSpend = Source{[Schema="fact",Item="vMarketingSpend"]}[Data]
+				in
+				    fact_vMarketingSpend
+

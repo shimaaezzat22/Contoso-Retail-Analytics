@@ -1,0 +1,72 @@
+table 'fact vCustomerAcquisition'
+	lineageTag: ad8d824a-bb37-40b3-a676-ec95079cca77
+
+	column CustomerKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 11d92673-aa0f-4a24-885f-321cfe573bf7
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionChannelKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 9072be57-7ae6-459d-8fb4-9947ba07200b
+		summarizeBy: none
+		sourceColumn: AcquisitionChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 23201326-fef5-489e-8043-b244b2426569
+		summarizeBy: count
+		sourceColumn: AcquisitionDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 98ea39b4-7aae-4067-82ef-20975e03649d
+		summarizeBy: none
+		sourceColumn: AcquisitionDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CACMidpoint
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 41546089-498e-4eec-8e4b-d916ee05d7de
+		summarizeBy: sum
+		sourceColumn: CACMidpoint
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column CACTier
+		dataType: string
+		lineageTag: 641b6e67-ab04-4dc3-a2d8-7fc66ae3be96
+		summarizeBy: none
+		sourceColumn: CACTier
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'fact vCustomerAcquisition' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "fact", Item = "vCustomerAcquisition"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

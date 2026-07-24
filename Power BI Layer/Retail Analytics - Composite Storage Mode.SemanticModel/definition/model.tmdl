@@ -1,0 +1,41 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["DevMode"]
+
+annotation PBI_QueryOrder = ["_Measures","dim vAcquisitionChannel","dim vChannel","dim vCurrency","dim vCustomer","dim vEmployee","dim vDate","dim vPaymentMethod","dim vProduct","dim vPromotion","dim vReturnReason","dim vStore","fact vCustomerAcquisition","fact vCustomerSurvey","fact vExchangeRate","fact vMarketingSpend","fact vOrderFulfillment","fact vOrderPayment","fact vReturns","fact vSalesQuota","fact vStoreSales","fact vOnlineSales","fact vInventory","agg vOnlineSalesDailySummary"]
+
+ref table _Measures
+ref table 'dim vAcquisitionChannel'
+ref table 'dim vChannel'
+ref table 'dim vCurrency'
+ref table 'dim vCustomer'
+ref table 'dim vEmployee'
+ref table 'dim vDate'
+ref table 'dim vPaymentMethod'
+ref table 'dim vProduct'
+ref table 'dim vPromotion'
+ref table 'dim vReturnReason'
+ref table 'dim vStore'
+ref table 'fact vCustomerAcquisition'
+ref table 'fact vCustomerSurvey'
+ref table 'fact vExchangeRate'
+ref table 'fact vMarketingSpend'
+ref table 'fact vOrderFulfillment'
+ref table 'fact vOrderPayment'
+ref table 'fact vReturns'
+ref table 'fact vSalesQuota'
+ref table 'fact vStoreSales'
+ref table 'fact vOnlineSales'
+ref table 'fact vInventory'
+ref table 'agg vOnlineSalesDailySummary'
+
+ref cultureInfo en-US
+

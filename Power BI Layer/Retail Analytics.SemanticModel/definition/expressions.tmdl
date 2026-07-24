@@ -1,0 +1,169 @@
+/// Parameter for controlling the amount of data streaming from the fact parquet files from the SharePoint folder. We target ONLY 10000 rows of data from each fact table NOT to choke the hardware of the local PC. It will be set to True while running the project on the local hardware and it will be set to False on the Power BI Service.
+expression IsDev = true meta [IsParameterQuery=true, Type="Logical", IsParameterQueryRequired=true]
+	lineageTag: 6847fe9a-6072-4b56-aed9-5a2b417bb692
+	queryGroup: 'Parameters List'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Logical
+
+/// This is the storage site of the dataset. We intentionally stored it on SharePoint site as all the group has access to this platform
+expression pSharedSiteURL = "https://intrast.sharepoint.com/sites/ALX4_DAT1_G12" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: c1308eec-a286-42c8-87ea-36c5d3a59bfe
+	queryGroup: 'Parameters List'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+/// This is the specific folder contains the dataset.
+expression pSharedFolderPath = "https://intrast.sharepoint.com/sites/ALX4_DAT1_G12/Shared Documents/Retail Analytics/" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: f7d3b9de-3159-4f78-958b-eca86bd76db1
+	queryGroup: 'Parameters List'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression DataSource = ```
+		let
+		// This is the connection step and we should connect to the site link NOT the folder - So important.
+		Source = SharePoint.Files(pSharedSiteURL, [ApiVersion = 15]),
+		// In this step we navigated to the dataset folder that contains all the data files we uploaded previously.
+		FilteredFolder = Table.SelectRows(
+		Source,
+		each (
+		[Folder Path]
+		= pSharedFolderPath
+		)
+		),
+		// Engineering Fix: Buffer the metadata table in RAM to prevent 22x API calls
+		// Here we buffered the whole 22 data file locations once 
+		// without being forced to call the SharePoint API for 22 times.
+		BufferedTable = Table.Buffer(FilteredFolder)
+		in
+		    BufferedTable
+		```
+	lineageTag: 012002ae-07ed-47d2-98a0-8240b1997615
+	queryGroup: 'Data Connection'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression fxLoadFactParquet = ```
+		(BinaryContent as binary, FileName as text) =>
+		  let
+		    // 1. Buffer and parse the binary directly (Data fetching is handled upstream)
+		    ImportedParquet = Parquet.Document(Binary.Buffer(BinaryContent)), 
+		    // 2. DEFENSIVE ENGINEERING: Strip corrupt Parquet metadata types
+		    ActualColumns = Table.ColumnNames(ImportedParquet), 
+		    StripCorruptTypes = Table.TransformColumnTypes(
+		      ImportedParquet, 
+		      List.Transform(ActualColumns, each {_, type any})
+		    ), 
+		    // ---------------------------------------------------------
+		    // THE METADATA DICTIONARY INJECTION (CLOUD-SAFE VERSION)
+		    // ---------------------------------------------------------
+		    TableSchema = Table.SelectRows(SchemaMapping, each ([FileName] = FileName)), 
+		    ValidSchema = Table.SelectRows(TableSchema, each List.Contains(ActualColumns, [ColumnName])), 
+		    TypeMap = [
+		      #"Int64.Type"    = Int64.Type, 
+		      #"type text"     = type text, 
+		      #"type date"     = type date, 
+		      #"type datetime" = type datetime, 
+		      #"Currency.Type" = Currency.Type, 
+		      #"type number"   = type number, 
+		      #"type logical"  = type logical, 
+		      #"type any"      = type any
+		    ], 
+		    SchemaList = List.Transform(
+		      Table.ToRecords(ValidSchema), 
+		      each {Record.Field(_, "ColumnName"), Record.Field(TypeMap, Record.Field(_, "DataType"))}
+		    ), 
+		    // 4. Apply the dynamic types
+		    TypedTable = Table.TransformColumnTypes(StripCorruptTypes, SchemaList), 
+		    // 5. Starvation phase
+		    DevFilterApplied = if IsDev = true then Table.FirstN(TypedTable, 10000) else TypedTable
+		  in
+		    DevFilterApplied
+		```
+	lineageTag: eab30838-907e-4b36-ac3a-e45add551806
+	queryGroup: 'Loaded Facts'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression fxLoadDimParquet = ```
+		(BinaryContent as binary, FileName as text) =>
+		  let
+		    // 1. Buffer and parse the binary directly (Data fetching is handled upstream)
+		    ImportedParquet = Parquet.Document(Binary.Buffer(BinaryContent)), 
+		    // 2. DEFENSIVE ENGINEERING: Strip corrupt Parquet metadata types
+		    ActualColumns = Table.ColumnNames(ImportedParquet), 
+		    StripCorruptTypes = Table.TransformColumnTypes(
+		      ImportedParquet, 
+		      List.Transform(ActualColumns, each {_, type any})
+		    ), 
+		    // ---------------------------------------------------------
+		    // THE METADATA DICTIONARY INJECTION (CLOUD-SAFE VERSION)
+		    // ---------------------------------------------------------
+		    TableSchema = Table.SelectRows(SchemaMapping, each ([FileName] = FileName)), 
+		    ValidSchema = Table.SelectRows(TableSchema, each List.Contains(ActualColumns, [ColumnName])), 
+		    TypeMap = [
+		      #"Int64.Type"    = Int64.Type, 
+		      #"type text"     = type text, 
+		      #"type date"     = type date, 
+		      #"type datetime" = type datetime, 
+		      #"Currency.Type" = Currency.Type, 
+		      #"type number"   = type number, 
+		      #"type logical"  = type logical, 
+		      #"type any"      = type any
+		    ], 
+		    SchemaList = List.Transform(
+		      Table.ToRecords(ValidSchema), 
+		      each {Record.Field(_, "ColumnName"), Record.Field(TypeMap, Record.Field(_, "DataType"))}
+		    ), 
+		    // 4. Apply the dynamic types
+		    TypedTable = Table.TransformColumnTypes(StripCorruptTypes, SchemaList)
+		    // 5. No Starvation phase for dimensions to keep the data integrity
+		  
+		  in
+		    TypedTable
+		```
+	lineageTag: 3a0507d2-339d-49a6-af13-7e214fd1bc5e
+	queryGroup: 'Loaded Dimensions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression SchemaMapping = ```
+		// Query Name: SchemaMapping
+		let
+		  Source = SharePoint.Files(pSharedSiteURL, [ApiVersion = 15]), 
+		  FilteredSchemaDictionary = Table.SelectRows(Source, each ([Name] = "SchemaDictionary.csv")), 
+		  ReachedFile = FilteredSchemaDictionary
+		    {[Name = "SchemaDictionary.csv", #"Folder Path" = pSharedFolderPath]}
+		    [Content], 
+		  ImportedCSV = Csv.Document(
+		    ReachedFile, 
+		    [Delimiter = ",", Columns = 4, Encoding = 1252, QuoteStyle = QuoteStyle.None]
+		  ), 
+		  ChangedDataType = Table.TransformColumnTypes(
+		    ImportedCSV, 
+		    {{"Column1", type text}, {"Column2", type text}, {"Column3", type text}, {"Column4", type text}}
+		  ), 
+		  PromotedHeaders = Table.PromoteHeaders(ChangedDataType, [PromoteAllScalars = true]), 
+		  BufferedMapping = Table.Buffer(PromotedHeaders)
+		in
+		    BufferedMapping
+		```
+	lineageTag: 4fdf8c6e-a7fb-4f5a-8960-1669ccc6c733
+	queryGroup: 'Data Connection'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

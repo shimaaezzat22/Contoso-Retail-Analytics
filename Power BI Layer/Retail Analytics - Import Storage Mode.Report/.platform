@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Retail Analytics - Import Storage Mode"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a6d24f50-3663-4df8-a105-4f61134d37e7"
+  }
+}

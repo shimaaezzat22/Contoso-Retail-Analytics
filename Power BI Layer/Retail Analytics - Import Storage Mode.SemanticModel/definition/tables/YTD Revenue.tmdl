@@ -1,0 +1,51 @@
+table 'YTD Revenue'
+	lineageTag: 680d7fb0-8a34-4681-a803-4e8dc95a00b5
+
+	column Year
+		dataType: string
+		lineageTag: 09db90fe-dcf5-4f00-8122-c49d25eb83b3
+		summarizeBy: none
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: d63bf879-a8e0-4984-9893-1f785b1761bd
+		summarizeBy: none
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column Monthly_Revenue
+		dataType: double
+		lineageTag: effab20a-f200-4ee5-8607-3570f1326018
+		summarizeBy: sum
+		sourceColumn: Monthly_Revenue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column YTD_Revenue
+		dataType: double
+		lineageTag: 2713e261-9f31-4677-aab5-5baecc90bacc
+		summarizeBy: sum
+		sourceColumn: YTD_Revenue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'YTD Revenue' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Database("localhost\SQLEXPRESS", "ContosoRetailDW", [Query = "SELECT Year, Month, Monthly_Revenue, YTD_Revenue#(lf)FROM (#(lf)  SELECT vdd.CalendarYearLabel AS Year,#(lf)         vdd.CalendarMonthLabel AS Month,#(lf)         vdd.CalendarYear,#(lf)         vdd.CalendarMonth,#(lf)         SUM(vos.SalesAmount) AS Monthly_Revenue,#(lf)         SUM(SUM(vos.SalesAmount)) OVER (PARTITION BY vdd.CalendarYearLabel ORDER BY vdd.CalendarMonth) AS YTD_Revenue#(lf)  FROM fact.vOnlineSales AS vos#(lf)  INNER JOIN dim.vDate AS vdd#(lf)    ON vos.DateKey = vdd.DateKey#(lf)  GROUP BY vdd.CalendarYearLabel, vdd.CalendarYear, vdd.CalendarMonth, vdd.CalendarMonthLabel#(lf)) t#(lf)ORDER BY t.CalendarYear, t.CalendarMonth;"])
+				in
+				  Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

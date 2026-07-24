@@ -1,0 +1,190 @@
+table 'fact vStoreSales'
+	lineageTag: 706c3828-9642-4f1b-a645-e6fc8b3dbac2
+
+	column SalesKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 9e2809e8-2971-44da-a31e-c60d161bbb8a
+		summarizeBy: count
+		sourceColumn: SalesKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 986d3c5a-f231-4c09-81d0-787174ea6055
+		summarizeBy: count
+		sourceColumn: DateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SaleDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: d3dece59-9407-4055-b524-7fa329b00d15
+		summarizeBy: none
+		sourceColumn: SaleDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ChannelKey
+		dataType: int64
+		formatString: 0
+		lineageTag: f6b87aa5-240f-4226-81d8-98823bbe180e
+		summarizeBy: count
+		sourceColumn: ChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreKey
+		dataType: int64
+		formatString: 0
+		lineageTag: ec26ea78-61cc-4feb-9139-24700cc847be
+		summarizeBy: count
+		sourceColumn: StoreKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 32701e3f-c76b-4c58-ab9b-21a24d760a9f
+		summarizeBy: count
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 3f5ac887-1476-49c5-a466-56134eef0ef2
+		summarizeBy: count
+		sourceColumn: PromotionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 15030619-6750-4a67-a921-415a5d82d0bc
+		summarizeBy: count
+		sourceColumn: CurrencyKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 60a68c1f-9af8-45c1-b2f3-90c17a83533b
+		summarizeBy: sum
+		sourceColumn: SalesQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesAmount
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: a7be96f3-e8de-4188-862f-922c321d1f16
+		summarizeBy: sum
+		sourceColumn: SalesAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column ReturnQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: bc7c45ae-73b7-4ca0-85da-59fa710a1587
+		summarizeBy: sum
+		sourceColumn: ReturnQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnAmount
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: ec88b647-028a-49a4-88ad-0a8123e0b32b
+		summarizeBy: sum
+		sourceColumn: ReturnAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column DiscountQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 5bca4472-0913-4306-b1b4-2b43361c9385
+		summarizeBy: sum
+		sourceColumn: DiscountQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiscountAmount
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 2cc0246f-75b8-40f0-b61d-599b6ea5f3b3
+		summarizeBy: sum
+		sourceColumn: DiscountAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column TotalCost
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 37db7c0b-5631-4aa3-a2cb-febb3eaed836
+		summarizeBy: sum
+		sourceColumn: TotalCost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column UnitCost
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 28f626ce-07e9-4816-9122-73c8610a8b70
+		summarizeBy: sum
+		sourceColumn: UnitCost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column UnitPrice
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 42a7f9b4-db88-4488-a945-e73cd17a49ac
+		summarizeBy: sum
+		sourceColumn: UnitPrice
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column GrossProfit
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 892852ae-f7fa-4383-afea-70b106781377
+		summarizeBy: sum
+		sourceColumn: GrossProfit
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	partition 'fact vStoreSales' = m
+		mode: directQuery
+		source =
+				let
+				    Source = Sql.Database("localhost\SQLEXPRESS", "ContosoRetailDW"),
+				    fact_vStoreSales = Source{[Schema="fact",Item="vStoreSales"]}[Data]
+				in
+				    fact_vStoreSales
+

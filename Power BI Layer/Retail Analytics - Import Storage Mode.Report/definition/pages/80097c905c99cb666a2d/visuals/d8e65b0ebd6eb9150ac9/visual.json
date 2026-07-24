@@ -1,0 +1,140 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "d8e65b0ebd6eb9150ac9",
+  "position": {
+    "x": 9.09090909090909,
+    "y": 0,
+    "z": 0,
+    "height": 350,
+    "width": 469.09090909090907,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim vDate"
+                    }
+                  },
+                  "Property": "CalendarYear"
+                }
+              },
+              "queryRef": "dim vDate.CalendarYear",
+              "nativeQueryRef": "CalendarYear",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim vDate"
+                    }
+                  },
+                  "Property": "CalendarMonth"
+                }
+              },
+              "queryRef": "dim vDate.CalendarMonth",
+              "nativeQueryRef": "CalendarMonth",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact vOnlineSales"
+                        }
+                      },
+                      "Property": "SalesAmount"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(fact vOnlineSales.SalesAmount)",
+              "nativeQueryRef": "Sum of SalesAmount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "YTD Online Sales Revenue"
+                }
+              },
+              "queryRef": "_Measures.YTD Online Sales Revenue",
+              "nativeQueryRef": "YTD Online Sales Revenue"
+            }
+          ]
+        }
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "dim vDate.CalendarYear"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim vDate"
+                    }
+                  },
+                  "Property": "CalendarYear"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "dim vDate.CalendarMonth"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "2023L"
+                  }
+                }
+              ],
+              "isToggled": true
+            }
+          ]
+        }
+      }
+    ],
+    "drillFilterOtherVisuals": true
+  }
+}

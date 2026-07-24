@@ -1,0 +1,163 @@
+relationship 69184238-0443-16c4-0829-f380daa21b69
+	fromColumn: 'Fact OnlineSales'.CurrencyKey
+	toColumn: 'Dim Currency'.CurrencyKey
+
+relationship c80754b8-124d-2aee-f718-e5bf16fe81a4
+	fromColumn: 'Fact OnlineSales'.CustomerKey
+	toColumn: 'Dim Customer'.CustomerKey
+
+relationship 1379a938-bd50-0b8f-1bfa-58bc690f5d73
+	fromColumn: 'Fact OnlineSales'.DateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship 0b66dfcb-26b6-c7d1-1323-bd2aaf29cc5f
+	fromColumn: 'Fact OnlineSales'.ProductKey
+	toColumn: 'Dim Product'.ProductKey
+
+relationship 75925c78-d225-2236-13f7-e87a7586e435
+	fromColumn: 'Fact OnlineSales'.PromotionKey
+	toColumn: 'Dim Promotion'.PromotionKey
+
+relationship 0e41bbbe-22e8-25f0-e834-2de216583994
+	fromColumn: 'Fact OnlineSales'.StoreKey
+	toColumn: 'Dim Store'.StoreKey
+
+relationship f3efb472-2840-9e8f-c2f8-a0e52226e286
+	fromColumn: 'Fact StoreSales'.ChannelKey
+	toColumn: 'Dim Channel'.ChannelKey
+
+relationship b5e35e40-418c-ece4-0702-e6586c4dce4b
+	fromColumn: 'Fact StoreSales'.CurrencyKey
+	toColumn: 'Dim Currency'.CurrencyKey
+
+relationship 4a36e59c-e0d4-9d8e-f8c2-4d40420eb352
+	fromColumn: 'Fact StoreSales'.DateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship f45aeff0-2d71-f66a-32da-cd65f8901114
+	fromColumn: 'Fact StoreSales'.ProductKey
+	toColumn: 'Dim Product'.ProductKey
+
+relationship ad76a4f9-2430-498f-e145-c2bb533ffb54
+	fromColumn: 'Fact StoreSales'.PromotionKey
+	toColumn: 'Dim Promotion'.PromotionKey
+
+relationship 43fbcae7-220b-ceb4-02a2-65208cfe1ec9
+	fromColumn: 'Fact StoreSales'.StoreKey
+	toColumn: 'Dim Store'.StoreKey
+
+relationship 924fe582-b442-72a5-26b7-12d56a308b34
+	fromColumn: 'Fact Returns'.CustomerKey
+	toColumn: 'Dim Customer'.CustomerKey
+
+relationship f33ab46a-f83c-d727-9662-7c6ea546e846
+	fromColumn: 'Fact Returns'.ProductKey
+	toColumn: 'Dim Product'.ProductKey
+
+relationship 4f4d6324-68f4-f149-b6e8-e05e461ace28
+	fromColumn: 'Fact Returns'.ReturnDateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship e8b9d346-6bd7-6bc6-2300-5d656a2381b8
+	fromColumn: 'Fact Returns'.StoreKey
+	toColumn: 'Dim Store'.StoreKey
+
+relationship 623a7af8-0ff9-afb5-f438-648ff3f2e890
+	fromColumn: 'Fact SalesQuota'.CurrencyKey
+	toColumn: 'Dim Currency'.CurrencyKey
+
+relationship 4b989342-1a2c-359e-66fa-2c4103884907
+	fromColumn: 'Fact SalesQuota'.DateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship f5353376-f581-c613-d007-03701736896f
+	fromColumn: 'Fact SalesQuota'.ProductKey
+	toColumn: 'Dim Product'.ProductKey
+
+relationship 22140661-68cd-56d1-7327-d9b0c2f9a8be
+	fromColumn: 'Fact SalesQuota'.StoreKey
+	toColumn: 'Dim Store'.StoreKey
+
+relationship 1c1f469c-7913-aced-c6a3-36c09e38a91e
+	fromColumn: 'Fact OrderFulfillment'.DeliveryDateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship a89ac25a-c836-5d45-d766-2f2a0bae94ee
+	isActive: false
+	fromColumn: 'Fact OrderFulfillment'.OrderDateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship 4e54fbf4-dae7-3072-91e7-8241fb64f26b
+	isActive: false
+	fromColumn: 'Fact OrderFulfillment'.ShipDateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship 343d6451-4051-0c35-efa1-149d0e14ade7
+	fromColumn: 'Fact OrderPayment'.OrderDateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship 144923c8-fedd-4da3-2a1a-887d9cfbddab
+	fromColumn: 'Fact OrderPayment'.PaymentMethodKey
+	toColumn: 'Dim PaymentMethod'.PaymentMethodKey
+
+relationship 59e674e0-dafd-1d17-4965-c3fb50f12008
+	fromColumn: 'Fact MarketingSpend'.AcquisitionChannelKey
+	toColumn: 'Dim AcquisitionChannel'.AcquisitionChannelKey
+
+relationship 92fda3b0-263c-1361-f522-c5579dbc1d1b
+	fromColumn: 'Fact MarketingSpend'.MonthStartDateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship 39a3f620-36bc-a661-8706-53a7260a0785
+	fromColumn: 'Fact Inventory'.CurrencyKey
+	toColumn: 'Dim Currency'.CurrencyKey
+
+relationship 057a1ea9-16bd-a47a-fb98-b4009640cbce
+	fromColumn: 'Fact Inventory'.DateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship 210d80b0-3fce-5be5-5a63-98012d4f90e4
+	fromColumn: 'Fact Inventory'.ProductKey
+	toColumn: 'Dim Product'.ProductKey
+
+relationship e72eb3d5-7119-4b34-3e35-5ccd53eda9ae
+	fromColumn: 'Fact Inventory'.StoreKey
+	toColumn: 'Dim Store'.StoreKey
+
+relationship ec38e298-bb82-6440-60a8-7a9b737d9a5d
+	fromColumn: 'Fact ExchangeRate'.CurrencyKey
+	toColumn: 'Dim Currency'.CurrencyKey
+
+relationship 5671f1cf-7297-e153-c235-e3f482b225b2
+	fromColumn: 'Fact ExchangeRate'.DateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship 55bb587e-51cf-658e-1dd1-5ab82665ff04
+	fromColumn: 'Fact CustomerSurvey'.CustomerKey
+	toColumn: 'Dim Customer'.CustomerKey
+
+relationship eb4c6c5c-e60b-d951-d900-37daf0d4d417
+	fromColumn: 'Fact CustomerSurvey'.SurveyDateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship 2413c8ca-5333-eecf-8607-abe87d7adfda
+	fromColumn: 'Fact CustomerAcquisition'.AcquisitionChannelKey
+	toColumn: 'Dim AcquisitionChannel'.AcquisitionChannelKey
+
+relationship b8970bea-04cf-0829-8b20-11edc7b0d216
+	fromColumn: 'Fact CustomerAcquisition'.AcquisitionDateKey
+	toColumn: 'Dim Date'.DateKey
+
+relationship cbd7d267-0c3f-ba80-b3e6-568af8f9eeb8
+	fromColumn: 'Fact CustomerAcquisition'.CustomerKey
+	toColumn: 'Dim Customer'.CustomerKey
+
+relationship 2d48dc58-98d6-b29a-de69-5eac148c49e8
+	fromColumn: 'Fact Returns'.ReturnReasonKey
+	toColumn: 'Dim ReturnReason'.ReturnReasonKey
+
+relationship d480a3cd-76fb-12e8-7338-3477221bbc7a
+	isActive: false
+	fromColumn: 'Fact Returns'.OriginalSaleDateKey
+	toColumn: 'Dim Date'.DateKey
+

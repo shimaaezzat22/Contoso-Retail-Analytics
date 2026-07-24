@@ -1,0 +1,70 @@
+table 'Fact OrderPayment'
+	lineageTag: 3df94ce1-ca2e-4e23-9e46-ed5f71ca34b2
+
+	column SalesOrderNumber
+		dataType: string
+		lineageTag: f492ee6d-1a3e-42ad-ae67-ccb597424f9a
+		summarizeBy: none
+		sourceColumn: SalesOrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column PaymentMethodKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 07500102-30e9-404e-9a2a-029c90faa124
+		summarizeBy: none
+		sourceColumn: PaymentMethodKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e8066799-5fe9-4a03-84a1-e80dfdef76c2
+		summarizeBy: none
+		sourceColumn: OrderDateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 07219601-99d0-4a57-9617-20bdb704e313
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column OrderValue
+		dataType: double
+		formatString: $#,0.00
+		lineageTag: aa80a7ba-4dc0-49a9-b549-c40efb808239
+		summarizeBy: sum
+		sourceColumn: OrderValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Fact OrderPayment' = m
+		mode: import
+		queryGroup: 'Loaded Facts'
+		source =
+				let
+					FileRow = DataSource{[Name="fact_vOrderPayment.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadFactParquet(BinaryData, "fact_vOrderPayment.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

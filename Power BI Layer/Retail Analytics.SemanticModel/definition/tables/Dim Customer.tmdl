@@ -1,0 +1,268 @@
+table 'Dim Customer'
+	lineageTag: 2fcb34be-cbea-41df-8da6-a72db26f1bf7
+
+	column CustomerKey
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: 9074f12b-7bb5-4eea-b60e-b6260ab83afc
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column FullName
+		dataType: string
+		lineageTag: 421af3de-ff33-4753-8bf7-7ce27108d579
+		summarizeBy: none
+		sourceColumn: FullName
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerType
+		dataType: string
+		lineageTag: eabf14de-7364-4ef3-b6b5-93fe148aa3ce
+		summarizeBy: none
+		sourceColumn: CustomerType
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyName
+		dataType: string
+		lineageTag: fd8d5b71-8f50-478c-9619-84745fbc2507
+		summarizeBy: none
+		sourceColumn: CompanyName
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmailAddress
+		dataType: string
+		lineageTag: 384b58bd-fe19-468c-b275-d30ef1c53984
+		summarizeBy: none
+		sourceColumn: EmailAddress
+
+		annotation SummarizationSetBy = Automatic
+
+	column Phone
+		dataType: string
+		lineageTag: 09c38241-b117-4c0d-af7b-ca87d1df4915
+		summarizeBy: none
+		sourceColumn: Phone
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gender
+		dataType: string
+		lineageTag: c7ad4392-2093-4678-8ee0-fc0ed7695b99
+		summarizeBy: none
+		sourceColumn: Gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column MaritalStatus
+		dataType: string
+		lineageTag: be2d4a58-562d-47ec-8252-e13d69e1c26f
+		summarizeBy: none
+		sourceColumn: MaritalStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column BirthDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 810110f1-512c-4612-becd-fcae6dff4a8b
+		summarizeBy: none
+		sourceColumn: BirthDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Age
+		dataType: int64
+		formatString: 0
+		lineageTag: aac8c432-81f7-4682-bb2b-9a751b7b383f
+		summarizeBy: sum
+		sourceColumn: Age
+
+		annotation SummarizationSetBy = Automatic
+
+	column AgeGroup
+		dataType: string
+		lineageTag: fa56eeb3-f58d-4329-8183-f3c838524d2c
+		summarizeBy: none
+		sourceColumn: AgeGroup
+
+		annotation SummarizationSetBy = Automatic
+
+	column Education
+		dataType: string
+		lineageTag: 0041b429-e06f-4843-b198-039676bb33f3
+		summarizeBy: none
+		sourceColumn: Education
+
+		annotation SummarizationSetBy = Automatic
+
+	column Occupation
+		dataType: string
+		lineageTag: 54ed5f51-f68d-49d0-aaa0-b6ffa23a582e
+		summarizeBy: none
+		sourceColumn: Occupation
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalChildren
+		dataType: int64
+		formatString: 0
+		lineageTag: 649ca607-17f0-4e0e-94af-62b0056b6e3d
+		summarizeBy: sum
+		sourceColumn: TotalChildren
+
+		annotation SummarizationSetBy = Automatic
+
+	column NumberChildrenAtHome
+		dataType: int64
+		formatString: 0
+		lineageTag: 30362f99-8ec7-4591-beb4-b35e462dc4da
+		summarizeBy: sum
+		sourceColumn: NumberChildrenAtHome
+
+		annotation SummarizationSetBy = Automatic
+
+	column HouseOwnerFlag
+		dataType: string
+		lineageTag: f4151c2a-60f0-4690-b01b-b1500519211a
+		summarizeBy: none
+		sourceColumn: HouseOwnerFlag
+
+		annotation SummarizationSetBy = Automatic
+
+	column NumberCarsOwned
+		dataType: int64
+		formatString: 0
+		lineageTag: 910bed2e-a0e5-4f8b-add4-50429b18c84a
+		summarizeBy: sum
+		sourceColumn: NumberCarsOwned
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearlyIncome
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: a2a9e43a-6931-42b5-8b2f-dc16d2828dbc
+		summarizeBy: sum
+		sourceColumn: YearlyIncome
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column IncomeGroup
+		dataType: string
+		lineageTag: f200df66-adf4-43e1-9c23-c75eaaa11a39
+		summarizeBy: none
+		sourceColumn: IncomeGroup
+
+		annotation SummarizationSetBy = Automatic
+
+	column LifeStage
+		dataType: string
+		lineageTag: 52d49e7c-98f6-4f74-9ea8-e23c9d4fd01c
+		summarizeBy: none
+		sourceColumn: LifeStage
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateFirstPurchase
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 52bec6b1-bd56-417f-9bbb-4bfce78ba3b0
+		summarizeBy: none
+		sourceColumn: DateFirstPurchase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CustomerTenureYears
+		dataType: int64
+		formatString: 0
+		lineageTag: 210852b8-99d1-43de-bcfa-90c70d9b8afd
+		summarizeBy: sum
+		sourceColumn: CustomerTenureYears
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerLifecycleStage
+		dataType: string
+		lineageTag: 0cd0c980-cf42-4524-83be-0dc21e227bc3
+		summarizeBy: none
+		sourceColumn: CustomerLifecycleStage
+
+		annotation SummarizationSetBy = Automatic
+
+	column AddressLine1
+		dataType: string
+		lineageTag: 3d8cd37e-043f-4b4a-a0b7-3fa1a1fb9581
+		summarizeBy: none
+		sourceColumn: AddressLine1
+
+		annotation SummarizationSetBy = Automatic
+
+	column AddressLine2
+		dataType: string
+		lineageTag: c31cc0f5-34fc-482a-a94c-699cc645665e
+		summarizeBy: none
+		sourceColumn: AddressLine2
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerContinent
+		dataType: string
+		lineageTag: 7df3d807-41ae-43bb-943c-6183621e5fc3
+		dataCategory: Continent
+		summarizeBy: none
+		sourceColumn: CustomerContinent
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerCountry
+		dataType: string
+		lineageTag: 4d7f6ecf-e353-4a64-9c6e-4d77b58fe6fb
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: CustomerCountry
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerState
+		dataType: string
+		lineageTag: 37e77885-d9bd-41c1-a8d6-bafe1ac5d8fa
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: CustomerState
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerCity
+		dataType: string
+		lineageTag: 16c3469d-97db-4e47-b053-973a95bdda7a
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: CustomerCity
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Customer' = m
+		mode: import
+		queryGroup: 'Loaded Dimensions'
+		source =
+				let
+					FileRow = DataSource{[Name="dim_vCustomer.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadDimParquet(BinaryData, "dim_vCustomer.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

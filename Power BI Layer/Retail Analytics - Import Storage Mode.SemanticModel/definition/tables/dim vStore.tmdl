@@ -1,0 +1,214 @@
+table 'dim vStore'
+	lineageTag: 197e8635-3399-4e89-ba9d-35bcc6653806
+
+	column StoreKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 7ee1ea91-c891-4f07-af99-f81e119edc80
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreName
+		dataType: string
+		lineageTag: 25ef2013-9f63-4928-949b-287f2d16db49
+		summarizeBy: none
+		sourceColumn: StoreName
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreType
+		dataType: string
+		lineageTag: 2475de14-79f9-43bc-b418-6d65372589c0
+		summarizeBy: none
+		sourceColumn: StoreType
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreDescription
+		dataType: string
+		lineageTag: 4b7367d6-0f39-4192-a8a2-af7004457ef0
+		summarizeBy: none
+		sourceColumn: StoreDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreManager
+		dataType: int64
+		formatString: 0
+		lineageTag: 2dd51c34-1166-454e-8a67-5fd99e0a0c58
+		summarizeBy: sum
+		sourceColumn: StoreManager
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeeCount
+		dataType: int64
+		formatString: 0
+		lineageTag: c1f6d1b6-4bc2-467a-a767-59e32cab2d98
+		summarizeBy: sum
+		sourceColumn: EmployeeCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column SellingAreaSize
+		dataType: double
+		lineageTag: 185daa08-6a22-4f36-8466-d12628bdb689
+		summarizeBy: sum
+		sourceColumn: SellingAreaSize
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column StoreSizeCategory
+		dataType: string
+		lineageTag: 13c2f280-4093-4154-86ea-cf5523816e93
+		summarizeBy: none
+		sourceColumn: StoreSizeCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column OpenDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: c3bc5a88-ffae-4235-9fd3-3af07b3bd1a2
+		summarizeBy: none
+		sourceColumn: OpenDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CloseDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: af485740-bff9-4ae5-8100-db01f1113bd5
+		summarizeBy: none
+		sourceColumn: CloseDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column StoreStatus
+		dataType: string
+		lineageTag: c694604b-2b69-4249-8c8a-11c4e135b712
+		summarizeBy: none
+		sourceColumn: StoreStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreAgeYears
+		dataType: int64
+		formatString: 0
+		lineageTag: b6868976-cecd-4b9f-aba5-a940c4fab567
+		summarizeBy: sum
+		sourceColumn: StoreAgeYears
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastRemodelDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f077c92c-d045-4b6b-87c0-501aa729134e
+		summarizeBy: none
+		sourceColumn: LastRemodelDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CloseReason
+		dataType: string
+		lineageTag: edd73016-06e0-4048-8db7-209d63348130
+		summarizeBy: none
+		sourceColumn: CloseReason
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreContinent
+		dataType: string
+		lineageTag: 0972dea3-97c1-4b42-b8dc-d815e5218bc6
+		summarizeBy: none
+		sourceColumn: StoreContinent
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreCountry
+		dataType: string
+		lineageTag: 8b270bb1-5764-448c-9535-9edfdf7fd685
+		summarizeBy: none
+		sourceColumn: StoreCountry
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreState
+		dataType: string
+		lineageTag: 2e1990ba-849a-439c-94de-da92937bf9c8
+		summarizeBy: none
+		sourceColumn: StoreState
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreCity
+		dataType: string
+		lineageTag: 682ac521-c848-487a-935c-5181173d89ad
+		summarizeBy: none
+		sourceColumn: StoreCity
+
+		annotation SummarizationSetBy = Automatic
+
+	column StorePhone
+		dataType: string
+		lineageTag: e62b5d2b-466f-4a58-9fc8-e32fcbc9c7d0
+		summarizeBy: none
+		sourceColumn: StorePhone
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreFax
+		dataType: string
+		lineageTag: 26208560-7276-46b9-a320-5da35f013f50
+		summarizeBy: none
+		sourceColumn: StoreFax
+
+		annotation SummarizationSetBy = Automatic
+
+	column AddressLine1
+		dataType: string
+		lineageTag: f7ad438b-8d09-46d4-a30c-074847bea026
+		summarizeBy: none
+		sourceColumn: AddressLine1
+
+		annotation SummarizationSetBy = Automatic
+
+	column AddressLine2
+		dataType: string
+		lineageTag: 12878f9d-9ffd-42f9-aa61-11cdba1d0be5
+		summarizeBy: none
+		sourceColumn: AddressLine2
+
+		annotation SummarizationSetBy = Automatic
+
+	column ZipCode
+		dataType: string
+		lineageTag: 587b6ebd-d7ec-4ee6-b8c6-d0735bc93fc5
+		summarizeBy: none
+		sourceColumn: ZipCode
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dim vStore' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "dim", Item = "vStore"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

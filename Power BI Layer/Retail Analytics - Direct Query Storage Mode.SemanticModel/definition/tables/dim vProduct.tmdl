@@ -1,0 +1,252 @@
+table 'dim vProduct'
+	lineageTag: 73133bb4-fe52-44c6-b4f1-958e4a9cf3cd
+
+	column ProductKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: e62bf2ca-c9da-4a64-874e-4b125d6158b1
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductLabel
+		dataType: string
+		sourceProviderType: nvarchar(255)
+		lineageTag: a9c21fe0-c88a-42c5-9ba0-9fcf3542526e
+		summarizeBy: none
+		sourceColumn: ProductLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductName
+		dataType: string
+		sourceProviderType: nvarchar(500)
+		lineageTag: b934c8b2-f4a4-4bce-b881-e72c141542d8
+		summarizeBy: none
+		sourceColumn: ProductName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductDescription
+		dataType: string
+		sourceProviderType: nvarchar(400)
+		lineageTag: 5a9d06e1-2951-4e65-9d43-f2ce8a3bbfab
+		summarizeBy: none
+		sourceColumn: ProductDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column CategoryName
+		dataType: string
+		sourceProviderType: nvarchar(30)
+		lineageTag: e2eb86fc-a3ea-44b5-90b1-83ea1c6ca181
+		summarizeBy: none
+		sourceColumn: CategoryName
+
+		annotation SummarizationSetBy = Automatic
+
+	column SubcategoryName
+		dataType: string
+		sourceProviderType: nvarchar(50)
+		lineageTag: d379eed7-0eee-4a3e-a579-d464fc23d537
+		summarizeBy: none
+		sourceColumn: SubcategoryName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductBreadcrumb
+		dataType: string
+		sourceProviderType: nvarchar(586)
+		lineageTag: 0b0cd875-c03e-4fdd-a63c-9388d294e87c
+		summarizeBy: none
+		sourceColumn: ProductBreadcrumb
+
+		annotation SummarizationSetBy = Automatic
+
+	column Manufacturer
+		dataType: string
+		sourceProviderType: nvarchar(50)
+		lineageTag: 51189e7f-29cb-4996-900b-be95a5828562
+		summarizeBy: none
+		sourceColumn: Manufacturer
+
+		annotation SummarizationSetBy = Automatic
+
+	column BrandName
+		dataType: string
+		sourceProviderType: nvarchar(50)
+		lineageTag: 4178fb71-c084-449c-b602-46f6ba40bcd0
+		summarizeBy: none
+		sourceColumn: BrandName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClassName
+		dataType: string
+		sourceProviderType: nvarchar(20)
+		lineageTag: 1c9ef443-e926-4fb0-ac35-ffcf0af5479f
+		summarizeBy: none
+		sourceColumn: ClassName
+
+		annotation SummarizationSetBy = Automatic
+
+	column StyleName
+		dataType: string
+		sourceProviderType: nvarchar(20)
+		lineageTag: 7ba4d18c-ee0a-40ef-aae9-d9f186e5413c
+		summarizeBy: none
+		sourceColumn: StyleName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ColorName
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(20)
+		lineageTag: 36b061e0-ae7f-4924-a8b0-a96a4b5d36e5
+		summarizeBy: none
+		sourceColumn: ColorName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Size
+		dataType: string
+		sourceProviderType: nvarchar(50)
+		lineageTag: 4f9ddc52-9f82-441d-b805-f0c40768b256
+		summarizeBy: none
+		sourceColumn: Size
+
+		annotation SummarizationSetBy = Automatic
+
+	column SizeRange
+		dataType: string
+		sourceProviderType: nvarchar(50)
+		lineageTag: 3e230936-6784-4ad8-9dbd-77b847ec52c7
+		summarizeBy: none
+		sourceColumn: SizeRange
+
+		annotation SummarizationSetBy = Automatic
+
+	column Weight
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 5892894c-8ba8-4666-9dd8-28988ad2bfd3
+		summarizeBy: none
+		sourceColumn: Weight
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column UnitOfMeasureName
+		dataType: string
+		sourceProviderType: nvarchar(40)
+		lineageTag: fbdd134d-6d6f-4809-b027-d2418ab0fe9c
+		summarizeBy: none
+		sourceColumn: UnitOfMeasureName
+
+		annotation SummarizationSetBy = Automatic
+
+	column StockTypeName
+		dataType: string
+		sourceProviderType: nvarchar(40)
+		lineageTag: 63bae482-06c3-4e2e-8ec2-2754dd9c29b3
+		summarizeBy: none
+		sourceColumn: StockTypeName
+
+		annotation SummarizationSetBy = Automatic
+
+	column CatalogCost
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: money
+		lineageTag: 9301592f-e485-4a55-9f7b-8bce77be288d
+		summarizeBy: none
+		sourceColumn: CatalogCost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column CatalogPrice
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: money
+		lineageTag: 0b80bb8d-e4b1-47ff-9309-3545478f21d7
+		summarizeBy: none
+		sourceColumn: CatalogPrice
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column CatalogGrossMarginPct
+		dataType: double
+		sourceProviderType: decimal(10, 4)
+		lineageTag: 40e687a6-f4d3-4d1c-badc-a5b04adbcdd2
+		summarizeBy: none
+		sourceColumn: CatalogGrossMarginPct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AvailableForSaleDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: 694f5a3a-fdd5-4ffd-a77b-fd400f0085e8
+		summarizeBy: none
+		sourceColumn: AvailableForSaleDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column StopSaleDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: 2f608911-454e-4f1b-9bee-7740f0a78559
+		summarizeBy: none
+		sourceColumn: StopSaleDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ProductStatus
+		dataType: string
+		isNullable: false
+		sourceProviderType: varchar(12)
+		lineageTag: a6de7e70-8ed6-4aa2-a870-7d19390dee49
+		summarizeBy: none
+		sourceColumn: ProductStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column CatalogueAgeYears
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: fdefc12a-b070-4966-8f25-df70d70fd352
+		summarizeBy: none
+		sourceColumn: CatalogueAgeYears
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dim vProduct' = m
+		mode: directQuery
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "dim", Item = "vProduct"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

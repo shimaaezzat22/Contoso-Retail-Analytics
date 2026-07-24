@@ -1,0 +1,40 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["dim vAcquisitionChannel","dim vChannel","dim vCurrency","dim vCustomer","dim vDate","dim vEmployee","dim vPaymentMethod","dim vProduct","dim vPromotion","dim vReturnReason","dim vStore","fact vCustomerAcquisition","fact vCustomerSurvey","fact vExchangeRate","fact vInventory","fact vMarketingSpend","fact vOnlineSales","fact vOrderFulfillment","fact vOrderPayment","fact vReturns","fact vSalesQuota","fact vStoreSales","_Measures"]
+
+annotation PBI_ProTooling = ["DevMode","MCP-PBIModeling"]
+
+ref table 'dim vAcquisitionChannel'
+ref table 'dim vChannel'
+ref table 'dim vCurrency'
+ref table 'dim vCustomer'
+ref table 'dim vDate'
+ref table 'dim vEmployee'
+ref table 'dim vPaymentMethod'
+ref table 'dim vProduct'
+ref table 'dim vPromotion'
+ref table 'dim vReturnReason'
+ref table 'dim vStore'
+ref table 'fact vCustomerAcquisition'
+ref table 'fact vCustomerSurvey'
+ref table 'fact vExchangeRate'
+ref table 'fact vInventory'
+ref table 'fact vMarketingSpend'
+ref table 'fact vOnlineSales'
+ref table 'fact vOrderFulfillment'
+ref table 'fact vOrderPayment'
+ref table 'fact vReturns'
+ref table 'fact vSalesQuota'
+ref table 'fact vStoreSales'
+ref table _Measures
+
+ref cultureInfo en-US
+

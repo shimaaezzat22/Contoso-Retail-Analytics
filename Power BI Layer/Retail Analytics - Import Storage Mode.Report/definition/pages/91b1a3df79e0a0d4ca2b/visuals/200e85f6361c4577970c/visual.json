@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "200e85f6361c4577970c",
+  "position": {
+    "x": 273.33333333333331,
+    "y": 36.666666666666664,
+    "z": 0,
+    "height": 196.66666666666666,
+    "width": 637.77777777777771
+  },
+  "visual": {
+    "visualType": "card",
+    "autoSelectVisualType": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "IL4 Data Freshness Hours (IMPORT LIMIT - Refresh Cycle Cost)"
+                }
+              },
+              "queryRef": "_Measures.IL4 Data Freshness Hours (IMPORT LIMIT - Refresh Cycle Cost)",
+              "nativeQueryRef": "IL4 Data Freshness Hours (IMPORT LIMIT - Refresh Cycle Cost)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,196 @@
+table 'Fact Returns'
+	lineageTag: ed4f74ae-73b9-4561-b497-db23fdd95366
+
+	column ReturnEventKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 41d8e827-62d8-4ae4-94bf-4bf65ab7de4a
+		summarizeBy: count
+		sourceColumn: ReturnEventKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnEventID
+		dataType: string
+		lineageTag: 278e9ff3-7139-4936-91ac-b40a276fd29c
+		summarizeBy: none
+		sourceColumn: ReturnEventID
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a47f253d-fd41-4220-a042-1bbada92be28
+		summarizeBy: none
+		sourceColumn: ReturnDateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 206dd953-71a7-4b0c-bf8e-cc2a7a83d0b1
+		summarizeBy: none
+		sourceColumn: ReturnDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column OriginalSaleDateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 500ed449-e943-44f5-85ad-cd731bb56f6c
+		summarizeBy: count
+		sourceColumn: OriginalSaleDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OriginalSaleDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a7a297f2-2b86-443c-bfa0-529f390fe7cc
+		summarizeBy: none
+		sourceColumn: OriginalSaleDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CustomerKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 623bf5da-928a-4cfa-84e9-45fd07469d2b
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 688a0b36-9a8c-4c7f-a811-05cdd61f9ccd
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 88318760-2489-49f3-88d8-e9eec1851db8
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: fad197f2-39a0-4acc-bfef-5786924269a4
+		summarizeBy: none
+		sourceColumn: ReturnReasonKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesOrderNumber
+		dataType: string
+		lineageTag: bc923106-ba90-4d8a-8661-79101635c1ee
+		summarizeBy: none
+		sourceColumn: SalesOrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesOrderLineNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: 345e65c0-4edb-4a50-8e4c-fb603d09dd0e
+		summarizeBy: sum
+		sourceColumn: SalesOrderLineNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 43115d0f-3356-4c8f-8219-9dce46aa5e0b
+		summarizeBy: sum
+		sourceColumn: ReturnQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnAmount
+		dataType: double
+		formatString: $#,0.00
+		lineageTag: a0f1fca0-5844-40f4-9f3a-ee17eb82227d
+		summarizeBy: sum
+		sourceColumn: ReturnAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column RefundAmount
+		dataType: double
+		formatString: $#,0.00
+		lineageTag: c4c67d83-251a-4a08-9a04-82e6b52c0ed7
+		summarizeBy: sum
+		sourceColumn: RefundAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column IsRefunded
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: e41b5148-1e59-4c81-adca-fc08edca36ae
+		summarizeBy: none
+		sourceColumn: IsRefunded
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnLagDays
+		dataType: int64
+		formatString: 0
+		lineageTag: c8092786-4bb3-4091-a4bb-6e9cac5b3ad6
+		summarizeBy: sum
+		sourceColumn: ReturnLagDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnChannel
+		dataType: string
+		lineageTag: bc34fe36-5ef5-48e4-b36d-a0abb24e8162
+		summarizeBy: none
+		sourceColumn: ReturnChannel
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Returns' = m
+		mode: import
+		queryGroup: 'Loaded Facts'
+		source =
+				let
+					FileRow = DataSource{[Name="fact_vReturns.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadFactParquet(BinaryData, "fact_vReturns.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

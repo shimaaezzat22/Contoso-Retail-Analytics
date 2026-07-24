@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "5c7862cee38a1accb8d3",
+  "position": {
+    "x": 132.72727272727272,
+    "y": 0,
+    "z": 0,
+    "height": 266.36363636363632,
+    "width": 543.63636363636363
+  },
+  "visual": {
+    "visualType": "card",
+    "autoSelectVisualType": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "IL2 Distinct Customers (IMPORT LIMIT - 1.33GB RAM Always Resident)"
+                }
+              },
+              "queryRef": "_Measures.IL2 Distinct Customers (IMPORT LIMIT - 1.33GB RAM Always Resident)",
+              "nativeQueryRef": "IL2 Distinct Customers (IMPORT LIMIT - 1.33GB RAM Always Resident)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

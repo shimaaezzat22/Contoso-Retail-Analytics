@@ -1,0 +1,670 @@
+table _Measures
+	lineageTag: ffabe9e4-9fea-4dd5-82d8-ee6a40b9ec2b
+
+	/// PURPOSE: Demonstrates that SAMEPERIODLASTYEAR is NOT supported in pure DirectQuery mode.
+	/// EXPECTED IN DQ: Returns BLANK on all visuals. Silent failure — no error icon shown.
+	/// EXPECTED IN IMPORT: Returns prior-year online sales revenue correctly for all date contexts.
+	/// ROOT CAUSE: SAMEPERIODLASTYEAR requires DAX to expand dim vDate into a virtual date filter
+	/// set. DQ cannot pass a dynamically generated date set as a SQL WHERE clause to SQL Server.
+	/// TEACHING POINT: ALL Time Intelligence functions (SAMEPERIODLASTYEAR, DATEADD,
+	/// PARALLELPERIOD) share this same silent-BLANK failure pattern in pure DirectQuery.
+	measure 'M1 YoY Revenue (DQ FAILS - Silent BLANK)' =
+			-- M1: Year-over-Year Revenue  |  DQ FAILURE CATEGORY: Time Intelligence
+			-- -----------------------------------------------------------------------
+			-- FAILURE TYPE : Silent BLANK (no error shown in visual)
+			-- DQ RESULT   : BLANK on every visual — the visual appears empty
+			-- IMPORT RESULT: Prior-year online revenue returned correctly
+			-- ROOT CAUSE  : SAMEPERIODLASTYEAR expands dim vDate into a virtual in-memory
+			--               date filter table. DQ cannot translate this expansion into a
+			--               SQL WHERE clause — the query engine has no mechanism to pass
+			--               a dynamically built date set to SQL Server.
+			-- TEACHING POINT: ALL built-in Time Intelligence functions fail in pure DQ.
+			--               This covers ~20-30% of typical executive dashboard measures.
+			-- DAX STUDIO  : Run this — Server Timings will show 0 SE queries, BLANK result.
+			-- -----------------------------------------------------------------------
+			VAR PriorYearRevenue =
+			    CALCULATE (
+			        SUM ( 'fact vOnlineSales'[SalesAmount] ),
+			        SAMEPERIODLASTYEAR ( 'dim vDate'[Date] )  -- DQ cannot fold this to SQL
+			    )
+			RETURN
+			    PriorYearRevenue
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 1 - DQ Failures\Time Intelligence
+		lineageTag: 9d3c3633-ba18-4e56-a947-1e1bff51fb5d
+
+	/// PURPOSE: Demonstrates that DATESYTD (Year-to-Date) is NOT supported in pure DirectQuery mode.
+	/// EXPECTED IN DQ: Returns BLANK on all visuals. Same silent failure pattern as M1.
+	/// EXPECTED IN IMPORT: Returns cumulative revenue from Jan 1 to the date in current filter context.
+	/// ROOT CAUSE: DATESYTD builds an in-memory table of all dates from the start of the year to
+	/// the current date. DQ cannot pass this dynamic date table as a parameterised SQL query.
+	/// TEACHING POINT: YTD, QTD, MTD, and all rolling-window date functions share this failure.
+	/// This covers roughly 20-30% of executive dashboard measures in a typical retail BI project.
+	measure 'M2 YTD Revenue (DQ FAILS - Silent BLANK)' =
+			-- M2: Year-to-Date Revenue  |  DQ FAILURE CATEGORY: Time Intelligence
+			-- -----------------------------------------------------------------------
+			-- FAILURE TYPE : Silent BLANK (no error shown in visual)
+			-- DQ RESULT   : BLANK on every visual
+			-- IMPORT RESULT: Correct cumulative YTD online revenue from Jan 1 to filter date
+			-- ROOT CAUSE  : DATESYTD generates a dynamic date table in-memory.
+			--               DQ cannot send this dynamic table to SQL Server as a WHERE clause.
+			--               The formula engine has no rows to iterate — returns BLANK.
+			-- NOTE        : TOTALYTD() fails with the same root cause — it wraps DATESYTD.
+			-- DAX STUDIO  : SE Queries = 0, FE = near-zero, result = BLANK. Compare this
+			--               to H1 (SE Queries = 4, 16s) to show the spectrum of DQ failure.
+			-- -----------------------------------------------------------------------
+			VAR YTDRevenue =
+			    CALCULATE (
+			        SUM ( 'fact vOnlineSales'[SalesAmount] ),
+			        DATESYTD ( 'dim vDate'[Date] )  -- DQ cannot translate this date range expansion
+			    )
+			RETURN
+			    YTDRevenue
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 1 - DQ Failures\Time Intelligence
+		lineageTag: e410f0fc-b07f-4f5c-abf5-592d05797184
+
+	/// PURPOSE: Demonstrates that RANKX over an entire table is NOT supported in pure DirectQuery.
+	/// EXPECTED IN DQ: Error or BLANK depending on filter context depth. RANKX forces a full
+	/// in-memory table scan that cannot be translated into a SQL ORDER BY inside a filter context.
+	/// EXPECTED IN IMPORT: Correctly returns rank of each product by online revenue (1 = highest).
+	/// ROOT CAUSE: RANKX must iterate every row of a virtual table and compare values in DAX memory.
+	/// In DQ the virtual table would require returning all product rows to the formula engine,
+	/// defeating the purpose of keeping data in SQL Server.
+	/// TEACHING POINT: Any iterator that ranks, sorts, or compares across ALL rows (RANKX, TOPN
+	/// when nested inside CALCULATE) fails or degrades severely in DirectQuery.
+	measure 'M3 Product Rank (DQ FAILS - Iterator)' =
+			-- M3: Product Revenue Rank  |  DQ FAILURE CATEGORY: Iterator Functions
+			-- -----------------------------------------------------------------------
+			-- FAILURE TYPE : Error or severe degradation (context-dependent)
+			-- DQ RESULT   : Error or BLANK — depends on filter context depth
+			-- IMPORT RESULT: Integer rank 1..N where 1 = highest revenue product
+			-- ROOT CAUSE  : RANKX iterates a full virtual product table inside an arbitrary
+			--               filter context. DQ cannot translate this full-table iteration
+			--               into a SQL ORDER BY clause within the current filter context.
+			--               The formula engine would need all product rows in memory.
+			-- TEACHING POINT: Iterator functions that span the full table (RANKX, PERCENTILEX)
+			--               are fundamentally incompatible with DirectQuery architecture.
+			-- DAX STUDIO  : Watch for very high FE time — rows pulled from SQL to DAX client
+			--               for in-memory ranking. This is the opposite pattern to H1.
+			-- -----------------------------------------------------------------------
+			VAR AllProductRevenue =
+			    ADDCOLUMNS (
+			        ALL ( 'dim vProduct'[ProductName] ),  -- full product scan — DQ cannot fold
+			        "Revenue", SUM ( 'fact vOnlineSales'[SalesAmount] )
+			    )
+			VAR CurrentRank =
+			    RANKX (
+			        AllProductRevenue,
+			        [Revenue],
+			        SUM ( 'fact vOnlineSales'[SalesAmount] ),
+			        DESC,
+			        DENSE
+			    )
+			RETURN
+			    CurrentRank
+		formatString: 0
+		displayFolder: Pillar 1 - DQ Failures\Iterator Functions
+		lineageTag: 8c107a53-a7e1-4efa-ba9b-a52ed371443f
+
+	/// PURPOSE: Demonstrates that PATH and PATHCONTAINS parent-child functions fail in DirectQuery.
+	/// EXPECTED IN DQ: Explicit error — PATH() has no SQL equivalent. Power BI raises a hard error
+	/// rather than silently returning BLANK, distinguishing it from time-intelligence failures.
+	/// EXPECTED IN IMPORT: Correctly resolves the employee management hierarchy depth as an integer.
+	/// ROOT CAUSE: PATH() is a recursive self-join function. SQL Server supports recursive CTEs
+	/// but DAX's PATH() cannot be translated into one by the DirectQuery query generator.
+	/// TEACHING POINT: Parent-child hierarchy functions produce an EXPLICIT ERROR — not a silent
+	/// BLANK. This is a separate and more visible failure category than time-intelligence.
+	measure 'M4 Employee Hierarchy Depth (DQ FAILS - PATH Error)' =
+			-- M4: Employee Hierarchy Depth  |  DQ FAILURE CATEGORY: Parent-Child Hierarchy
+			-- -----------------------------------------------------------------------
+			-- FAILURE TYPE : EXPLICIT ERROR (visible red exclamation mark in visual)
+			-- DQ RESULT   : 'The PATH function is not supported in DirectQuery mode'
+			-- IMPORT RESULT: Integer depth of employee in management hierarchy (1 = top level)
+			-- ROOT CAUSE  : PATH() is a recursive self-join with no SQL translation.
+			--               Unlike time-intelligence (silent BLANK), this raises a hard error
+			--               visible to end users — a more severe failure mode.
+			-- TEACHING POINT: PATHCONTAINS, PATHITEM, PATHLENGTH all share this hard error.
+			--               This failure category produces user-visible errors, making it
+			--               the most critical to identify before going to production in DQ.
+			-- DAX STUDIO  : Query will error before SE queries are even fired.
+			-- -----------------------------------------------------------------------
+			VAR HierarchyPath =
+			    PATH (
+			        'dim vEmployee'[EmployeeKey],       -- PATH cannot be sent to SQL Server
+			        'dim vEmployee'[ParentEmployeeKey]
+			    )
+			VAR HierarchyDepth =
+			    PATHLENGTH ( HierarchyPath )
+			RETURN
+			    HierarchyDepth
+		formatString: 0
+		displayFolder: Pillar 1 - DQ Failures\Parent-Child Hierarchy
+		lineageTag: 45062c9c-1f37-41c5-9d18-927e614d7d8a
+
+	/// PURPOSE: Demonstrates that USERNAME() WORKS in DirectQuery — it propagates correctly to
+	/// SQL Server as a session parameter, enabling SQL-layer row-level security enforcement.
+	/// EXPECTED IN DQ: Returns the current user UPN string correctly AND enforces at SQL layer.
+	/// EXPECTED IN IMPORT: Also returns UPN but enforces RLS only at the VertiPaq layer.
+	/// TEACHING POINT: Intentionally included to show DQ is not binary pass/fail. SQL-layer RLS
+	/// is a genuine DQ ADVANTAGE — SQL Server security cannot be bypassed by extracting the .pbix.
+	measure 'M5 Current User - RLS (DQ WINS for Security)' =
+			-- M5: Current User Identity  |  DQ PARTIAL WIN — RLS propagates to SQL
+			-- -----------------------------------------------------------------------
+			-- FAILURE TYPE : NONE — this measure WORKS correctly in DirectQuery
+			-- DQ RESULT   : Returns current user UPN AND enforces at SQL Server layer
+			-- IMPORT RESULT: Returns UPN but enforces only at VertiPaq layer (bypassable)
+			-- WHY INCLUDED: Shows students that DQ is a spectrum — not all-or-nothing.
+			--               USERNAME() is one of the few DAX functions that DQ handles
+			--               BETTER than Import from a security architecture perspective.
+			-- ROOT CAUSE (WHY IT WORKS): Power BI passes USERNAME() value to SQL Server
+			--               as a session parameter. SQL Server's row security policy can
+			--               filter rows using this value in a WHERE clause — enforced
+			--               before any data leaves the database engine.
+			-- TEACHING POINT: For sensitive retail financial data, DQ's SQL-layer RLS
+			--               is a meaningful security architecture advantage over Import.
+			-- DAX STUDIO  : Returns your Windows UPN. Verify in Server Timings:
+			--               SE will show a SQL query with the UPN passed as a parameter.
+			-- -----------------------------------------------------------------------
+			VAR CurrentUser = USERNAME ()
+			RETURN
+			    CurrentUser
+		formatString: @
+		displayFolder: Pillar 1 - DQ Failures\RLS and Security
+		lineageTag: 17bcbcab-debf-4f9d-b0a2-05cb0e4b97be
+
+	/// PURPOSE: Demonstrates that Calculation Groups are NOT supported in pure DirectQuery models.
+	/// EXPECTED IN DQ: Power BI Desktop UI blocks creation of calculation groups entirely when
+	/// all tables are in DirectQuery mode. This measure simulates what a CG item would compute.
+	/// EXPECTED IN IMPORT: Calculation groups work fully — one CG replaces dozens of measures.
+	/// ROOT CAUSE: Calculation groups require SELECTEDMEASURE() evaluated in-memory by DAX.
+	/// DQ cannot translate SELECTEDMEASURE() into SQL — it has no SQL equivalent.
+	/// TEACHING POINT: In pure DQ you must write every time-period variant as a separate measure
+	/// instead of one CG item. This multiplies measure count 5-8x and is the strongest single
+	/// architectural argument for Composite Mode or Import over pure DirectQuery.
+	measure 'M6 CG Simulation YTD (DQ FAILS - No Calc Groups)' =
+			-- M6: Calculation Group Simulation (YTD)  |  DQ FAILURE CATEGORY: Calc Groups
+			-- -----------------------------------------------------------------------
+			-- FAILURE TYPE : UI BLOCK — CG creation is disabled in Power BI Desktop for pure DQ
+			-- DQ RESULT   : This specific measure returns BLANK (DATESYTD fails — see M2)
+			--               The real lesson: CG creation is BLOCKED in the PBI Desktop UI
+			-- IMPORT RESULT: With a CG, one SELECTEDMEASURE() item replaces this whole measure
+			-- WHY INCLUDED: Students must see that losing CG support forces measure explosion.
+			--               102 measures in this project would grow to ~500 without CG support.
+			-- ROOT CAUSE  : SELECTEDMEASURE() has no SQL equivalent. CGs require VertiPaq
+			--               to dynamically substitute the base measure at evaluation time.
+			-- TEACHING POINT: The inability to use Calculation Groups is the most damaging
+			--               architectural constraint of pure DirectQuery for executive BI.
+			-- -----------------------------------------------------------------------
+			VAR SimulatedYTD =
+			    CALCULATE (
+			        SUM ( 'fact vOnlineSales'[SalesAmount] ),
+			        DATESYTD ( 'dim vDate'[Date] )    -- same DQ limitation as M2 — returns BLANK
+			    )
+			VAR SimulatedPriorYear =
+			    CALCULATE (
+			        SUM ( 'fact vOnlineSales'[SalesAmount] ),
+			        SAMEPERIODLASTYEAR ( 'dim vDate'[Date] )  -- same DQ limitation as M1 — returns BLANK
+			    )
+			-- In Import + Calc Group: SELECTEDMEASURE() handles both dynamically
+			-- In DQ: must write each variant as a separate named measure (no CG support)
+			RETURN
+			    SimulatedYTD  -- returns BLANK in DQ to illustrate the time-intel dependency
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 1 - DQ Failures\Calculation Groups
+		lineageTag: 0c1ec0da-203d-4a42-b6d3-1765de8db2a7
+
+	/// PURPOSE: Demonstrates that TREATAS cross-fact bridges PARTIALLY WORK in DQ but at high cost.
+	/// EXPECTED IN DQ: Returns a correct result but fires TWO separate SQL queries:
+	///   Query 1: Fact vOnlineSales — get SalesOrderNumbers in current filter context
+	///   Query 2: Fact vOrderFulfillment — average TotalFulfillmentDays WHERE SalesOrderNumber IN (...)
+	/// The result is CORRECT but latency is 3-8x worse than a single-fact DQ measure.
+	/// In DAX Studio Server Timings: 2+ SQL queries, high SE time, formula engine merge overhead.
+	/// EXPECTED IN IMPORT: Sub-100ms. VertiPaq resolves the TREATAS in the storage engine.
+	/// TEACHING POINT: This is the most architecturally significant DQ degradation in THIS project
+	/// because three fact-to-fact bridges rely on TREATAS. Watch SQL query count spike to 4+.
+	measure 'M7 Avg Fulfillment Days TREATAS (DQ SLOW - 2 SQL Queries)' =
+			-- M7: Avg Fulfillment Days via TREATAS  |  DQ FAILURE CATEGORY: Cross-Fact TREATAS
+			-- -----------------------------------------------------------------------
+			-- FAILURE TYPE : SLOW-CORRECT — right answer, severe latency penalty
+			-- DQ RESULT   : Correct value but 3-8x slower than Import.
+			--               DAX Studio will show: 2+ SQL queries, high SE time, FE merge overhead.
+			-- IMPORT RESULT: Same value, sub-100ms, resolved entirely in VertiPaq storage engine.
+			-- ROOT CAUSE  : TREATAS creates a virtual relationship between two fact tables.
+			--               In DQ, each side of the bridge fires an independent SQL round-trip:
+			--               SQL Query 1: SELECT SalesOrderNumber FROM fact_vOnlineSales WHERE <ctx>
+			--               SQL Query 2: SELECT AVG(TotalFulfillmentDays) FROM fact_vOrderFulfillment
+			--                            WHERE SalesOrderNumber IN (<results from Query 1>)
+			--               The FE receives both result sets and merges them in DAX memory.
+			-- CRITICAL    : This project uses TREATAS for 3 cross-fact bridges. Every measure
+			--               using those bridges inherits this SQL multiplication penalty in DQ.
+			-- DAX STUDIO  : SE Queries will show 4+ (2 metadata probes + 2 data queries).
+			--               Compare SE time here vs M1 (BLANK) vs H1 (dual scan) — 3 patterns.
+			-- -----------------------------------------------------------------------
+			VAR OrdersInContext =
+			    VALUES ( 'fact vOnlineSales'[SalesOrderNumber] )  -- SQL Query 1 to SQL Server
+			VAR AvgFulfillmentDays =
+			    CALCULATE (
+			        AVERAGE ( 'fact vOrderFulfillment'[TotalFulfillmentDays] ),
+			        TREATAS (
+			            OrdersInContext,
+			            'fact vOrderFulfillment'[SalesOrderNumber]  -- SQL Query 2 to SQL Server
+			        )
+			    )
+			RETURN
+			    AvgFulfillmentDays
+		formatString: 0.0
+		displayFolder: Pillar 1 - DQ Failures\Cross-Fact TREATAS
+		lineageTag: 2e61fc2e-2ab5-41e1-a207-78b2eddc899e
+
+	/// PURPOSE: Demonstrates that multi-VAR intermediate table patterns degrade severely in DQ.
+	/// EXPECTED IN DQ: Likely timeout on 2M+ customer rows, or incorrect result. The DATEDIFF
+	/// calculation inside FILTER forces an in-memory row scan. DQ must pull all customer last-
+	/// purchase dates to the formula engine, compute DATEDIFF per row, then filter outside SQL.
+	/// EXPECTED IN IMPORT: Returns correct churn rate in milliseconds using VertiPaq columnar scan.
+	/// ROOT CAUSE: FILTER with DATEDIFF cannot be translated to a SQL WHERE clause because
+	/// DATEDIFF references a DAX VAR (MaxDate) computed in DAX context, not in SQL.
+	/// TEACHING POINT: Multi-VAR intermediate table patterns are the most common category in
+	/// CLV and churn measures. In DQ they produce formula-engine thrash — all rows from SQL
+	/// are pulled to the client and processed in DAX. This is M8's distinct failure category.
+	measure 'M8 Customer Churn Rate (DQ FAILS - VAR Table Scan)' =
+			-- M8: Customer Churn Rate  |  DQ FAILURE CATEGORY: VAR Intermediate Tables
+			-- -----------------------------------------------------------------------
+			-- FAILURE TYPE : TIMEOUT or WRONG RESULT — most severe failure in this set
+			-- DQ RESULT   : Likely timeout on 2M customer rows; if completes, result may differ
+			--               because MaxDate is computed in DAX context, not SQL context.
+			-- IMPORT RESULT: Correct churn rate in milliseconds via VertiPaq columnar scan.
+			-- ROOT CAUSE  : FILTER + DATEDIFF cannot fold to SQL — DQ must:
+			--               1. Fire SQL to get all CustomerKey + MAX(OrderDate) pairs (many rows)
+			--               2. Pull all rows to the Formula Engine
+			--               3. Compute DATEDIFF row-by-row in DAX memory
+			--               4. Filter in DAX, then count
+			--               Steps 2-4 happen on the Power BI client, not SQL Server.
+			-- CONTRAST    : H1 (SUM) folds cleanly — SQL does all the work, FE = 0.6%.
+			--               M8 (FILTER+DATEDIFF) cannot fold — FE does all the work after SQL.
+			--               These two are the bookends of the DQ performance spectrum.
+			-- TIP         : Run with a single store filter to avoid full timeout in demo.
+			-- -----------------------------------------------------------------------
+			VAR MaxDate = MAX ( 'dim vDate'[Date] )           -- DAX-computed, not SQL-foldable
+			VAR ChurnThresholdDays = 365
+			VAR ActiveCustomers =
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'fact vOnlineSales'[CustomerKey] )
+			    )
+			VAR ChurnedCustomers =
+			    COUNTROWS (
+			        FILTER (
+			            VALUES ( 'fact vOnlineSales'[CustomerKey] ),  -- pulls all customers to FE
+			            DATEDIFF (                                    -- row-by-row in formula engine
+			                CALCULATE ( MAX ( 'fact vOnlineSales'[OrderDate] ) ),
+			                MaxDate,
+			                DAY
+			            ) > ChurnThresholdDays
+			        )
+			    )
+			RETURN
+			    DIVIDE ( ChurnedCustomers, ActiveCustomers, 0 )
+		formatString: 0.00%
+		displayFolder: Pillar 1 - DQ Failures\VAR Intermediate Tables
+		lineageTag: cb793e3e-6c0f-4b36-9e88-154e2bba7f58
+
+	/// PURPOSE: Heavy benchmark measure #1. Cross-fact rolling 90-day gross profit.
+	/// DQ BEHAVIOUR: Fires 2 data SQL queries (one per fact table) + 2 metadata probes = 4 SE queries.
+	/// SQL Server runs both sequentially (Par. x1.0). FE receives two SUM scalars and adds them.
+	/// FE time is near-zero (0.6% as measured). The bottleneck is SQL Server scan time.
+	/// LESSON FROM LIVE TEST: Total = 16,787ms | SE = 16,692ms (99.4%) | FE = 95ms (0.6%)
+	/// This is correct DQ behaviour — both SUMs fold cleanly to SQL SELECT SUM([a0]).
+	/// DQ stress indicator: SQL Duration of lines 3 and 4, not FE%. Par. x1.0 (sequential)
+	/// vs VertiPaq parallel threads is the core Import vs DQ architecture difference.
+	/// IMPORT EQUIVALENT: Same SE-dominant pattern but VertiPaq runs in parallel batch mode
+	/// — expected 80-200ms total vs 16,787ms in DQ. ~100x faster.
+	measure 'H1 Rolling 90d Gross Profit - Cross Fact (BENCHMARK)' =
+			-- H1: Rolling 90-Day Gross Profit (Cross-Fact)  |  BENCHMARK MEASURE
+			-- -----------------------------------------------------------------------
+			-- DAX STUDIO TARGET : Record SE ms / FE ms / SQL query count / total duration
+			-- LIVE DQ RESULT    : 16,787ms total | SE=16,692ms (99.4%) | FE=95ms (0.6%)
+			--                     SE Queries=4 (2 metadata probes + 2 data SUMs)
+			--                     Lines 3+4: SELECT SUM([a0]) — filter folded to SQL correctly
+			-- IMPORT EXPECTED   : ~80-200ms | 0 SQL queries | VertiPaq parallel batch mode
+			-- STRESS POINT      : Two fact tables (fact vOnlineSales + fact vStoreSales)
+			--                     joined through dim vDate. Each fires an independent SQL query.
+			--                     Both run SEQUENTIALLY (Par. x1.0) — no parallelism in DQ.
+			--                     VertiPaq would run both in parallel across multiple threads.
+			-- KEY INSIGHT       : Low FE% in DQ is NOT a sign of a problem — it means the
+			--                     SUMs folded cleanly to SQL. The bottleneck is SQL scan speed,
+			--                     not DAX formula engine work. This is the correct DQ pattern
+			--                     for a SUM measure (contrast with M8 where FE dominates).
+			-- -----------------------------------------------------------------------
+			VAR RollingWindow =
+			    DATESINPERIOD (
+			        'dim vDate'[Date],
+			        LASTDATE ( 'dim vDate'[Date] ),
+			        -90,
+			        DAY
+			    )
+			VAR OnlineGrossProfit90d =
+			    CALCULATE (
+			        SUMX (
+			            'fact vOnlineSales',
+			            'fact vOnlineSales'[SalesAmount] - 'fact vOnlineSales'[TotalCost]
+			        ),
+			        RollingWindow  -- DQ: SQL Query 1 with date filter pushed to WHERE clause
+			    )
+			VAR StoreGrossProfit90d =
+			    CALCULATE (
+			        SUMX (
+			            'fact vStoreSales',
+			            'fact vStoreSales'[SalesAmount] - 'fact vStoreSales'[TotalCost]
+			        ),
+			        RollingWindow  -- DQ: SQL Query 2, independent sequential round-trip
+			    )
+			RETURN
+			    OnlineGrossProfit90d + StoreGrossProfit90d
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 2 - Heavy Performance\H1 Cross-Fact Rolling 90d
+		lineageTag: 9614b737-5fae-4286-a0bd-f653d7ac1d58
+
+	/// PURPOSE: Heavy benchmark measure #2. Top-10 product revenue with dynamic RANKX + TOPN.
+	/// DQ BEHAVIOUR: Each slicer change fires a new parameterised SQL query with the updated
+	/// filter context. RANKX then runs in the Formula Engine over all returned product rows.
+	/// DAX Studio will show: multiple SQL queries per visual render, very high FE time (opposite to H1).
+	/// This is the FE-dominant DQ failure pattern — complement to H1's SE-dominant pattern.
+	/// EXPECTED DQ TIMING: 6,000-15,000ms | SQL queries: 10+ per slicer change | FE: VERY HIGH
+	/// EXPECTED IMPORT TIMING: 100-300ms | SQL queries: 0 | FE: LOW (VertiPaq handles RANKX)
+	measure 'H2 Top10 Product Rank RANKX (BENCHMARK)' =
+			-- H2: Top-10 Product Revenue Rank (RANKX + TOPN)  |  BENCHMARK MEASURE
+			-- -----------------------------------------------------------------------
+			-- DAX STUDIO TARGET : Record SQL query COUNT during slicer interaction
+			-- DQ EXPECTED       : 6,000-15,000ms | 10+ SQL queries per slicer change
+			--                     FE time VERY HIGH — contrast with H1 where FE=0.6%
+			-- IMPORT EXPECTED   : 100-300ms | 0 SQL queries | VertiPaq handles RANKX natively
+			-- STRESS POINT      : Each slicer interaction fires a new SQL query for each product.
+			--                     RANKX then runs as a Formula Engine iterator over all rows returned.
+			--                     Apply Category + Year slicers together for maximum query explosion.
+			-- KEY CONTRAST TO H1: H1 shows SE-dominant DQ (SUM folds to SQL, FE near-zero).
+			--                     H2 shows FE-dominant DQ (RANKX cannot fold, FE does all ranking).
+			--                     Together they demonstrate the full DQ performance spectrum.
+			-- -----------------------------------------------------------------------
+			VAR AllProducts =
+			    ALLSELECTED ( 'dim vProduct'[ProductName] )  -- DQ: triggers SQL per slicer state
+			VAR ProductRevenueTable =
+			    ADDCOLUMNS (
+			        AllProducts,
+			        "ProductRevenue",
+			        CALCULATE ( SUM ( 'fact vOnlineSales'[SalesAmount] ) )
+			    )
+			VAR Top10Products =
+			    TOPN ( 10, ProductRevenueTable, [ProductRevenue], DESC )
+			VAR CurrentProductRank =
+			    RANKX (
+			        Top10Products,       -- Formula Engine iterates this in-memory table
+			        [ProductRevenue],
+			        CALCULATE ( SUM ( 'fact vOnlineSales'[SalesAmount] ) ),
+			        DESC,
+			        DENSE
+			    )
+			RETURN
+			    IF ( CurrentProductRank <= 10, CurrentProductRank, BLANK () )
+		formatString: 0
+		displayFolder: Pillar 2 - Heavy Performance\H2 RANKX Query Explosion
+		lineageTag: d4ff8621-68f0-443c-a509-9e42b3b92f37
+
+	/// PURPOSE: Heavy benchmark measure #3. Customer Lifetime Value via SUMX over all rows.
+	/// DQ BEHAVIOUR: DQ sends a GROUP BY CustomerKey query to SQL Server returning potentially
+	/// millions of rows. The Formula Engine then iterates all returned rows to compute CLV.
+	/// This hits the DQ formula-engine ceiling — pulling grouped rows to the client.
+	/// DAX Studio will show: 1 SQL query returning very many rows, extremely high FE time.
+	/// EXPECTED DQ TIMING: 8,000-30,000ms or timeout | SQL rows: millions | FE: EXTREME
+	/// EXPECTED IMPORT TIMING: 200-800ms | FE: LOW (VertiPaq column-scan, not row iteration)
+	/// TIP: Run with a single store filter first to avoid full timeout in demo environment.
+	measure 'H3 Avg Customer Lifetime Value SUMX (BENCHMARK)' =
+			-- H3: Average Customer Lifetime Value via SUMX  |  BENCHMARK MEASURE
+			-- -----------------------------------------------------------------------
+			-- DAX STUDIO TARGET : Record SQL row count returned and FE ms
+			-- DQ EXPECTED       : 8,000-30,000ms or timeout | millions of rows returned to FE
+			--                     FE EXTREME — formula engine iterates every row after SQL returns
+			-- IMPORT EXPECTED   : 200-800ms | VertiPaq computes in columnar storage engine
+			-- STRESS POINT      : SUMX forces DQ to pull all SalesAmount + TotalCost rows
+			--                     to the Formula Engine for row-by-row gross profit iteration.
+			--                     Import runs this in the vectorised Storage Engine — 10-100x faster.
+			-- CONTRAST TO H1   : H1 SUM folds to SQL (SE dominant, FE=0.6%).
+			--                     H3 SUMX cannot fold row-level arithmetic (FE dominant).
+			--                     Together: shows the SUM vs SUMX DQ performance cliff.
+			-- TIP               : Apply a single StoreKey filter first to avoid full timeout.
+			--                     Then remove filter to show the unconstrained worst case.
+			-- -----------------------------------------------------------------------
+			VAR TotalCLV =
+			    SUMX (
+			        'fact vOnlineSales',               -- DQ: GROUP BY query returning millions of rows
+			        'fact vOnlineSales'[SalesAmount]   -- FE iterates each row after SQL returns
+			        - 'fact vOnlineSales'[TotalCost]
+			    )
+			VAR CustomerCount =
+			    DISTINCTCOUNT ( 'fact vOnlineSales'[CustomerKey] )
+			VAR AvgCLVPerCustomer =
+			    DIVIDE ( TotalCLV, CustomerCount, 0 )
+			RETURN
+			    AvgCLVPerCustomer
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 2 - Heavy Performance\H3 CLV SUMX 13M Rows
+		lineageTag: ae12011e-4d66-4715-b626-d8aabfccdb67
+
+	/// PURPOSE: Heavy benchmark measure #4. NPS Score filtered through a 3-fact TREATAS chain.
+	/// DQ BEHAVIOUR: Triggers THREE separate SQL queries:
+	///   Query 1: fact vOnlineSales filtered by current slicer context
+	///   Query 2: fact vCustomerAcquisition filtered by CustomerKey IN (Query 1 result)
+	///   Query 3: fact vCustomerSurvey filtered by CustomerKey IN (Query 2 result)
+	/// DAX Studio: 3+ SQL queries, high FE time for result merging between queries.
+	/// This is the most architecturally significant benchmark in this project because the
+	/// production model relies on this exact TREATAS chain for NPS-by-channel reporting.
+	/// EXPECTED DQ TIMING: 5,000-20,000ms | 3+ SQL queries | FE: VERY HIGH
+	/// EXPECTED IMPORT TIMING: 150-500ms | 0 SQL queries | FE: LOW
+	measure 'H4 NPS Score 3-Fact Chain (BENCHMARK)' =
+			-- H4: NPS Score via 3-Fact TREATAS Chain  |  BENCHMARK MEASURE
+			-- -----------------------------------------------------------------------
+			-- DAX STUDIO TARGET : Record SQL query COUNT (expect 3+ data queries + probes)
+			-- DQ EXPECTED       : 5,000-20,000ms | 3 SQL queries (one per fact in chain)
+			--                     FE VERY HIGH — merging 3 SQL result sets in DAX memory
+			-- IMPORT EXPECTED   : 150-500ms | 0 SQL queries | VertiPaq storage engine
+			-- STRESS POINT      : Three-fact chain: OnlineSales -> CustomerAcquisition -> Survey
+			--                     Each TREATAS bridge fires an independent SQL round-trip.
+			--                     Apply Channel slicer AND Year slicer to force full traversal.
+			-- ARCHITECTURE NOTE : This is the same TREATAS pattern used in the project's production
+			--                     NPS-by-channel measures. In DQ, every NPS visual fires 3+ SQL
+			--                     queries. In Composite Mode (the next phase), the dim tables
+			--                     move to Import storage, collapsing this to 1 SQL query.
+			-- -----------------------------------------------------------------------
+			VAR CustomersInContext =
+			    CALCULATETABLE (
+			        VALUES ( 'fact vCustomerAcquisition'[CustomerKey] ),
+			        TREATAS (
+			            VALUES ( 'fact vOnlineSales'[CustomerKey] ),
+			            'fact vCustomerAcquisition'[CustomerKey]  -- SQL Query 1
+			        )
+			    )
+			VAR NPSNumerator =
+			    CALCULATE (
+			        SUM ( 'fact vCustomerSurvey'[NPSScore] ),
+			        TREATAS (
+			            CustomersInContext,
+			            'fact vCustomerSurvey'[CustomerKey]  -- SQL Query 2
+			        )
+			    )
+			VAR ResponseCount =
+			    CALCULATE (
+			        COUNTROWS ( 'fact vCustomerSurvey' ),
+			        TREATAS (
+			            CustomersInContext,
+			            'fact vCustomerSurvey'[CustomerKey]  -- SQL Query 3
+			        )
+			    )
+			RETURN
+			    DIVIDE ( NPSNumerator, ResponseCount, 0 )
+		formatString: 0.0
+		displayFolder: Pillar 2 - Heavy Performance\H4 NPS 3-Fact Chain
+		lineageTag: af226cc2-778b-4e25-ae8e-b09a43db0268
+
+	/// PURPOSE: Demonstrates a genuine DirectQuery ADVANTAGE — always-live inventory data.
+	/// DQ BEHAVIOUR: Each visual render fires a fresh SQL query to fact vInventory.
+	/// The count reflects the exact SQL Server state at query time — zero lag.
+	/// IMPORT BEHAVIOUR: The count reflects state at the LAST scheduled refresh.
+	/// In a retail context, inventory changes hourly. Import can be 24-48 hours stale.
+	/// TEACHING POINT: For operational dashboards (stock alerts, fulfilment monitoring)
+	/// DQ's always-live nature is a genuine win. Demonstrate by updating a StockStatus
+	/// value directly in SQL Server — DQ shows the change instantly, Import does not.
+	measure 'W1 Out of Stock Count (DQ WINS - Always Live)' =
+			-- W1: Out-of-Stock Product Count  |  DQ GENUINE WIN — Always-Live Data
+			-- -----------------------------------------------------------------------
+			-- DQ RESULT   : Always reflects current SQL Server state — zero refresh lag
+			-- IMPORT RESULT: Reflects state at last scheduled refresh (up to 24-48h stale)
+			-- WIN CATEGORY: Data freshness — critical for operational retail dashboards
+			-- HOW TO DEMONSTRATE:
+			--   1. Note the current count in DQ mode
+			--   2. Run: UPDATE [fact].[vInventory] SET StockStatus = 'Out of Stock'
+			--           WHERE ProductKey = <any key> in SQL Server
+			--   3. Refresh the visual in DQ — count updates immediately
+			--   4. In Import mode — count stays stale until next scheduled refresh
+			--   The gap between DQ (instant) and Import (stale) IS the teaching point.
+			-- DAX STUDIO  : Run and check SQL tab — shows a fresh SELECT every single time.
+			--               In Import: no SQL ever fires — VertiPaq answers from RAM.
+			-- -----------------------------------------------------------------------
+			VAR OutOfStockCount =
+			    CALCULATE (
+			        COUNTROWS ( 'fact vInventory' ),
+			        'fact vInventory'[StockStatus] = "Out of Stock"  -- fresh SQL query every render
+			    )
+			RETURN
+			    OutOfStockCount
+		formatString: #,0
+		displayFolder: Pillar 3 - DQ Wins\W1 Always-Live Inventory
+		lineageTag: 9bb85a45-8503-45eb-a317-01007db623e1
+
+	/// PURPOSE: Demonstrates DQ ADVANTAGE — zero RAM footprint on the Power BI machine.
+	/// DQ BEHAVIOUR: DISTINCTCOUNT fires a SQL COUNT(DISTINCT CustomerKey) query to SQL Server.
+	/// No customer data is loaded into RAM on the Power BI Desktop or service machine.
+	/// IMPORT BEHAVIOUR: All 2M+ customer rows are compressed into VertiPaq RAM.
+	/// This requires 4-8GB active RAM during model refresh on developer hardware.
+	/// TEACHING POINT: For the 31.5M row model in this project, Import exceeds RAM limits
+	/// of typical developer machines. DQ avoids the RAM exhaustion problem entirely.
+	/// Demonstrate by opening Task Manager during DQ vs Import model load.
+	measure 'W2 Distinct Customers (DQ WINS - Zero RAM)' =
+			-- W2: Total Distinct Customers  |  DQ GENUINE WIN — Zero RAM Footprint
+			-- -----------------------------------------------------------------------
+			-- DQ RESULT   : SQL fires COUNT(DISTINCT CustomerKey) to SQL Server
+			--               Zero customer rows loaded into Power BI client RAM
+			-- IMPORT RESULT: All 2M+ records loaded and compressed into VertiPaq RAM
+			--               Developer machine needs 4-8GB RAM just for this column
+			-- WIN CATEGORY: Infrastructure cost — DQ enables BI on underpowered machines
+			-- HOW TO DEMONSTRATE:
+			--   Open Task Manager → Performance → Memory before connecting to each mode.
+			--   DQ: RAM stays flat during connection and query.
+			--   Import: RAM spikes during refresh and stays elevated throughout session.
+			--   The result VALUE is identical in both modes — only the cost differs.
+			-- NOTE        : This project's 31.5M row model is the real-world case.
+			--               The Parquet export approach was chosen specifically because
+			--               full Import exceeds RAM limits of typical developer hardware.
+			-- DAX STUDIO  : Check KB column in Server Timings — DQ shows data transfer
+			--               from SQL. Import shows 0 KB transferred (already in RAM).
+			-- -----------------------------------------------------------------------
+			VAR TotalDistinctCustomers =
+			    DISTINCTCOUNT ( 'fact vOnlineSales'[CustomerKey] )
+			RETURN
+			    TotalDistinctCustomers
+		formatString: #,0
+		displayFolder: Pillar 3 - DQ Wins\W2 Zero RAM Footprint
+		lineageTag: 20f8b173-7c00-449e-b751-8ac1dc957b61
+
+	/// PURPOSE: Demonstrates DQ ADVANTAGE — row-level security enforced at the SQL layer.
+	/// DQ BEHAVIOUR: USERNAME() value is passed to SQL Server as a session parameter.
+	/// SQL Server enforces the WHERE clause BEFORE any data is returned to Power BI.
+	/// No store data for unauthorised stores ever leaves SQL Server.
+	/// IMPORT BEHAVIOUR: RLS is enforced at the VertiPaq layer AFTER data is loaded into RAM.
+	/// An analyst who extracts the .pbix file and connects via DAX Studio or XMLA endpoint
+	/// can bypass VertiPaq RLS and access all store data without restriction.
+	/// TEACHING POINT: For sensitive retail financial data, DQ provides a stronger security
+	/// guarantee because enforcement happens inside SQL Server, not in the Power BI client.
+	measure 'W3 Store Revenue with SQL-RLS (DQ WINS - Security)' =
+			-- W3: Store Revenue with SQL-Layer RLS  |  DQ GENUINE WIN — Stronger Security
+			-- -----------------------------------------------------------------------
+			-- DQ RESULT   : SQL WHERE clause enforced BEFORE data leaves SQL Server
+			--               Unauthorised store data is never transmitted to Power BI client
+			-- IMPORT RESULT: RLS enforced in VertiPaq AFTER all data is already in RAM
+			--               Bypassable: extract .pbix + connect via DAX Studio XMLA = all data visible
+			-- WIN CATEGORY: Security architecture — SQL Server vs VertiPaq enforcement boundary
+			-- HOW TO DEMONSTRATE:
+			--   1. Configure a SQL Server row security policy on fact.vStoreSales:
+			--      CREATE POLICY StoreAccessPolicy ON fact.vStoreSales
+			--      WITH (STATE = ON)
+			--      AS (SELECT 1 WHERE USERNAME() = <StoreManagerEmail>)
+			--   2. Connect as a store manager — DQ shows only their store, SQL enforces it
+			--   3. Extract the .pbix and connect via DAX Studio — DQ still shows only their store
+			--      (SQL Server blocks at the connection level)
+			--   4. Do the same in Import mode — DAX Studio bypasses VertiPaq RLS entirely
+			-- TEACHING POINT: DQ is the only architecture where security is truly server-enforced.
+			-- -----------------------------------------------------------------------
+			VAR CurrentUser = USERNAME ()
+			VAR StoreRevenue =
+			    CALCULATE (
+			        SUM ( 'fact vStoreSales'[SalesAmount] )
+			        -- SQL Server row security policy filters by CurrentUser at the engine level
+			        -- No DAX filter needed — SQL WHERE clause handles it before data is returned
+			    )
+			RETURN
+			    StoreRevenue
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 3 - DQ Wins\W3 SQL-Layer RLS
+		lineageTag: 4f8cc19d-c96f-4353-adf7-945c669ff9d6
+
+	/// PURPOSE: Demonstrates DQ ADVANTAGE — schema changes in SQL views are visible instantly.
+	/// DQ BEHAVIOUR: When a column is added to a [fact] or [dim] SQL view, the next visual
+	/// render in DQ automatically queries the new column. No Power BI action required.
+	/// IMPORT BEHAVIOUR: Schema changes require a full model refresh. In this project that
+	/// means re-exporting 32GB Parquet files, re-loading 22 tables — a 30+ minute cycle.
+	/// TEACHING POINT: During iterative SQL view development (most common phase in this project)
+	/// DQ lets the developer see schema changes immediately without waiting for a refresh cycle.
+	/// This is a genuine productivity advantage during the build phase of the project.
+	measure 'W4 On-Time Delivery Rate (DQ WINS - Schema Agility)' =
+			-- W4: On-Time Delivery Rate  |  DQ GENUINE WIN — Instant Schema Visibility
+			-- -----------------------------------------------------------------------
+			-- DQ RESULT   : Any new column added to the SQL view is queryable on next render
+			--               Developer iterates SQL view — Power BI reflects changes instantly
+			-- IMPORT RESULT: New columns invisible until full model refresh completes
+			--               In this project: 32GB Parquet re-export + 22-table reload = 30+ min
+			-- WIN CATEGORY: Developer productivity — DQ as a live query debugger during build
+			-- HOW TO DEMONSTRATE:
+			--   1. Note the columns currently available in fact vOrderFulfillment
+			--   2. Add a computed column to the underlying SQL view (e.g. SLA tier label)
+			--   3. In DQ: go to Power BI → Edit Query → the new column appears immediately
+			--   4. In Import: the column is invisible until a full scheduled refresh runs
+			--   This demonstrates why DQ is valuable DURING development, even if Import
+			--   is chosen for production deployment.
+			-- CURRENT MEASURE: On-Time Delivery Rate — uses fact vOrderFulfillment columns
+			--   that are actively being developed. Changing FulfillmentStatus logic in SQL
+			--   is reflected here in DQ without any Power BI refresh step.
+			-- -----------------------------------------------------------------------
+			VAR TotalOrders =
+			    COUNTROWS ( 'fact vOrderFulfillment' )
+			VAR OnTimeOrders =
+			    CALCULATE (
+			        COUNTROWS ( 'fact vOrderFulfillment' ),
+			        'fact vOrderFulfillment'[FulfillmentStatus] = "On Time"
+			    )
+			RETURN
+			    DIVIDE ( OnTimeOrders, TotalOrders, 0 )
+		formatString: 0.00%
+		displayFolder: Pillar 3 - DQ Wins\W4 Instant Schema Visibility
+		lineageTag: 358a9527-4f5e-4789-8ce5-d4906e16f376
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				  Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Removed Columns" = Table.RemoveColumns(Source,{"Column1"})
+				in
+				  #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

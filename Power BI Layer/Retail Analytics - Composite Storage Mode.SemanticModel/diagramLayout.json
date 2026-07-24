@@ -1,0 +1,334 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 2973.849076837761,
+        "y": 34.014613623961317
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 3023.4850320580604,
+            "y": 642.19199479046893
+          },
+          "nodeIndex": "_Measures",
+          "nodeLineageTag": "c1dbe8e3-e224-47fd-8f78-2b4d736f7c15",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 917.69376160397837,
+            "y": 456.24434818778764
+          },
+          "nodeIndex": "agg vOnlineSalesDailySummary",
+          "nodeLineageTag": "99116008-9c98-479c-99d5-23d2bd81d1df",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 22
+        },
+        {
+          "location": {
+            "x": 1206.1154625952836,
+            "y": 547.77834784705135
+          },
+          "nodeIndex": "dim vAcquisitionChannel",
+          "nodeLineageTag": "f40924f4-147c-42a3-994a-915788bc6e1b",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 683.15777450535165,
+            "y": 222.45227354018152
+          },
+          "nodeIndex": "dim vChannel",
+          "nodeLineageTag": "30b8294e-c14e-4506-9081-56c6d6878d7a",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 626.39452358861149,
+            "y": 804.58595878198093
+          },
+          "nodeIndex": "dim vCurrency",
+          "nodeLineageTag": "a7de5ba5-fa9d-45c9-a15e-10c8bf6b8707",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 2497.2284863404229,
+            "y": 310.8929793583369
+          },
+          "nodeIndex": "dim vCustomer",
+          "nodeLineageTag": "71b8e421-590e-4030-b22c-af133a5522d6",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 336.78225613422524,
+            "y": 676.521139928763
+          },
+          "nodeIndex": "dim vDate",
+          "nodeLineageTag": "998e57c0-24ac-439a-813b-ecaa36367713",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 23
+        },
+        {
+          "location": {
+            "x": 3307.4850320580604,
+            "y": 544.19199479046893
+          },
+          "nodeIndex": "dim vEmployee",
+          "nodeLineageTag": "861d2a80-c2b0-477d-89d3-fb625ab23d53",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 1396.5203633526667,
+            "y": 850.21658425175963
+          },
+          "nodeIndex": "dim vPaymentMethod",
+          "nodeLineageTag": "b66398a4-d37b-42b1-9c37-f8959fee9024",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 1787.5710127611351,
+            "y": 353.58610670693133
+          },
+          "nodeIndex": "dim vProduct",
+          "nodeLineageTag": "9d9a96c8-d605-4a01-b2c0-0d9e78fe91ca",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 21
+        },
+        {
+          "location": {
+            "x": 505.51937685359326,
+            "y": 1038.3839895809385
+          },
+          "nodeIndex": "dim vPromotion",
+          "nodeLineageTag": "dd123710-e896-4260-a5fd-989e788569fa",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 2080.4678250967208,
+            "y": 656.43282514978114
+          },
+          "nodeIndex": "dim vReturnReason",
+          "nodeLineageTag": "07262e66-29ff-42e2-998b-bd448182f562",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 1867.7657511461191,
+            "y": -7.1289579692561347
+          },
+          "nodeIndex": "dim vStore",
+          "nodeLineageTag": "c4a412ca-e73d-4100-b2d2-8e1dd37aa9c2",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 2789.4850320580604,
+            "y": 379.09659778480204
+          },
+          "nodeIndex": "fact vCustomerAcquisition",
+          "nodeLineageTag": "f4a3ff32-f2e8-427a-939a-71e437cea069",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 11
+        },
+        {
+          "location": {
+            "x": 2538.7384000613383,
+            "y": -50
+          },
+          "nodeIndex": "fact vCustomerSurvey",
+          "nodeLineageTag": "4612d21f-a7df-4327-adc5-f3efa78d3c87",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 12
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 433.65362043986556
+          },
+          "nodeIndex": "fact vExchangeRate",
+          "nodeLineageTag": "a84adb65-fb28-40da-946e-270910a4f324",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 13
+        },
+        {
+          "location": {
+            "x": 3591.4850320580604,
+            "y": 544.19199479046893
+          },
+          "nodeIndex": "fact vInventory",
+          "nodeLineageTag": "4932edf6-d8ac-49a9-b311-16bb4168d4a8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 24
+        },
+        {
+          "location": {
+            "x": 1496.0978757209195,
+            "y": 410.102035363323
+          },
+          "nodeIndex": "fact vMarketingSpend",
+          "nodeLineageTag": "9eaece4f-c0b2-4bd4-84e8-987c8969ab8b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 14
+        },
+        {
+          "location": {
+            "x": 3875.4850320580604,
+            "y": 544.19199479046893
+          },
+          "nodeIndex": "fact vOnlineSales",
+          "nodeLineageTag": "ea0f1dde-0f82-40f8-837e-5caf0ed8d312",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 15
+        },
+        {
+          "location": {
+            "x": 2504.9109593759549,
+            "y": 671.38104291401237
+          },
+          "nodeIndex": "fact vOrderFulfillment",
+          "nodeLineageTag": "00260bfc-fe08-4243-a618-a90821915eea",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 16
+        },
+        {
+          "location": {
+            "x": 2369.7752296181957,
+            "y": 1029.4512406515182
+          },
+          "nodeIndex": "fact vOrderPayment",
+          "nodeLineageTag": "cf7eafd2-9ff8-4702-b090-5971d51ab579",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 17
+        },
+        {
+          "location": {
+            "x": 2205.029723558463,
+            "y": 296.72988839698257
+          },
+          "nodeIndex": "fact vReturns",
+          "nodeLineageTag": "61c72b37-99d6-463c-b9e6-7f5ca4d40841",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 18
+        },
+        {
+          "location": {
+            "x": 1360.3617427958966,
+            "y": 50.056776365870519
+          },
+          "nodeIndex": "fact vSalesQuota",
+          "nodeLineageTag": "bb4c8ba3-d703-4a58-bfec-8c476a36e5a7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 19
+        },
+        {
+          "location": {
+            "x": 4159.4850320580608,
+            "y": 544.19199479046893
+          },
+          "nodeIndex": "fact vStoreSales",
+          "nodeLineageTag": "706c3828-9642-4f1b-a645-e6fc8b3dbac2",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 20
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 41.158780031350453,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

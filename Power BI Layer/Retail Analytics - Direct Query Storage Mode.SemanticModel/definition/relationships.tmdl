@@ -1,0 +1,8 @@
+relationship 523049f2-c4f5-6b54-4a7a-86aed4e725a3
+	fromColumn: 'fact vOnlineSales'.DateKey
+	toColumn: 'dim vDate'.DateKey
+
+relationship d7c5785c-ca10-ab6f-e739-5292d7045a02
+	fromColumn: 'fact vOnlineSales'.ProductKey
+	toColumn: 'dim vProduct'.ProductKey
+

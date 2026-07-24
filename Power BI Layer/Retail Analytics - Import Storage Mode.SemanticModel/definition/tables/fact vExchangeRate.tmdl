@@ -1,0 +1,90 @@
+table 'fact vExchangeRate'
+	lineageTag: ac1b7cd4-0750-4296-a792-1075b2d7cdb7
+
+	column CurrencyKey
+		dataType: int64
+		formatString: 0
+		lineageTag: fa10325c-1d9a-4499-b35f-b13b565f27a1
+		summarizeBy: none
+		sourceColumn: CurrencyKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 4f979a26-df8d-4842-9df1-746a92a885bd
+		summarizeBy: none
+		sourceColumn: DateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column RateDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9fa460c1-0a3d-4168-89a5-c27d8f4b6c83
+		summarizeBy: none
+		sourceColumn: RateDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column YearMonthKey
+		dataType: int64
+		formatString: 0
+		lineageTag: d9c3f49a-4968-4348-9767-3bf880cc9020
+		summarizeBy: count
+		sourceColumn: YearMonthKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column AverageRate
+		dataType: double
+		lineageTag: d13cf0e0-a39d-4b27-af7a-ea9bbc6e5fec
+		summarizeBy: sum
+		sourceColumn: AverageRate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EndOfDayRate
+		dataType: double
+		lineageTag: 0dbcd92f-038a-441d-a34e-174a23000c03
+		summarizeBy: sum
+		sourceColumn: EndOfDayRate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column RateDirection
+		dataType: string
+		lineageTag: 64ac3558-cdf5-4712-b1d4-e7eb7af69384
+		summarizeBy: none
+		sourceColumn: RateDirection
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsBaseCurrency
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 7315bdb2-3d9a-4c10-9e38-c0946ee4ed24
+		summarizeBy: none
+		sourceColumn: IsBaseCurrency
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'fact vExchangeRate' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "fact", Item = "vExchangeRate"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

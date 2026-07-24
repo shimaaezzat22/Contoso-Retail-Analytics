@@ -1,0 +1,121 @@
+table 'Fact CustomerSurvey'
+	lineageTag: 98d46ec2-ff9c-4c18-8eb1-e7e7f93879aa
+
+	column SurveyResponseID
+		dataType: int64
+		formatString: 0
+		lineageTag: a484b77d-81d0-4621-8310-5ee29eafda36
+		summarizeBy: count
+		sourceColumn: SurveyResponseID
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6c21b288-72df-4ad2-88d4-505be7a174aa
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column SurveyDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 104215f2-6bb8-46a3-b291-c64674734c0d
+		summarizeBy: none
+		sourceColumn: SurveyDateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column SurveyDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9346c5cf-fcec-4168-8e04-795de5027d90
+		summarizeBy: none
+		sourceColumn: SurveyDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column NPSScore
+		dataType: int64
+		formatString: 0
+		lineageTag: 62b8c34f-b686-45bb-b598-8c2d99408596
+		summarizeBy: sum
+		sourceColumn: NPSScore
+
+		annotation SummarizationSetBy = Automatic
+
+	column NPSCategory
+		dataType: string
+		lineageTag: 613feafa-968d-4047-b0c6-4ea3a4184a33
+		summarizeBy: none
+		sourceColumn: NPSCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column NPSContribution
+		dataType: int64
+		formatString: 0
+		lineageTag: c1e709e0-c3a1-4dd3-be9d-5dc788ed8e4e
+		summarizeBy: sum
+		sourceColumn: NPSContribution
+
+		annotation SummarizationSetBy = Automatic
+
+	column CSATScore
+		dataType: int64
+		formatString: 0
+		lineageTag: 2a936a24-201d-4bab-9933-b7e7861c5043
+		summarizeBy: sum
+		sourceColumn: CSATScore
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsSatisfied
+		dataType: int64
+		formatString: 0
+		lineageTag: 1374119e-394a-4d00-9352-3482a060e1d4
+		summarizeBy: sum
+		sourceColumn: IsSatisfied
+
+		annotation SummarizationSetBy = Automatic
+
+	column WouldRecommend
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 1daa7d5b-95dd-4785-84b1-dddeea987167
+		summarizeBy: none
+		sourceColumn: WouldRecommend
+
+		annotation SummarizationSetBy = Automatic
+
+	column SurveyTrigger
+		dataType: string
+		lineageTag: 973e354e-356c-4a19-accc-aaedc50ef876
+		summarizeBy: none
+		sourceColumn: SurveyTrigger
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact CustomerSurvey' = m
+		mode: import
+		queryGroup: 'Loaded Facts'
+		source =
+				let
+					FileRow = DataSource{[Name="fact_vCustomerSurvey.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadFactParquet(BinaryData, "fact_vCustomerSurvey.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,148 @@
+table 'Fact MarketingSpend'
+	lineageTag: 102607ae-33f2-4df7-ba14-7de04e04b90b
+
+	column MarketingSpendID
+		dataType: int64
+		formatString: 0
+		lineageTag: 6ce6966f-bfdd-4ab1-b0c2-92cf5966550d
+		summarizeBy: count
+		sourceColumn: MarketingSpendID
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionChannelKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cb49982f-b431-4487-b627-5dfad6b19e9f
+		summarizeBy: none
+		sourceColumn: AcquisitionChannelKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthStartDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a40c6c68-bf43-4d5f-b9fe-1847b569c62f
+		summarizeBy: none
+		sourceColumn: MonthStartDateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthStartDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 1829f3ef-172f-48a2-ba76-7bc714ae825e
+		summarizeBy: none
+		sourceColumn: MonthStartDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column YearMonthKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 7dd9d862-f09e-47ae-a5ea-8725e6a4a6a9
+		summarizeBy: count
+		sourceColumn: YearMonthKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthlySpend
+		dataType: double
+		formatString: $#,0.00
+		lineageTag: 02b5b463-0278-4a14-94cb-ef50a15b5944
+		summarizeBy: sum
+		sourceColumn: MonthlySpend
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Impressions
+		dataType: int64
+		formatString: 0
+		lineageTag: d9455fba-e6d0-43f7-bf4c-f3ef2712a169
+		summarizeBy: sum
+		sourceColumn: Impressions
+
+		annotation SummarizationSetBy = Automatic
+
+	column Clicks
+		dataType: int64
+		formatString: 0
+		lineageTag: 0f7426d4-c076-456a-a982-152ddaca4a84
+		summarizeBy: sum
+		sourceColumn: Clicks
+
+		annotation SummarizationSetBy = Automatic
+
+	column NewCustomersAcquired
+		dataType: int64
+		formatString: 0
+		lineageTag: 98fdaa4d-3672-4457-9cf0-f904981f681b
+		summarizeBy: sum
+		sourceColumn: NewCustomersAcquired
+
+		annotation SummarizationSetBy = Automatic
+
+	column CostPerClick
+		dataType: double
+		formatString: $#,0.0000
+		lineageTag: 1e399892-5ae5-4cf2-b93c-90e66a6c2df5
+		summarizeBy: sum
+		sourceColumn: CostPerClick
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CostPerAcquisition
+		dataType: double
+		formatString: $#,0.00
+		lineageTag: 358d6357-1b69-4d43-a788-91d6eaa6ab04
+		summarizeBy: sum
+		sourceColumn: CostPerAcquisition
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ClickThroughRate
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 36cd0481-ea78-437d-af8c-07eeb428cf36
+		summarizeBy: sum
+		sourceColumn: ClickThroughRate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column SpendEfficiencyTier
+		dataType: string
+		lineageTag: bf883c85-65a7-4815-8379-361d71af1fef
+		summarizeBy: none
+		sourceColumn: SpendEfficiencyTier
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact MarketingSpend' = m
+		mode: import
+		queryGroup: 'Loaded Facts'
+		source =
+				let
+					FileRow = DataSource{[Name="fact_vMarketingSpend.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadFactParquet(BinaryData, "fact_vMarketingSpend.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

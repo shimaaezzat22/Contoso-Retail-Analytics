@@ -1,0 +1,49 @@
+table 'dim vPaymentMethod'
+	lineageTag: 19096f5e-72e7-4f97-a88b-70f06118ffe9
+
+	column PaymentMethodKey
+		dataType: int64
+		formatString: 0
+		lineageTag: d4055e88-5bfd-40b0-abb9-513b523b160c
+		summarizeBy: count
+		sourceColumn: PaymentMethodKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PaymentMethodName
+		dataType: string
+		lineageTag: 2b971390-406d-48c4-afbd-7311720754ed
+		summarizeBy: none
+		sourceColumn: PaymentMethodName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PaymentCategory
+		dataType: string
+		lineageTag: c7740e90-20c2-460e-86b0-8de35b416efd
+		summarizeBy: none
+		sourceColumn: PaymentCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsDigital
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: eaa86ddd-80c6-475d-82e7-3e9489ef5731
+		summarizeBy: none
+		sourceColumn: IsDigital
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dim vPaymentMethod' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "dim", Item = "vPaymentMethod"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

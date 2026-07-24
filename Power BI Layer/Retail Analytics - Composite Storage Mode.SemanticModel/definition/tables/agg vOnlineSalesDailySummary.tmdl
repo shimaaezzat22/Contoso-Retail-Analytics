@@ -1,0 +1,159 @@
+table 'agg vOnlineSalesDailySummary'
+	lineageTag: 99116008-9c98-479c-99d5-23d2bd81d1df
+
+	column DateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: dbe29a05-e6c0-4ecf-b861-246e85a5cb17
+		summarizeBy: none
+		sourceColumn: DateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 3903b175-31be-42e3-9c34-ca3b6a6a6e9c
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ProductKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 41890336-8be4-4dc3-80a9-a05ff2daa406
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 7f771ec6-b4ff-4773-86ab-b4897a8a994a
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 11ede1a5-c9b9-478d-8a82-6195ebf0d16a
+		summarizeBy: none
+		sourceColumn: PromotionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 8a2c692d-d370-480f-8f7f-47b1b9854669
+		summarizeBy: none
+		sourceColumn: CurrencyKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesAmount
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: c73be035-a6a3-4e22-8352-ccc093846235
+		summarizeBy: sum
+		sourceColumn: SalesAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column TotalCost
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 04928216-fd37-4852-9a4d-98d35dfed0b4
+		summarizeBy: sum
+		sourceColumn: TotalCost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column GrossProfit
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: a9e8197c-2ffa-41e8-a444-8f08a7effd67
+		summarizeBy: sum
+		sourceColumn: GrossProfit
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column SalesQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 3f2bad9e-1caa-47df-aaec-8f8eabc2b318
+		summarizeBy: sum
+		sourceColumn: SalesQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnAmount
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 5ca4ed04-5d8f-4815-8bbb-d12c66482cb5
+		summarizeBy: sum
+		sourceColumn: ReturnAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column ReturnQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 8d4a2453-cbb1-4b2c-89e3-94422c54452c
+		summarizeBy: sum
+		sourceColumn: ReturnQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiscountAmount
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 812fda2e-2361-4c57-b18f-fd007a3320fd
+		summarizeBy: sum
+		sourceColumn: DiscountAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column DiscountQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: f394ff4a-0e7a-433d-92bc-945e2aedd223
+		summarizeBy: sum
+		sourceColumn: DiscountQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderLineCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 393d81f2-bc57-4f88-9851-5155fac559dc
+		summarizeBy: sum
+		sourceColumn: OrderLineCount
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'agg vOnlineSalesDailySummary' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("localhost\SQLEXPRESS", "ContosoRetailDW"),
+				    agg_vOnlineSalesDailySummary = Source{[Schema="agg",Item="vOnlineSalesDailySummary"]}[Data]
+				in
+				    agg_vOnlineSalesDailySummary
+

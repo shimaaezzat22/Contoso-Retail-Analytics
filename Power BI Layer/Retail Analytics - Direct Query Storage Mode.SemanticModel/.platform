@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Retail Analytics - Direct Query Storage Mode"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "6813f751-c1ee-4b6a-8e3e-6229b258910d"
+  }
+}

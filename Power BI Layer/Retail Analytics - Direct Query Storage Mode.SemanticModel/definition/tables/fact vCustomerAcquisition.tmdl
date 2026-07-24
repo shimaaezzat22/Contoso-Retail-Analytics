@@ -1,0 +1,81 @@
+table 'fact vCustomerAcquisition'
+	lineageTag: d4117f05-1ce5-4859-80a6-d7a8f4bccddd
+
+	column CustomerKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: ec853110-a179-42e7-858f-44507e3793f9
+		summarizeBy: count
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionChannelKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: eb122b4d-dd83-43a6-a6ec-c44a312434c6
+		summarizeBy: count
+		sourceColumn: AcquisitionChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 95dcdba8-1cb7-456e-ba6e-a7d65a8b4ba9
+		summarizeBy: count
+		sourceColumn: AcquisitionDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: f2bd83dc-6808-4394-9a29-6a55b0135432
+		summarizeBy: none
+		sourceColumn: AcquisitionDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CACMidpoint
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: money
+		lineageTag: 6d26a518-442b-4bcd-8de8-65eb4b7a34bc
+		summarizeBy: sum
+		sourceColumn: CACMidpoint
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column CACTier
+		dataType: string
+		isNullable: false
+		sourceProviderType: varchar(10)
+		lineageTag: 8f5a0e81-36b5-49b4-a4d0-44f66012fc2e
+		summarizeBy: none
+		sourceColumn: CACTier
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'fact vCustomerAcquisition' = m
+		mode: directQuery
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "fact", Item = "vCustomerAcquisition"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

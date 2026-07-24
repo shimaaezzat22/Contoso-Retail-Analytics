@@ -1,0 +1,149 @@
+table 'Fact SalesQuota'
+	lineageTag: 1a97ea07-7b96-4f5d-8862-48567d414d93
+
+	column DateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 372e4fae-eacc-49ae-84a1-d40b1c8c45a9
+		summarizeBy: none
+		sourceColumn: DateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesQuotaDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 853ab962-36aa-47c6-95c5-45b81bbca68d
+		summarizeBy: none
+		sourceColumn: SalesQuotaDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column StoreKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0a1263c4-8c7c-48be-a576-d30f5d8b1781
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1f776bab-5d65-4328-9790-846f745ea4dc
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d4edc888-91ae-40d9-b3f8-dbbe1edd1ec0
+		summarizeBy: none
+		sourceColumn: CurrencyKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelName
+		dataType: string
+		lineageTag: 7ccdcff0-cc32-48a3-b820-26d2b23dc61c
+		summarizeBy: none
+		sourceColumn: ChannelName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelDescription
+		dataType: string
+		lineageTag: 608f9293-b3e1-4e16-a2fa-4d4e6ac6189b
+		summarizeBy: none
+		sourceColumn: ChannelDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column ScenarioName
+		dataType: string
+		lineageTag: acc925a0-b112-4662-8060-acfdffa21881
+		summarizeBy: none
+		sourceColumn: ScenarioName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ScenarioDescription
+		dataType: string
+		lineageTag: dd2e2f91-8aff-4ca4-97b0-db0742b9ee01
+		summarizeBy: none
+		sourceColumn: ScenarioDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesQuantityQuota
+		dataType: int64
+		formatString: 0
+		lineageTag: 0ff454db-fd57-4267-b2c6-6b6e789f5380
+		summarizeBy: sum
+		sourceColumn: SalesQuantityQuota
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesAmountQuota
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: ac70c9a1-ddef-48d4-94b4-9639250ea02c
+		summarizeBy: sum
+		sourceColumn: SalesAmountQuota
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column GrossMarginQuota
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: c41c2fd3-09e0-4fda-b179-ecec5794b1df
+		summarizeBy: sum
+		sourceColumn: GrossMarginQuota
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column GrossMarginQuotaPct
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 7dc3eb2e-3fa4-4a3d-bf1e-b32c10889ad2
+		summarizeBy: sum
+		sourceColumn: GrossMarginQuotaPct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Fact SalesQuota' = m
+		mode: import
+		queryGroup: 'Loaded Facts'
+		source =
+				let
+					FileRow = DataSource{[Name="fact_vSalesQuota.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadFactParquet(BinaryData, "fact_vSalesQuota.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,131 @@
+table 'fact vCustomerSurvey'
+	lineageTag: b723e574-a8cb-4831-8617-525df0af75aa
+
+	column SurveyResponseID
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: f1d494e8-d31d-45b5-bacd-19d5af1f3240
+		summarizeBy: count
+		sourceColumn: SurveyResponseID
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: ca8e6b8c-59bd-41c5-b9cb-4f3a8ebe35be
+		summarizeBy: count
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SurveyDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: c64e38fe-bc9f-470d-aebd-89ff919e34a8
+		summarizeBy: count
+		sourceColumn: SurveyDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SurveyDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: 98ef992b-54d2-49f9-90bc-569c1bc64355
+		summarizeBy: none
+		sourceColumn: SurveyDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column NPSScore
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: tinyint
+		lineageTag: 1f9a464c-2f7a-4a9e-a4f6-0de3563d3713
+		summarizeBy: sum
+		sourceColumn: NPSScore
+
+		annotation SummarizationSetBy = Automatic
+
+	column NPSCategory
+		dataType: string
+		sourceProviderType: nvarchar(20)
+		lineageTag: 67fc4c99-51fa-4cac-8ff0-60dbd29caf25
+		summarizeBy: none
+		sourceColumn: NPSCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column NPSContribution
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: ba6f943c-25f9-4c78-b83d-ba6401812dc7
+		summarizeBy: sum
+		sourceColumn: NPSContribution
+
+		annotation SummarizationSetBy = Automatic
+
+	column CSATScore
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: tinyint
+		lineageTag: b5a395b3-18ec-49e8-8324-58540ad64ca2
+		summarizeBy: sum
+		sourceColumn: CSATScore
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsSatisfied
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 765c4dae-30c9-403e-a167-ecacdf1245ad
+		summarizeBy: sum
+		sourceColumn: IsSatisfied
+
+		annotation SummarizationSetBy = Automatic
+
+	column WouldRecommend
+		dataType: boolean
+		isNullable: false
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: fb2508a0-d17c-4b9a-be6a-4f951f396dbd
+		summarizeBy: none
+		sourceColumn: WouldRecommend
+
+		annotation SummarizationSetBy = Automatic
+
+	column SurveyTrigger
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(30)
+		lineageTag: 43f7803e-1650-491c-aa81-cce5fa8abcd3
+		summarizeBy: none
+		sourceColumn: SurveyTrigger
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'fact vCustomerSurvey' = m
+		mode: directQuery
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "fact", Item = "vCustomerSurvey"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

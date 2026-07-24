@@ -1,0 +1,66 @@
+table 'dim vReturnReason'
+	lineageTag: 07262e66-29ff-42e2-998b-bd448182f562
+
+	column ReturnReasonKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 6e247501-95e4-4b31-991c-c5bbeee2a1d3
+		summarizeBy: none
+		sourceColumn: ReturnReasonKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonCode
+		dataType: string
+		lineageTag: 8c822653-ef42-42d8-aabd-52ace4784279
+		summarizeBy: none
+		sourceColumn: ReturnReasonCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonName
+		dataType: string
+		lineageTag: d15c49dd-faf0-4f6f-ab1b-8585b8a413e2
+		summarizeBy: none
+		sourceColumn: ReturnReasonName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonCategory
+		dataType: string
+		lineageTag: 3ca7920e-bd45-49c9-84b6-68bbbf6fb01a
+		summarizeBy: none
+		sourceColumn: ReturnReasonCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsOperationalFailure
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 4aca673b-84b8-4df3-9abe-05420ae131b8
+		summarizeBy: none
+		sourceColumn: IsOperationalFailure
+
+		annotation SummarizationSetBy = Automatic
+
+	column AppliesTo
+		dataType: string
+		lineageTag: 4d3c18c1-af66-4727-a5f7-c418310c2ce8
+		summarizeBy: none
+		sourceColumn: AppliesTo
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dim vReturnReason' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("localhost\SQLEXPRESS", "ContosoRetailDW"),
+				    dim_vReturnReason = Source{[Schema="dim",Item="vReturnReason"]}[Data]
+				in
+				    dim_vReturnReason
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

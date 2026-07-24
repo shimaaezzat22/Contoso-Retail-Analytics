@@ -1,0 +1,205 @@
+table 'Fact Inventory'
+	lineageTag: cfdb0289-913f-4657-bb2b-9ab27ff469a5
+
+	column InventoryKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 0080bf1c-d032-4337-a56f-462cf86aa230
+		summarizeBy: count
+		sourceColumn: InventoryKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 49c3b50a-1bf2-43da-9b3a-659996e30ec4
+		summarizeBy: none
+		sourceColumn: DateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column InventoryDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 1e882cdc-0c31-4fb4-bff7-a99268b300a2
+		summarizeBy: none
+		sourceColumn: InventoryDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column StoreKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 94acd1e5-1048-4f77-8752-e1c459d8b96a
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 81bb803f-8d20-4894-9cf1-2e816c1b8037
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: be9cf572-bdf3-4671-b821-00d82105c066
+		summarizeBy: none
+		sourceColumn: CurrencyKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OnHandQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: f1bfab8c-bcc9-4fb1-9789-04fffaa1dd86
+		summarizeBy: sum
+		sourceColumn: OnHandQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column OnOrderQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: e1ad9271-39d1-4c7f-bc9b-f054bc0e1feb
+		summarizeBy: sum
+		sourceColumn: OnOrderQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column SafetyStockQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 3f1716ed-da15-4495-be59-53863e784389
+		summarizeBy: sum
+		sourceColumn: SafetyStockQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column InventoryValue
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 9774ceba-beb5-417a-9d8f-68c027ad19af
+		summarizeBy: sum
+		sourceColumn: InventoryValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column OnOrderValue
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 746a7fcf-9259-461c-a08b-9f6cbe8fc5e1
+		summarizeBy: sum
+		sourceColumn: OnOrderValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column StockCoverageRatio
+		dataType: double
+		formatString: 0.00
+		lineageTag: 2d4e614a-3605-4b6d-b4e7-e892fd948bf5
+		summarizeBy: sum
+		sourceColumn: StockCoverageRatio
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column StockStatus
+		dataType: string
+		lineageTag: 8b29d40a-0fcc-4bf3-a0e8-72bcc2388adb
+		summarizeBy: none
+		sourceColumn: StockStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysInStock
+		dataType: int64
+		formatString: 0
+		lineageTag: c9fb1ea3-e724-4d0f-b8a4-3c0826fab19c
+		summarizeBy: sum
+		sourceColumn: DaysInStock
+
+		annotation SummarizationSetBy = Automatic
+
+	column MinDayInStock
+		dataType: int64
+		formatString: 0
+		lineageTag: 7517c948-8e98-46ff-955c-f7d683e6f78e
+		summarizeBy: sum
+		sourceColumn: MinDayInStock
+
+		annotation SummarizationSetBy = Automatic
+
+	column MaxDayInStock
+		dataType: int64
+		formatString: 0
+		lineageTag: c48259c5-8eeb-4857-99e8-223f2daa01c6
+		summarizeBy: sum
+		sourceColumn: MaxDayInStock
+
+		annotation SummarizationSetBy = Automatic
+
+	column Aging
+		dataType: int64
+		formatString: 0
+		lineageTag: a3347ed2-4470-4dce-8a6d-f71900a75c1c
+		summarizeBy: sum
+		sourceColumn: Aging
+
+		annotation SummarizationSetBy = Automatic
+
+	column AgingTier
+		dataType: string
+		lineageTag: eae0c001-d9fb-47db-870f-125f0ef144c8
+		summarizeBy: none
+		sourceColumn: AgingTier
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsCurrentSnapshot
+		dataType: int64
+		formatString: 0
+		lineageTag: 38934c64-ec32-46ab-bb33-a4de16e196bf
+		summarizeBy: sum
+		sourceColumn: IsCurrentSnapshot
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Inventory' = m
+		mode: import
+		queryGroup: 'Loaded Facts'
+		source =
+				let
+					FileRow = DataSource{[Name="fact_vInventory.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadFactParquet(BinaryData, "fact_vInventory.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

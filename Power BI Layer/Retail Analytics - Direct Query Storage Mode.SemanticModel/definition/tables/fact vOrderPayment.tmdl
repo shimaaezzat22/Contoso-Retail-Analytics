@@ -1,0 +1,70 @@
+table 'fact vOrderPayment'
+	lineageTag: d58f294e-2f40-4881-aefc-2672dd9e4a67
+
+	column SalesOrderNumber
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(20)
+		lineageTag: e521c9eb-b323-4468-9b70-1e150ee05375
+		summarizeBy: none
+		sourceColumn: SalesOrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column PaymentMethodKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 01e37048-834e-4858-ba32-8df9aa214c6f
+		summarizeBy: count
+		sourceColumn: PaymentMethodKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: f35799a2-595d-4580-8a6c-eaf8ca215460
+		summarizeBy: count
+		sourceColumn: OrderDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: e763d2c3-fdef-4ec5-85d3-6e09ab3539e3
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column OrderValue
+		dataType: double
+		isNullable: false
+		sourceProviderType: decimal(19, 4)
+		lineageTag: 39999a34-f9bc-4988-95eb-29ba8b91f104
+		summarizeBy: sum
+		sourceColumn: OrderValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'fact vOrderPayment' = m
+		mode: directQuery
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "fact", Item = "vOrderPayment"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

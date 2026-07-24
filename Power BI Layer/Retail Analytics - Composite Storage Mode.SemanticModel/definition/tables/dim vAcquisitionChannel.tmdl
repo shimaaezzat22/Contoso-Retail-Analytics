@@ -1,0 +1,80 @@
+table 'dim vAcquisitionChannel'
+	lineageTag: f40924f4-147c-42a3-994a-915788bc6e1b
+
+	column AcquisitionChannelKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 2a64ee93-260f-4522-8c72-d55dbc9c9c29
+		summarizeBy: none
+		sourceColumn: AcquisitionChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelName
+		dataType: string
+		lineageTag: 0fce08cf-0ba2-4d46-b1ce-7a1637ae535e
+		summarizeBy: none
+		sourceColumn: ChannelName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelCategory
+		dataType: string
+		lineageTag: 84440253-6cec-44ef-b93b-2bb9fcbc3e35
+		summarizeBy: none
+		sourceColumn: ChannelCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsDigital
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 20df75b3-8df3-4855-a194-377763626510
+		summarizeBy: none
+		sourceColumn: IsDigital
+
+		annotation SummarizationSetBy = Automatic
+
+	column EstimatedCACLow
+		dataType: double
+		lineageTag: 3da8be0e-3cb3-4b66-9415-73278b59b7b2
+		summarizeBy: sum
+		sourceColumn: EstimatedCACLow
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EstimatedCACHigh
+		dataType: double
+		lineageTag: dffcbed5-bca0-4578-9d0a-999d19eeb5c3
+		summarizeBy: sum
+		sourceColumn: EstimatedCACHigh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CACMidpoint
+		dataType: double
+		lineageTag: 993b7ad1-d6a7-41ed-8c3e-707d0d35df13
+		summarizeBy: sum
+		sourceColumn: CACMidpoint
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'dim vAcquisitionChannel' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("localhost\SQLEXPRESS", "ContosoRetailDW"),
+				    dim_vAcquisitionChannel = Source{[Schema="dim",Item="vAcquisitionChannel"]}[Data]
+				in
+				    dim_vAcquisitionChannel
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

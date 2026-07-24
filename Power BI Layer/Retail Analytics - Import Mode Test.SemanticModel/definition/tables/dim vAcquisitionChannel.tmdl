@@ -1,0 +1,78 @@
+table 'dim vAcquisitionChannel'
+	lineageTag: eea2f8d4-c7ab-4f8d-acfb-f07a232b41a8
+
+	column AcquisitionChannelKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 69c22934-8fc5-481c-b49f-163cf04540d5
+		summarizeBy: count
+		sourceColumn: AcquisitionChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelName
+		dataType: string
+		lineageTag: 65f378c9-784f-4a06-b7c7-33fb7400f7ec
+		summarizeBy: none
+		sourceColumn: ChannelName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelCategory
+		dataType: string
+		lineageTag: 2a2abf16-d3ce-42ae-bf1d-bc1595da5111
+		summarizeBy: none
+		sourceColumn: ChannelCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsDigital
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 4d2520fb-5344-4088-98f7-b1aadbd69d1a
+		summarizeBy: none
+		sourceColumn: IsDigital
+
+		annotation SummarizationSetBy = Automatic
+
+	column EstimatedCACLow
+		dataType: double
+		lineageTag: 36fb260f-b4bc-443f-8f7d-ecf4f2913089
+		summarizeBy: sum
+		sourceColumn: EstimatedCACLow
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EstimatedCACHigh
+		dataType: double
+		lineageTag: d54543d0-40cd-4486-8794-faf307696723
+		summarizeBy: sum
+		sourceColumn: EstimatedCACHigh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CACMidpoint
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: d6ad16b9-b0b2-4e9a-902d-53b231642af9
+		summarizeBy: sum
+		sourceColumn: CACMidpoint
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	partition 'dim vAcquisitionChannel' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "dim", Item = "vAcquisitionChannel"]}[Data]
+				in
+				  #"Navigation 2"
+

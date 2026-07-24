@@ -1,0 +1,49 @@
+table 'dim vCurrency'
+	lineageTag: a7de5ba5-fa9d-45c9-a15e-10c8bf6b8707
+
+	column CurrencyKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 6496ffe3-b4f5-451c-87dc-ebb839121fa0
+		summarizeBy: none
+		sourceColumn: CurrencyKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyLabel
+		dataType: string
+		lineageTag: a7946ee3-02a8-48e8-9e42-b75df5570834
+		summarizeBy: none
+		sourceColumn: CurrencyLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyName
+		dataType: string
+		lineageTag: aae65b5f-c61b-4950-960e-1bcc8ae3f24f
+		summarizeBy: none
+		sourceColumn: CurrencyName
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyDescription
+		dataType: string
+		lineageTag: dcb3df8a-bd0f-49a1-81b4-c4cd9de88531
+		summarizeBy: none
+		sourceColumn: CurrencyDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dim vCurrency' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("localhost\SQLEXPRESS", "ContosoRetailDW"),
+				    dim_vCurrency = Source{[Schema="dim",Item="vCurrency"]}[Data]
+				in
+				    dim_vCurrency
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,67 @@
+table 'Dim ReturnReason'
+	lineageTag: ec187a16-dba8-44aa-a013-26e24a5868cc
+
+	column ReturnReasonKey
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: a59134cb-bdab-4b2e-960d-c2a7c172ca16
+		summarizeBy: none
+		sourceColumn: ReturnReasonKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonCode
+		dataType: string
+		lineageTag: c1a7b798-e8ec-4d3d-8e70-1a28c06a5511
+		summarizeBy: none
+		sourceColumn: ReturnReasonCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonName
+		dataType: string
+		lineageTag: 9a17272b-b5ce-42f7-8694-798077e1d6a3
+		summarizeBy: none
+		sourceColumn: ReturnReasonName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonCategory
+		dataType: string
+		lineageTag: 17ef7c5c-501a-4382-83e0-2ba63a10faf4
+		summarizeBy: none
+		sourceColumn: ReturnReasonCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsOperationalFailure
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: c07e0e6c-17b5-4de1-8e08-ab783f400e6f
+		summarizeBy: none
+		sourceColumn: IsOperationalFailure
+
+		annotation SummarizationSetBy = Automatic
+
+	column AppliesTo
+		dataType: string
+		lineageTag: 87aed195-f590-4bce-90c8-d4ec8ae80fad
+		summarizeBy: none
+		sourceColumn: AppliesTo
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim ReturnReason' = m
+		mode: import
+		queryGroup: 'Loaded Dimensions'
+		source =
+				let
+					FileRow = DataSource{[Name="dim_vReturnReason.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadDimParquet(BinaryData, "dim_vReturnReason.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

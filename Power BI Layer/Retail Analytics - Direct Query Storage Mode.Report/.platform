@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Retail Analytics - Direct Query Storage Mode"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a427ab03-cf7a-413d-b622-bb1520d985a5"
+  }
+}

@@ -1,0 +1,206 @@
+table 'fact vReturns'
+	lineageTag: 3e528aa0-f43f-4996-a1ea-36d2e8fea9f7
+
+	column ReturnEventKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 18f99cbd-a185-46d8-833c-a6ba26d25934
+		summarizeBy: count
+		sourceColumn: ReturnEventKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnEventID
+		dataType: string
+		sourceProviderType: varchar(24)
+		lineageTag: 4615073d-6e3f-4231-8ea7-29f891b7ae4a
+		summarizeBy: none
+		sourceColumn: ReturnEventID
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 34b16ed3-e622-4494-983f-22323ec0e25b
+		summarizeBy: count
+		sourceColumn: ReturnDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: ed55b994-7c81-4773-a655-8ceccc7515df
+		summarizeBy: none
+		sourceColumn: ReturnDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column OriginalSaleDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 8de85ba4-f4d3-4b32-92a2-3ea7f3c65196
+		summarizeBy: count
+		sourceColumn: OriginalSaleDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OriginalSaleDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: c738e14c-66cc-453c-a76b-f852aa936ccb
+		summarizeBy: none
+		sourceColumn: OriginalSaleDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CustomerKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: b08f75da-57b8-417f-9e77-e1e7b021312a
+		summarizeBy: count
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 92794760-4957-49a5-8359-c96f19f0791d
+		summarizeBy: count
+		sourceColumn: StoreKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: e43c7ddd-fb6b-403b-b935-3c81f5232b3e
+		summarizeBy: count
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnReasonKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 86e725b3-3e15-43ce-971f-e1c9cdc6ec98
+		summarizeBy: count
+		sourceColumn: ReturnReasonKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesOrderNumber
+		dataType: string
+		sourceProviderType: nvarchar(20)
+		lineageTag: 24a181db-b9b6-49a3-8747-c210e43eb49c
+		summarizeBy: none
+		sourceColumn: SalesOrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column SalesOrderLineNumber
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 1c29009a-93eb-48f2-98a3-870dbaa0a3a9
+		summarizeBy: sum
+		sourceColumn: SalesOrderLineNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnQuantity
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 241c1373-18ac-41b0-94df-4003fe0c151b
+		summarizeBy: sum
+		sourceColumn: ReturnQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnAmount
+		dataType: double
+		isNullable: false
+		sourceProviderType: decimal(19, 4)
+		lineageTag: eab9aaf7-5b2c-46bb-b7ec-dd1793d42f21
+		summarizeBy: sum
+		sourceColumn: ReturnAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column RefundAmount
+		dataType: double
+		isNullable: false
+		sourceProviderType: decimal(19, 4)
+		lineageTag: 81624090-b7b3-4a38-abdb-a1df9684d342
+		summarizeBy: sum
+		sourceColumn: RefundAmount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column IsRefunded
+		dataType: boolean
+		isNullable: false
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: f995802e-d6f5-460e-9e15-5691218732a6
+		summarizeBy: none
+		sourceColumn: IsRefunded
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnLagDays
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: c367de04-bb5a-4bff-9946-74884631de20
+		summarizeBy: sum
+		sourceColumn: ReturnLagDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReturnChannel
+		dataType: string
+		isNullable: false
+		sourceProviderType: varchar(8)
+		lineageTag: 2910bcf9-28b8-46a2-ba36-ffd05b368d50
+		summarizeBy: none
+		sourceColumn: ReturnChannel
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'fact vReturns' = m
+		mode: directQuery
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "fact", Item = "vReturns"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

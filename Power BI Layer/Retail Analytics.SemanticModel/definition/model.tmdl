@@ -1,0 +1,61 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+/// Contains all the parameters used for building flixable M code without hardcoded values.
+queryGroup 'Parameters List'
+
+	annotation PBI_QueryGroupOrder = 0
+
+/// Both queries are used for building the data connection with the SharePoint site and folder contain the dataset files plus developing the schema mapping to overcome the parquet files issue.
+queryGroup 'Data Connection'
+
+	annotation PBI_QueryGroupOrder = 1
+
+/// List of fact tables with 10K rows loaded for each.
+queryGroup 'Loaded Facts'
+
+	annotation PBI_QueryGroupOrder = 2
+
+/// List of dimensions fully loaded.
+queryGroup 'Loaded Dimensions'
+
+	annotation PBI_QueryGroupOrder = 3
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["DevMode","TMDL-Extension","MCP-PBIModeling"]
+
+annotation PBI_QueryOrder = ["IsDev","pSharedSiteURL","pSharedFolderPath","DataSource","SchemaMapping","fxLoadFactParquet","fxLoadDimParquet","Dim AcquisitionChannel","Dim Channel","Dim Currency","Dim Customer","Dim Date","Dim Employee","Dim PaymentMethod","Dim Product","Dim Promotion","Dim ReturnReason","Dim Store","Fact CustomerAcquisition","Fact CustomerSurvey","Fact ExchangeRate","Fact Inventory","Fact MarketingSpend","Fact OnlineSales","Fact OrderFulfillment","Fact OrderPayment","Fact Returns","Fact SalesQuota","Fact StoreSales","dim vChannel"]
+
+ref table 'Dim AcquisitionChannel'
+ref table 'Dim Channel'
+ref table 'Dim Currency'
+ref table 'Dim Customer'
+ref table 'Dim Date'
+ref table 'Dim PaymentMethod'
+ref table 'Dim Product'
+ref table 'Dim Promotion'
+ref table 'Dim ReturnReason'
+ref table 'Dim Store'
+ref table 'Fact CustomerAcquisition'
+ref table 'Fact CustomerSurvey'
+ref table 'Fact ExchangeRate'
+ref table 'Fact Inventory'
+ref table 'Fact MarketingSpend'
+ref table 'Fact OnlineSales'
+ref table 'Fact OrderFulfillment'
+ref table 'Fact OrderPayment'
+ref table 'Fact Returns'
+ref table 'Fact SalesQuota'
+ref table 'Fact StoreSales'
+ref table _Measures
+ref table 'Dim Employee'
+ref table 'dim vChannel'
+
+ref cultureInfo en-US
+

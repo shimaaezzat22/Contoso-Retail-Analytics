@@ -1,0 +1,1329 @@
+/// Host table for all DAX measures. Contains no data rows — only measure objects organized in display folders by executive role.
+table _Measures
+	lineageTag: fd76aadb-cee9-4e79-adae-f41f56adba13
+
+	/// PURPOSE: The foundational revenue KPI used by CEO, CFO, and CSO as the top-line performance anchor.
+	/// EXECUTIVE: CEO · CFO · CSO
+	/// BUILDING BLOCKS: Fact OnlineSales and Fact StoreSales, both linked to Dim Date via DateKey. Revenue is computed as SalesQuantity × UnitPrice on each row using SUMX — not from a pre-computed SalesAmount column — to ensure consistency with catalogue pricing at transaction time.
+	/// PHILOSOPHY: Two separate VAR blocks (OnlineRev, StoreRev) keep channel contributions independently readable before summing. This pattern is intentional: downstream measures like [Online Sales Share %] reuse the same per-channel logic, and the separation prevents ambiguity when the measure is used inside CALCULATE with channel filters.
+	measure 'Total Revenue' =
+			VAR OnlineRev = SUMX('Fact OnlineSales', 'Fact OnlineSales'[SalesQuantity] * 'Fact OnlineSales'[UnitPrice])
+			VAR StoreRev  = SUMX('Fact StoreSales',  'Fact StoreSales'[SalesQuantity]  * 'Fact StoreSales'[UnitPrice])
+			RETURN OnlineRev + StoreRev
+		formatString: $#,0.00
+		displayFolder: CEO\Financial
+		lineageTag: 134eb0a2-3458-4309-af76-815d17fc8a27
+
+	/// PURPOSE: Total cost of goods sold across both channels — the denominator of gross margin and the driver of profitability analysis for the CFO.
+	/// EXECUTIVE: CFO
+	/// BUILDING BLOCKS: Fact OnlineSales and Fact StoreSales, computed as SalesQuantity × UnitCost per row via SUMX — mirroring the revenue pattern exactly to ensure margin arithmetic is consistent at the same grain.
+	/// PHILOSOPHY: SUMX over UnitCost preserves row-level cost accuracy when unit costs vary by promotion or currency. A simple SUM of a pre-aggregated cost column would lose this precision if costs were blended at load time.
+	measure 'Total Cost of Goods' =
+			VAR OnlineCOGS = SUMX('Fact OnlineSales', 'Fact OnlineSales'[SalesQuantity] * 'Fact OnlineSales'[UnitCost])
+			VAR StoreCOGS  = SUMX('Fact StoreSales',  'Fact StoreSales'[SalesQuantity]  * 'Fact StoreSales'[UnitCost])
+			RETURN OnlineCOGS + StoreCOGS
+		formatString: $#,0.00
+		displayFolder: CEO\Financial
+		lineageTag: 9d50311a-29f8-438d-9b1e-b56fd52a4559
+
+	/// PURPOSE: The primary profitability signal for CFO and CEO dashboards — revenue after subtracting cost of goods but before operating expenses.
+	/// EXECUTIVE: CEO · CFO
+	/// BUILDING BLOCKS: Derived entirely from [Total Revenue] and [Total Cost of Goods] — no direct table references. Inherits both tables (Fact OnlineSales, Fact StoreSales) through those base measures.
+	/// PHILOSOPHY: Building on base measures rather than re-summing columns guarantees that any filter context applied to [Total Revenue] (e.g. a channel slicer) flows through correctly to [Gross Profit] without duplicating logic.
+	measure 'Gross Profit' =
+			VAR Rev  = [Total Revenue]
+			VAR COGS = [Total Cost of Goods]
+			RETURN Rev - COGS
+		formatString: $#,0.00
+		displayFolder: CEO\Financial
+		lineageTag: 8343a3e0-39ac-4a5e-a573-46191c028580
+
+	/// PURPOSE: The percentage of revenue retained as gross profit — the primary efficiency ratio for the CFO pricing and profitability review.
+	/// EXECUTIVE: CFO
+	/// BUILDING BLOCKS: [Gross Profit] divided by [Total Revenue] using DIVIDE() for safe zero-denominator handling.
+	/// PHILOSOPHY: DIVIDE() returns BLANK rather than an error or infinity when revenue is zero, which prevents corrupted visuals when date slicers produce empty periods. The numerator is always computed first as a VAR to enable debugging in DAX Studio.
+	measure 'Gross Profit Margin %' =
+			VAR Rev = [Total Revenue]
+			RETURN DIVIDE([Gross Profit], Rev)
+		formatString: 0.00%
+		displayFolder: CEO\Financial
+		lineageTag: 8a95464e-4c04-4114-a892-806e7276e844
+
+	/// PURPOSE: Revenue after deducting customer refunds — the CFO's view of realised revenue excluding money returned to customers.
+	/// EXECUTIVE: CFO
+	/// BUILDING BLOCKS: [Total Revenue] minus the sum of RefundAmount from Fact Returns. Fact Returns connects to Dim Date via ReturnDateKey (active) and to Dim Date via OriginalSalesDateKey (inactive — available for return-lag analysis via USERELATIONSHIP).
+	/// PHILOSOPHY: Refunds are subtracted at the measure layer rather than filtered at source so that [Total Revenue] and [Net Revenue] can coexist on the same visual, giving CFO a clean gross-to-net reconciliation without requiring two separate date filters.
+	measure 'Net Revenue' =
+			VAR TotalRefunds = CALCULATE(SUM('Fact Returns'[RefundAmount]))
+			RETURN [Total Revenue] - TotalRefunds
+		formatString: $#,0.00
+		displayFolder: CEO\Financial
+		lineageTag: b2178a9c-d1c7-4661-8beb-bd19c379bf44
+
+	/// PURPOSE: Total monetary value of discounts granted across both channels — used by CFO and Product Manager to monitor price erosion and promotion cost.
+	/// EXECUTIVE: CFO · Product Manager
+	/// BUILDING BLOCKS: SUMX over Fact OnlineSales[DiscountAmount] × SalesQuantity and Fact StoreSales[DiscountAmount] × SalesQuantity. Both fact tables connect to Dim Product and Dim Promotion for category and campaign filtering.
+	/// PHILOSOPHY: Row-level SUMX is used rather than SUM of a pre-aggregated column because DiscountAmount in the source is a per-unit rate — multiplying by SalesQuantity produces the total discount value per transaction line.
+	measure 'Total Discount Amount' =
+			VAR OnlineDisc = SUMX('Fact OnlineSales', 'Fact OnlineSales'[SalesQuantity] * 'Fact OnlineSales'[DiscountAmount])
+			VAR StoreDisc  = SUMX('Fact StoreSales',  'Fact StoreSales'[SalesQuantity]  * 'Fact StoreSales'[DiscountAmount])
+			RETURN OnlineDisc + StoreDisc
+		formatString: $#,0.00
+		displayFolder: CEO\Financial
+		lineageTag: 3a22ecf2-8c81-45e0-ac40-834c4cdeed23
+
+	/// PURPOSE: Year-over-year revenue growth rate — the CEO and CSO's primary trend signal for strategic and commercial review.
+	/// EXECUTIVE: CEO · CSO
+	/// BUILDING BLOCKS: [Total Revenue] for the current period vs the same period one year prior via SAMEPERIODLASTYEAR on Dim Date[Date]. Requires Dim Date to be marked as a Date Table in Power BI Desktop.
+	/// PHILOSOPHY: Both the current and prior-year values are captured as VARs before the DIVIDE, enabling easy inspection in DAX Studio — pausing the RETURN shows the raw delta components without re-running the query.
+	measure 'Revenue YoY Growth %' =
+			VAR CurrRev = [Total Revenue]
+			VAR PrevRev = CALCULATE([Total Revenue], SAMEPERIODLASTYEAR('Dim Date'[Date]))
+			RETURN DIVIDE(CurrRev - PrevRev, PrevRev)
+		formatString: 0.00%
+		displayFolder: CEO\Growth
+		lineageTag: ca5f068b-f004-43c0-b663-e1d666d731d9
+
+	/// PURPOSE: Cumulative year-to-date revenue — used by CEO and CFO to track full-year progress against budget at any point in the calendar year.
+	/// EXECUTIVE: CEO · CFO
+	/// BUILDING BLOCKS: CALCULATE wrapping [Total Revenue] with DATESYTD on Dim Date[Date]. Accumulates from the first day of the year to the last date in the current filter context. Requires Dim Date to be marked as a Date Table.
+	/// PHILOSOPHY: DATESYTD is preferred over a manual FILTER pattern here because Dim Date is confirmed as a marked Date Table in this model, making the native time-intelligence function reliable and readable.
+	measure 'Revenue YTD' = CALCULATE([Total Revenue], DATESYTD('Dim Date'[Date]))
+		formatString: $#,0.00
+		displayFolder: CEO\Growth
+		lineageTag: 5df21d44-287a-4291-8507-5f42655f8aac
+
+	/// PURPOSE: Month-to-date cumulative revenue — used in operational reviews to track intra-month performance against monthly targets.
+	/// EXECUTIVE: CSO · CFO
+	/// BUILDING BLOCKS: CALCULATE with DATESMTD on Dim Date[Date], accumulating from the first day of the current month. Requires Dim Date to be marked as a Date Table.
+	/// PHILOSOPHY: Same architecture as [Revenue YTD] but scoped to the month boundary. Placing YTD, MTD, and QTD as separate named measures (rather than one measure with a parameter) keeps them individually reusable in card visuals without requiring a slicer selection.
+	measure 'Revenue MTD' = CALCULATE([Total Revenue], DATESMTD('Dim Date'[Date]))
+		formatString: $#,0.00
+		displayFolder: CEO\Growth
+		lineageTag: 5f13f9e8-477e-456e-95f1-e34d9f2e0ab5
+
+	/// PURPOSE: Quarter-to-date cumulative revenue — used by CFO and CSO for quarterly business review (QBR) dashboards.
+	/// EXECUTIVE: CFO · CSO
+	/// BUILDING BLOCKS: CALCULATE with DATESQTD on Dim Date[Date], accumulating from the first day of the current quarter. Requires Dim Date to be marked as a Date Table.
+	/// PHILOSOPHY: DATESQTD respects fiscal quarter boundaries only if the fiscal year start is configured in the Date Table marking. For this model the calendar year is used, so Q1 = January–March.
+	measure 'Revenue QTD' = CALCULATE([Total Revenue], DATESQTD('Dim Date'[Date]))
+		formatString: $#,0.00
+		displayFolder: CEO\Growth
+		lineageTag: adeb79be-1ae5-4051-ba71-a69ed89b6c1c
+
+	/// PURPOSE: Total revenue for the equivalent period in the prior year — the CFO's baseline for all YoY comparisons and waterfall charts.
+	/// EXECUTIVE: CFO · CEO
+	/// BUILDING BLOCKS: CALCULATE with SAMEPERIODLASTYEAR on Dim Date[Date]. Uses the same [Total Revenue] base measure so all channel inclusions and filters propagate identically.
+	/// PHILOSOPHY: Defined as a standalone measure (rather than embedded in YoY measures) so CFO dashboards can display current vs prior year side-by-side in a single matrix without DAX duplication.
+	measure 'Revenue Prior Year' = CALCULATE([Total Revenue], SAMEPERIODLASTYEAR('Dim Date'[Date]))
+		formatString: $#,0.00
+		displayFolder: CEO\Growth
+		lineageTag: 324df8da-660b-45ad-98f6-a595e4dd3b92
+
+	/// PURPOSE: Year-over-year growth rate of gross profit — signals whether margin improvement is keeping pace with revenue growth, a critical CFO quality-of-earnings test.
+	/// EXECUTIVE: CFO
+	/// BUILDING BLOCKS: [Gross Profit] vs prior year via SAMEPERIODLASTYEAR on Dim Date[Date]. Inherits Fact OnlineSales and Fact StoreSales through the base measures.
+	/// PHILOSOPHY: Mirrors the [Revenue YoY Growth %] pattern exactly so that the two growth rates can be placed side-by-side on a CFO dashboard and compared directly — if gross profit growth < revenue growth, margin compression is occurring.
+	measure 'Gross Profit YoY Growth %' =
+			VAR CurrGP = [Gross Profit]
+			VAR PrevGP = CALCULATE([Gross Profit], SAMEPERIODLASTYEAR('Dim Date'[Date]))
+			RETURN DIVIDE(CurrGP - PrevGP, PrevGP)
+		formatString: 0.00%
+		displayFolder: CEO\Growth
+		lineageTag: a29ec5bc-4db6-4c36-9d24-0686c90233e0
+
+	/// PURPOSE: Count of distinct customers who made at least one purchase in the current filter context — the CEO and CMO's customer base size metric.
+	/// EXECUTIVE: CEO · CMO
+	/// BUILDING BLOCKS: DISTINCTCOUNT on Fact OnlineSales[CustomerKey]. Only online customers are counted — Fact StoreSales has no CustomerKey (physical store purchases are anonymous by architecture).
+	/// PHILOSOPHY: The online-only scope is explicit and deliberate. Adding store transaction counts would inflate the customer figure without adding identity, because store rows carry StoreKey=-1 as a null-customer sentinel. This measure should always be read as 'identified online customers.'
+	measure 'Total Customers' =
+			// Distinct online customers only — Fact StoreSales has no CustomerKey column.
+			// Store channel is anonymous transactional data.
+			DISTINCTCOUNT('Fact OnlineSales'[CustomerKey])
+		formatString: #,0
+		displayFolder: CEO\Customer Intelligence
+		lineageTag: 1334803b-6147-44c0-b613-e68fe3ac8bf6
+
+	/// PURPOSE: Customers making their first-ever purchase within the current date filter — the CMO and CSO's primary acquisition volume signal.
+	/// EXECUTIVE: CMO · CSO
+	/// BUILDING BLOCKS: Fact OnlineSales[CustomerKey] and Fact OnlineSales[OrderDate]. REMOVEFILTERS on Dim Date is applied to compute each customer's first-ever purchase date across the full history before comparing it to the dates in the current filter context.
+	/// PHILOSOPHY: The REMOVEFILTERS pattern prevents the date slicer from hiding prior purchases, ensuring a customer is only classified as 'new' if their global first purchase falls within the selected period — not just their first purchase within the selected period.
+	measure 'New Customers' =
+			VAR CurrentDates = VALUES('Dim Date'[Date])
+			VAR AllOnlineCust =
+			    CALCULATETABLE(
+			        ADDCOLUMNS(
+			            VALUES('Fact OnlineSales'[CustomerKey]),
+			            "FirstDate", CALCULATE(MIN('Fact OnlineSales'[OrderDate]))
+			        ),
+			        REMOVEFILTERS('Dim Date')
+			    )
+			VAR NewOnline = COUNTROWS(FILTER(AllOnlineCust, [FirstDate] IN CurrentDates))
+			RETURN NewOnline
+		formatString: #,0
+		displayFolder: CEO\Customer Intelligence
+		lineageTag: 4fb6e2e5-4332-4fe8-82d2-ef55d92d1593
+
+	/// PURPOSE: Average revenue per transaction across both channels — the commercial efficiency KPI used by CEO, CSO, and Product Manager.
+	/// EXECUTIVE: CEO · CSO · Product Manager
+	/// BUILDING BLOCKS: [Total Revenue] divided by total order count. Online orders use DISTINCTCOUNT on SalesOrderNumber (one order can have multiple lines). Store transactions use DISTINCTCOUNT on SalesKey (each row is already one transaction).
+	/// PHILOSOPHY: Different counting strategies per channel reflect the different granularity of the source tables — Fact OnlineSales is at line-item grain, Fact StoreSales is at transaction grain. Combining them with a unified denominator gives a cross-channel AOV that is comparable over time.
+	measure 'Average Order Value' =
+			
+			VAR TotalRev    = [Total Revenue]
+			VAR OnlineOrders = DISTINCTCOUNT('Fact OnlineSales'[SalesOrderNumber])
+			VAR StoreOrders  = DISTINCTCOUNT('Fact StoreSales'[SalesKey])
+			VAR TotalOrders  = OnlineOrders + StoreOrders
+			RETURN DIVIDE(TotalRev, TotalOrders)
+		formatString: $#,0.00
+		displayFolder: CEO\Customer Intelligence
+		lineageTag: 7cdfe4cc-0e90-4614-a182-da011154d6a2
+
+	/// PURPOSE: Combined order count across both channels — used as the volume denominator in basket size, AOV, and revenue-per-order metrics.
+	/// EXECUTIVE: CEO · COO · CSO
+	/// BUILDING BLOCKS: DISTINCTCOUNT on Fact OnlineSales[SalesOrderNumber] for online (many lines per order) plus COUNTROWS on Fact StoreSales (each row is one transaction, no order number grouping needed).
+	/// PHILOSOPHY: The asymmetry in counting method (DISTINCTCOUNT vs COUNTROWS) is by design and reflects the structural difference between the two fact tables. Using COUNTROWS on Fact OnlineSales would overcount by including every line item as a separate order.
+	measure 'Total Orders' =
+			VAR OnlineOrders = DISTINCTCOUNT('Fact OnlineSales'[SalesOrderNumber])
+			VAR StoreOrders  = COUNTROWS('Fact StoreSales')
+			RETURN OnlineOrders + StoreOrders
+		formatString: #,0
+		displayFolder: CEO\Customer Intelligence
+		lineageTag: aa4be880-d35b-42c9-9f63-c954b1e47062
+
+	/// PURPOSE: Online channel share of total revenue — the CEO and CSO's channel mix signal for strategic resource allocation.
+	/// EXECUTIVE: CEO · CSO
+	/// BUILDING BLOCKS: Online revenue from Fact OnlineSales[SalesQuantity] × UnitPrice divided by [Total Revenue]. Uses SUMX to stay consistent with the revenue calculation in [Total Revenue].
+	/// PHILOSOPHY: Both the numerator and denominator use the same SUMX-over-UnitPrice revenue definition, ensuring the shares sum to exactly 100% and are comparable with each other. Mixing SUM(SalesAmount) in one and SUMX in the other would introduce a denominator inconsistency.
+	measure 'Online Sales Share %' =
+			VAR OnlineRev = SUMX('Fact OnlineSales', 'Fact OnlineSales'[SalesQuantity] * 'Fact OnlineSales'[UnitPrice])
+			RETURN DIVIDE(OnlineRev, [Total Revenue])
+		formatString: 0.00%
+		displayFolder: CEO\Strategic
+		lineageTag: d48ccd0e-0ba0-411a-9603-f6c1d62a7208
+
+	/// PURPOSE: Physical store channel share of total revenue — the counterpart to [Online Sales Share %] for channel mix analysis.
+	/// EXECUTIVE: CEO · CSO
+	/// BUILDING BLOCKS: Store revenue from Fact StoreSales[SalesQuantity] × UnitPrice divided by [Total Revenue]. Mirrors the online share pattern exactly.
+	/// PHILOSOPHY: The two share measures always sum to 100% because both numerators use the same SUMX-UnitPrice approach as [Total Revenue]. This is a deliberate consistency constraint — if one channel's revenue definition drifts, the shares would break, making the consistency itself a correctness check.
+	measure 'Store Sales Share %' =
+			VAR StoreRev = SUMX('Fact StoreSales', 'Fact StoreSales'[SalesQuantity] * 'Fact StoreSales'[UnitPrice])
+			RETURN DIVIDE(StoreRev, [Total Revenue])
+		formatString: 0.00%
+		displayFolder: CEO\Strategic
+		lineageTag: 1ade4daa-73df-44b0-98a4-bff6694114c3
+
+	/// PURPOSE: Total units sold across both channels — the volume base for inventory turnover, basket size, and sell-through rate metrics.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: SUM of SalesQuantity from Fact OnlineSales and Fact StoreSales. Both fact tables share the same SalesQuantity column semantics (units per transaction line).
+	/// PHILOSOPHY: SUM is used instead of SUMX here because SalesQuantity is already at the correct additive grain in the source — no row-level calculation is required. The two VARs keep channel volumes separately available for downstream measures.
+	measure 'Total Units Sold' =
+			VAR OnlineQty = SUM('Fact OnlineSales'[SalesQuantity])
+			VAR StoreQty  = SUM('Fact StoreSales'[SalesQuantity])
+			RETURN OnlineQty + StoreQty
+		formatString: #,0
+		displayFolder: CEO\Operational
+		lineageTag: 568586f4-4f62-48d1-b839-4109f23e10ca
+
+	/// PURPOSE: Total units returned across all return events — the COO and Product Manager's volume signal for return pressure and quality issues.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: SUM of ReturnQuantity from Fact Returns. Fact Returns connects to Dim Date via ReturnDateKey (active relationship — filters by return date) and via OriginalSalesDateKey (inactive — activate via USERELATIONSHIP for purchase-cohort return analysis).
+	/// PHILOSOPHY: The CALCULATE wrapper is included explicitly to allow this measure to be further modified by CALCULATE filters in downstream measures without the context transition causing unexpected filter removal.
+	measure 'Total Return Units' = CALCULATE(SUM('Fact Returns'[ReturnQuantity]))
+		formatString: #,0
+		displayFolder: CEO\Operational
+		lineageTag: 2c2633a4-285b-43e3-808d-8d9d90adf933
+
+	/// PURPOSE: Return units as a percentage of units sold — the primary product quality and customer satisfaction signal for COO and Product Manager.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: [Total Return Units] divided by [Total Units Sold] using DIVIDE. Inherits Fact Returns, Fact OnlineSales, and Fact StoreSales through the base measures.
+	/// PHILOSOPHY: Using DIVIDE() rather than the / operator prevents a division-by-zero error when filtering to a period with no sales, which would otherwise produce a confusing infinity or error value in the visual.
+	measure 'Return Rate %' = DIVIDE([Total Return Units], [Total Units Sold])
+		formatString: 0.00%
+		displayFolder: CEO\Operational
+		lineageTag: 1ab6a45f-3a93-4225-92fa-51a72e9b685f
+
+	/// PURPOSE: Gross revenue from the online channel only — used by CFO for channel-level P&L and by CSO for online commercial performance.
+	/// EXECUTIVE: CFO · CSO
+	/// BUILDING BLOCKS: SUMX over Fact OnlineSales computing SalesQuantity × UnitPrice per row. Connects to Dim Date (DateKey), Dim Product (ProductKey), Dim Customer (CustomerKey), Dim Store (StoreKey), Dim Promotion (PromotionKey), Dim Currency (CurrencyKey).
+	/// PHILOSOPHY: Defined as a standalone measure rather than using CALCULATE([Total Revenue], channel filter) to avoid a dependency on channel dimension structure. If the channel dimension changes, this measure remains stable.
+	measure 'Online Revenue' = SUMX('Fact OnlineSales', 'Fact OnlineSales'[SalesQuantity] * 'Fact OnlineSales'[UnitPrice])
+		formatString: $#,0.00
+		displayFolder: CFO\Revenue
+		lineageTag: a535efa3-a761-414a-a07d-63541d8290d6
+
+	/// PURPOSE: Gross revenue from the physical store channel only — used by CFO for channel-level P&L and by COO for store performance analysis.
+	/// EXECUTIVE: CFO · COO
+	/// BUILDING BLOCKS: SUMX over Fact StoreSales computing SalesQuantity × UnitPrice per row. Connects to Dim Date (DateKey), Dim Product (ProductKey), Dim Store (StoreKey), Dim Channel (ChannelKey), Dim Promotion (PromotionKey), Dim Currency (CurrencyKey).
+	/// PHILOSOPHY: Mirrors [Online Revenue] in structure. The two revenue measures together reconcile to [Total Revenue], making them jointly useful in CFO waterfall charts that break total revenue into channel contributions.
+	measure 'Store Revenue' = SUMX('Fact StoreSales', 'Fact StoreSales'[SalesQuantity] * 'Fact StoreSales'[UnitPrice])
+		formatString: $#,0.00
+		displayFolder: CFO\Revenue
+		lineageTag: 844f6395-9443-4b27-b687-dc27381d743a
+
+	/// PURPOSE: Total monetary value of refunds issued for returned items — the CFO's cash-out signal that drives [Net Revenue].
+	/// EXECUTIVE: CFO · COO
+	/// BUILDING BLOCKS: SUM of RefundAmount from Fact Returns. Fact Returns connects to Dim Date via ReturnDateKey (active) and OriginalSalesDateKey (inactive). Also connects to Dim Product (ProductKey), Dim Customer (CustomerKey), Dim Store (StoreKey), and Dim ReturnReason (ReturnReasonKey).
+	/// PHILOSOPHY: Kept as a separate measure from [Net Revenue] so that CFO dashboards can display gross revenue, total refunds, and net revenue as three distinct card values — a standard gross-to-net reconciliation layout.
+	measure 'Total Refund Amount' = CALCULATE(SUM('Fact Returns'[RefundAmount]))
+		formatString: $#,0.00
+		displayFolder: CFO\Revenue
+		lineageTag: 5134f4d7-6107-4e90-b039-685e12d73ec0
+
+	/// PURPOSE: Year-over-year growth rate of net revenue (after returns) — used by the CFO to assess whether refund pressure is eroding real revenue growth.
+	/// EXECUTIVE: CFO
+	/// BUILDING BLOCKS: [Net Revenue] compared to the same period last year via SAMEPERIODLASTYEAR on Dim Date[Date]. Inherits Fact OnlineSales, Fact StoreSales, and Fact Returns through the base measures.
+	/// PHILOSOPHY: Using [Net Revenue] rather than [Total Revenue] as the base ensures that a spike in returns — which would suppress net revenue — is visible in this growth rate even if gross revenue grew. This gives CFO a quality-of-earnings view alongside the top-line YoY measure.
+	measure 'Net Revenue YoY Growth %' =
+			VAR Curr = [Net Revenue]
+			VAR Prev = CALCULATE([Net Revenue], SAMEPERIODLASTYEAR('Dim Date'[Date]))
+			RETURN DIVIDE(Curr - Prev, Prev)
+		formatString: 0.00%
+		displayFolder: CFO\Revenue
+		lineageTag: 00392e02-d9e8-45ed-98ce-a6b822e10d71
+
+	/// PURPOSE: Operating profit proxy used by the CFO to assess bottom-line health when full P&L data is unavailable.
+	/// EXECUTIVE: CFO
+	/// BUILDING BLOCKS: [Gross Profit] minus total MonthlySpend from Fact MarketingSpend. Fact MarketingSpend connects to Dim Date via MonthStartDateKey and to Dim AcquisitionChannel via AcquisitionChannelKey.
+	/// PHILOSOPHY: Marketing spend is used as the sole operating cost deduction because it is the only operating cost table in the model. The description labels this a 'proxy' for operating profit to prevent users from treating it as a complete income statement — an important transparency note given the model's scope.
+	measure 'Net Profit' =
+			VAR GP       = [Gross Profit]
+			VAR MktSpend = CALCULATE(SUM('Fact MarketingSpend'[MonthlySpend]))
+			RETURN GP - MktSpend
+		formatString: $#,0.00
+		displayFolder: CFO\Profitability
+		lineageTag: 1e35f922-1ffb-41cc-948c-61b7180a6fc5
+
+	/// PURPOSE: Net profit as a percentage of revenue — the CFO's bottom-line margin after marketing costs.
+	/// EXECUTIVE: CFO
+	/// BUILDING BLOCKS: [Net Profit] divided by [Total Revenue] via DIVIDE. Inherits all tables from both base measures.
+	/// PHILOSOPHY: The two-step derivation (GP → Net Profit → Net Profit Margin %) is intentional: each step is independently verifiable in DAX Studio, making it easy to diagnose whether a margin issue comes from revenue, COGS, or marketing spend.
+	measure 'Net Profit Margin %' = DIVIDE([Net Profit], [Total Revenue])
+		formatString: 0.00%
+		displayFolder: CFO\Profitability
+		lineageTag: 82b3d342-4cc1-4bce-b499-d62740075d55
+
+	/// PURPOSE: Cumulative year-to-date gross profit — used by the CFO in budget vs actual comparisons where the profit target is expressed as a YTD cumulative.
+	/// EXECUTIVE: CFO
+	/// BUILDING BLOCKS: CALCULATE wrapping [Gross Profit] with DATESYTD on Dim Date[Date]. Requires Dim Date to be marked as a Date Table.
+	/// PHILOSOPHY: Mirrors [Revenue YTD] exactly in structure. Having both measures available allows CFO to display a revenue YTD vs gross profit YTD comparison on a single card row — a margin-at-a-glance view.
+	measure 'Gross Profit YTD' = CALCULATE([Gross Profit], DATESYTD('Dim Date'[Date]))
+		formatString: $#,0.00
+		displayFolder: CFO\Profitability
+		lineageTag: c3f0a94e-1048-4b93-9d37-cb655607375d
+
+	/// PURPOSE: Year-over-year growth rate of cost of goods sold — used by the CFO to monitor whether input costs are rising faster than revenue.
+	/// EXECUTIVE: CFO
+	/// BUILDING BLOCKS: [Total Cost of Goods] compared to the same period last year via SAMEPERIODLASTYEAR on Dim Date[Date].
+	/// PHILOSOPHY: If [COGS YoY Growth %] exceeds [Revenue YoY Growth %], gross margin is compressing even if revenue is growing. Placing these two growth rates side-by-side on the CFO dashboard makes this dynamic immediately visible without additional calculation.
+	measure 'COGS YoY Growth %' =
+			VAR Curr = [Total Cost of Goods]
+			VAR Prev = CALCULATE([Total Cost of Goods], SAMEPERIODLASTYEAR('Dim Date'[Date]))
+			RETURN DIVIDE(Curr - Prev, Prev)
+		formatString: 0.00%
+		displayFolder: CFO\Cost
+		lineageTag: b9a4afe4-7a51-4393-a49c-3cc6f80b3f82
+
+	/// PURPOSE: Total marketing expenditure across all channels — the CMO's budget tracking metric and the cost base for all ROI and CAC measures.
+	/// EXECUTIVE: CMO · CFO
+	/// BUILDING BLOCKS: SUM of MonthlySpend from Fact MarketingSpend. Connects to Dim Date via MonthStartDateKey and to Dim AcquisitionChannel via AcquisitionChannelKey for channel-level spend breakdown.
+	/// PHILOSOPHY: The Direct channel (AcquisitionChannelKey = 5) carries zero spend by design — direct traffic requires no paid acquisition. DIVIDE-based downstream measures return BLANK for the Direct channel automatically, which is correct behaviour and should not be treated as missing data.
+	measure 'Total Marketing Spend' = CALCULATE(SUM('Fact MarketingSpend'[MonthlySpend]))
+		formatString: $#,0.00
+		displayFolder: CFO\Cost
+		lineageTag: c9e42a20-6050-417b-8d03-041fd85398bd
+
+	/// PURPOSE: Marketing spend as a share of revenue — the CFO and CMO efficiency ratio for assessing marketing investment discipline.
+	/// EXECUTIVE: CFO · CMO
+	/// BUILDING BLOCKS: [Total Marketing Spend] divided by [Total Revenue] via DIVIDE.
+	/// PHILOSOPHY: A rising Marketing Spend % of Revenue signals that the business is buying growth rather than generating it organically. Benchmarked against [Revenue YoY Growth %] and [Net Profit Margin %] on the same dashboard, this ratio tells the CFO whether marketing investment is productive.
+	measure 'Marketing Spend % of Revenue' = DIVIDE([Total Marketing Spend], [Total Revenue])
+		formatString: 0.00%
+		displayFolder: CFO\Cost
+		lineageTag: 73a86230-f9bd-46b2-a78a-c8c5538c8b79
+
+	/// PURPOSE: Revenue-weighted average unit selling price — used by Product Manager and CSO to track price realisation and discount impact over time.
+	/// EXECUTIVE: Product Manager · CSO
+	/// BUILDING BLOCKS: [Total Revenue] divided by [Total Units Sold]. Both measures draw from Fact OnlineSales and Fact StoreSales.
+	/// PHILOSOPHY: Derived from actual transaction revenue rather than the catalogue UnitPrice column so that promotions, bundles, and discounts are already embedded in the average. This reflects the price the customer actually paid, not the list price.
+	measure 'Average Unit Price' = DIVIDE([Total Revenue], [Total Units Sold])
+		formatString: $#,0.00
+		displayFolder: CFO\Pricing
+		lineageTag: 91df73b6-cff0-400c-9085-6e3c73d56d7a
+
+	/// PURPOSE: Average cost per unit sold — used by CFO and Product Manager to monitor unit-level cost trends and supplier pricing changes.
+	/// EXECUTIVE: CFO · Product Manager
+	/// BUILDING BLOCKS: [Total Cost of Goods] divided by [Total Units Sold] via DIVIDE.
+	/// PHILOSOPHY: Captures average realised unit cost across both channels. When trended against [Average Unit Price], the spread between the two lines is the per-unit gross margin — a simple visual that makes cost-price dynamics immediately legible.
+	measure 'Average Unit Cost' =
+			VAR TotalCOGS = [Total Cost of Goods]
+			VAR TotalQty  = [Total Units Sold]
+			RETURN DIVIDE(TotalCOGS, TotalQty)
+		formatString: $#,0.00
+		displayFolder: CFO\Pricing
+		lineageTag: b9bab84d-ab71-465e-91cc-cf3ef23fc890
+
+	/// PURPOSE: Discount as a share of gross revenue before discount — the CFO and Product Manager's price erosion signal.
+	/// EXECUTIVE: CFO · Product Manager
+	/// BUILDING BLOCKS: [Total Discount Amount] divided by the sum of [Total Revenue] + [Total Discount Amount]. Adding back discounts to revenue reconstructs the pre-discount gross revenue, which is the correct denominator for a true discount rate.
+	/// PHILOSOPHY: Using pre-discount gross revenue as the denominator — rather than post-discount net revenue — produces the industry-standard discount rate definition. A 10% discount rate means 10 cents of every original price dollar was given away as discount.
+	measure 'Discount Rate %' =
+			VAR GrossBeforeDiscount = [Total Revenue] + [Total Discount Amount]
+			RETURN DIVIDE([Total Discount Amount], GrossBeforeDiscount)
+		formatString: 0.00%
+		displayFolder: CFO\Pricing
+		lineageTag: be030c53-d9fe-40a8-af81-b5a400d3f8b0
+
+	/// PURPOSE: Average cost to acquire one new customer across all paid channels — the CFO's efficiency check on marketing investment and the denominator of the CLV-to-CAC ratio.
+	/// EXECUTIVE: CFO · CMO
+	/// BUILDING BLOCKS: SUM of MonthlySpend divided by SUM of NewCustomersAcquired, both from Fact MarketingSpend. Fact MarketingSpend connects to Dim AcquisitionChannel for channel-level CAC drill-down.
+	/// PHILOSOPHY: Both spend and customers acquired are sourced from the same Fact MarketingSpend table to ensure temporal alignment — the customers counted are those attributed to spend in the same period, not lagged cohorts. The Direct channel returns BLANK by design (zero spend).
+	measure 'Avg Customer Acquisition Cost' =
+			VAR TotalSpend = SUM('Fact MarketingSpend'[MonthlySpend])
+			VAR TotalAcquired = SUM('Fact MarketingSpend'[NewCustomersAcquired])
+			RETURN DIVIDE(TotalSpend, TotalAcquired)
+		formatString: $#,0.00
+		displayFolder: CFO\Customer Economics
+		lineageTag: 64632726-97bf-440e-981e-92a244e7d50e
+
+	/// PURPOSE: Average revenue generated per distinct online customer — the CEO and CMO's customer monetisation signal.
+	/// EXECUTIVE: CEO · CMO
+	/// BUILDING BLOCKS: [Total Revenue] divided by [Total Customers] via DIVIDE. Note: [Total Revenue] includes store revenue while [Total Customers] counts only online customers, making this a blended revenue-per-identified-customer ratio rather than a pure online CLV.
+	/// PHILOSOPHY: The cross-channel numerator with online-only denominator is a deliberate model scope decision: store customers are anonymous (no CustomerKey), so the only addressable customer base for revenue attribution is the online customer set.
+	measure 'Revenue per Customer' = DIVIDE([Total Revenue], [Total Customers])
+		formatString: $#,0.00
+		displayFolder: CFO\Customer Economics
+		lineageTag: 22d24f9f-fd96-4c54-9f49-4591e87c354c
+
+	/// PURPOSE: Average foreign exchange rate for the current filter period — used by CFO for multi-currency revenue normalisation context.
+	/// EXECUTIVE: CFO
+	/// BUILDING BLOCKS: AVERAGE of AverageRate from Fact ExchangeRate. Connects to Dim Date (DateKey) and Dim Currency (CurrencyKey) for period and currency filtering.
+	/// PHILOSOPHY: Returns the average rate across all currencies in the filter context by default. When sliced by a specific currency, it returns the average rate for that currency — useful for explaining revenue variance driven by exchange rate movement rather than underlying volume change.
+	measure 'Avg Exchange Rate' = CALCULATE(AVERAGE('Fact ExchangeRate'[AverageRate]))
+		formatString: 0.0000
+		displayFolder: CFO\Currency
+		lineageTag: d5817aeb-b643-4478-b13e-a1b9e1bf701b
+
+	/// PURPOSE: Actual revenue as a percentage of the sales quota target — the CSO and CFO's primary quota attainment indicator.
+	/// EXECUTIVE: CSO · CFO
+	/// BUILDING BLOCKS: [Total Revenue] divided by SUM of SalesAmountQuota from Fact SalesQuota. Fact SalesQuota connects to Dim Date (DateKey), Dim Product (ProductKey), Dim Store (StoreKey), and Dim Currency (CurrencyKey).
+	/// PHILOSOPHY: Expressing attainment as a percentage (rather than a gap) makes it comparable across different stores, products, and time periods regardless of absolute revenue scale. Values above 100% indicate quota was beaten; below 100% indicates shortfall.
+	measure 'Revenue vs Quota %' =
+			VAR ActualRev  = [Total Revenue]
+			VAR QuotaRev   = CALCULATE(SUM('Fact SalesQuota'[SalesAmountQuota])
+			)
+			RETURN DIVIDE(ActualRev, QuotaRev)
+		formatString: 0.00%
+		displayFolder: CFO\Forecasting
+		lineageTag: 1c1a15a5-32f9-42ca-8f40-2133bf9d8b4c
+
+	/// PURPOSE: Absolute revenue difference between actual and quota — the CSO's dollar-value attainment gap for commercial action planning.
+	/// EXECUTIVE: CSO · CFO
+	/// BUILDING BLOCKS: [Total Revenue] minus SUM of SalesAmountQuota from Fact SalesQuota. Same tables and relationships as [Revenue vs Quota %].
+	/// PHILOSOPHY: The percentage measure tells you how far off quota you are proportionally; this gap measure tells you how much revenue you need to close or have already exceeded in absolute terms. Both are needed together on a CSO performance dashboard.
+	measure 'Quota Attainment Gap' =
+			VAR ActualRev = [Total Revenue]
+			VAR QuotaRev  = CALCULATE(SUM('Fact SalesQuota'[SalesAmountQuota]))
+			RETURN ActualRev - QuotaRev
+		formatString: $#,0.00
+		displayFolder: CFO\Forecasting
+		lineageTag: 518daea7-0aac-4b0d-96bd-24ba59573236
+
+	/// PURPOSE: Average days from order placement to shipment — the COO's internal process efficiency signal for warehouse and logistics operations.
+	/// EXECUTIVE: COO
+	/// BUILDING BLOCKS: AVERAGE of ProcessingDays from Fact OrderFulfillment. Fact OrderFulfillment connects to Dim Date via DeliveryDateKey (active), OrderDateKey (inactive), and ShipDateKey (inactive). The active relationship is on DeliveryDateKey so the measure is naturally scoped by delivery period by default.
+	/// PHILOSOPHY: Processing days represents the warehouse-controlled portion of the fulfillment cycle — the time the company controls before handing off to the carrier. Tracking it separately from delivery days allows COO to distinguish internal execution issues from carrier performance issues.
+	measure 'Avg Processing Days' = CALCULATE(AVERAGE('Fact OrderFulfillment'[ProcessingDays]))
+		formatString: 0.0
+		displayFolder: COO\Fulfillment
+		lineageTag: 10d87f96-eed0-4098-bacb-d6f73b6a023c
+
+	/// PURPOSE: Average days from shipment handoff to customer delivery — the COO's carrier performance signal within the total fulfillment cycle.
+	/// EXECUTIVE: COO
+	/// BUILDING BLOCKS: Derived as AVERAGE(TotalFulfillmentDays) minus [Avg Processing Days], both from Fact OrderFulfillment. TotalFulfillmentDays = ProcessingDays + transit days, so subtracting ProcessingDays isolates the carrier-controlled delivery portion.
+	/// PHILOSOPHY: Rather than storing a separate DeliveryDays column, this measure computes delivery time as the residual of total fulfillment minus processing. This is robust to source data where only TotalFulfillmentDays and ProcessingDays are captured — no third column is needed.
+	measure 'Avg Delivery Days' = CALCULATE(AVERAGE('Fact OrderFulfillment'[TotalFulfillmentDays])) - [Avg Processing Days]
+		formatString: 0.0
+		displayFolder: COO\Fulfillment
+		lineageTag: 4df57598-53a8-4dae-b6f1-edca1224647d
+
+	/// PURPOSE: Percentage of orders delivered by the promised delivery date — the COO's primary customer promise fulfillment rate and SLA compliance metric.
+	/// EXECUTIVE: COO
+	/// BUILDING BLOCKS: Count of rows in Fact OrderFulfillment where IsOnTime = TRUE divided by total rows. Fact OrderFulfillment connects to Dim Date via DeliveryDateKey (active) for period-level filtering.
+	/// PHILOSOPHY: The IsOnTime flag is pre-computed in the SQL view layer rather than calculated in DAX, keeping this measure simple and performant. DAX-layer date comparison (ActualDelivery <= PromisedDelivery) would require USERELATIONSHIP and a more complex expression.
+	measure 'On-Time Delivery Rate %' =
+			VAR OnTimeOrders = CALCULATE(COUNTROWS('Fact OrderFulfillment'), 'Fact OrderFulfillment'[IsOnTime] = TRUE())
+			VAR TotalOrders  = CALCULATE(COUNTROWS('Fact OrderFulfillment'))
+			RETURN DIVIDE(OnTimeOrders, TotalOrders)
+		formatString: 0.00%
+		displayFolder: COO\Fulfillment
+		lineageTag: 1fbabff8-4b6d-4aa9-8b55-d9ae0c22bd83
+
+	/// PURPOSE: Average total days from order placement to final delivery — the COO's end-to-end customer experience metric and the sum of processing and delivery days.
+	/// EXECUTIVE: COO
+	/// BUILDING BLOCKS: AVERAGE of TotalFulfillmentDays from Fact OrderFulfillment. TotalFulfillmentDays is a pre-computed column in the source (ProcessingDays + transit days).
+	/// PHILOSOPHY: Using the pre-computed column rather than summing components in DAX ensures consistency with [Avg Processing Days] and [Avg Delivery Days] — all three measures add up arithmetically, which is essential for COO waterfall charts breaking the fulfillment cycle into its components.
+	measure 'Avg Order Fulfillment Days' = CALCULATE(AVERAGE('Fact OrderFulfillment'[TotalFulfillmentDays]))
+		formatString: 0.0
+		displayFolder: COO\Fulfillment
+		lineageTag: 07314417-3a32-4acf-a2d1-1d62062f4fb6
+
+	/// PURPOSE: Count of order fulfillment events in the current filter context — the COO's logistics volume metric used as the denominator in fulfillment rate calculations.
+	/// EXECUTIVE: COO
+	/// BUILDING BLOCKS: COUNTROWS on Fact OrderFulfillment. Each row represents one shipment event. Connects to Dim Date via DeliveryDateKey (active) for period filtering.
+	/// PHILOSOPHY: Counts fulfillment events, not distinct orders, because one online order may generate multiple shipments. Using COUNTROWS rather than DISTINCTCOUNT(SalesOrderNumber) accurately reflects logistics workload.
+	measure 'Total Orders Fulfilled' = CALCULATE(COUNTROWS('Fact OrderFulfillment'))
+		formatString: #,0
+		displayFolder: COO\Fulfillment
+		lineageTag: 7dbc1a70-ef08-4d63-b44b-1e1caecc50c2
+
+	/// PURPOSE: Average units on hand across inventory snapshots — the COO and Product Manager's stock level reference for supply chain planning.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: AVERAGE of OnHandQuantity from Fact Inventory. Connects to Dim Date (DateKey), Dim Product (ProductKey), Dim Store (StoreKey), and Dim Currency (CurrencyKey).
+	/// PHILOSOPHY: AVERAGE is used rather than SUM because Fact Inventory stores periodic snapshots — each row is a point-in-time count, not an incremental change. Summing snapshot values would produce a meaningless cumulative total rather than a representative stock level.
+	measure 'Avg Units on Hand' = CALCULATE(AVERAGE('Fact Inventory'[OnHandQuantity]))
+		formatString: #,0
+		displayFolder: COO\Inventory
+		lineageTag: 4abccadd-88a3-48a1-bb00-79926beb3c9e
+
+	/// PURPOSE: Average stock coverage ratio from inventory snapshots — indicates how many days of demand the current stock level can satisfy.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: AVERAGE of StockCoverageRatio from Fact Inventory. StockCoverageRatio is pre-computed in the SQL view as OnHandQuantity divided by average daily sales rate.
+	/// PHILOSOPHY: Using the pre-computed ratio rather than recalculating in DAX avoids a circular dependency between inventory and sales measures, and ensures the days-of-supply calculation uses the same demand baseline as the source system.
+	measure 'Avg Days of Supply' = CALCULATE(AVERAGE('Fact Inventory'[StockCoverageRatio]))
+		formatString: 0.0
+		displayFolder: COO\Inventory
+		lineageTag: 0f9c60ba-5229-45f7-a76c-02f5a95544ac
+
+	/// PURPOSE: Total monetary value of inventory on hand — the COO's balance sheet input for working capital and the CFO's inventory asset valuation.
+	/// EXECUTIVE: COO · CFO
+	/// BUILDING BLOCKS: SUMX over Fact Inventory multiplying OnHandQuantity by the related Dim Product[CatalogCost]. Uses RELATED to pull unit cost from the dimension via the Fact Inventory → Dim Product (ProductKey) relationship.
+	/// PHILOSOPHY: Row-level SUMX is required because cost must be applied at the individual product row level before summing — a straight SUM of a pre-multiplied column does not exist in the source. RELATED is used instead of a merge because it respects the active relationship filter context.
+	measure 'Inventory Value on Hand' =
+			SUMX(
+			    'Fact Inventory',
+			    'Fact Inventory'[OnHandQuantity] *
+			    RELATED('Dim Product'[CatalogCost])
+			)
+		formatString: $#,0.00
+		displayFolder: COO\Inventory
+		lineageTag: 367166a6-51ba-49c4-a0f0-e4a0ea39a6a4
+
+	/// PURPOSE: Average stock coverage ratio — identical in calculation to [Avg Days of Supply]. Retained as a separate named measure to serve COO visuals that reference 'coverage' terminology versus 'supply days' terminology in different dashboard contexts.
+	/// EXECUTIVE: COO
+	/// BUILDING BLOCKS: AVERAGE of StockCoverageRatio from Fact Inventory. Same as [Avg Days of Supply].
+	/// PHILOSOPHY: The two measures are arithmetically identical. The distinction is presentational: 'Days of Supply' is used in supply chain planning contexts; 'Stock Coverage' is used in inventory health scorecards. Consider consolidating to one measure with renamed usage if dashboard maintenance becomes complex.
+	measure 'Stock Coverage Avg' = CALCULATE(AVERAGE('Fact Inventory'[StockCoverageRatio]))
+		formatString: 0.00
+		displayFolder: COO\Inventory
+		lineageTag: 7de4d12e-e5c9-476a-b26c-f9cdf68109c0
+
+	/// PURPOSE: Total count of return events across all channels — the COO's return volume signal for logistics and quality management.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: COUNTROWS on Fact Returns. Each row is one return event. Connects to Dim Date (ReturnDateKey active, OriginalSalesDateKey inactive), Dim Product (ProductKey), Dim Customer (CustomerKey), Dim Store (StoreKey), and Dim ReturnReason (ReturnReasonKey).
+	/// PHILOSOPHY: COUNTROWS counts return events (not return quantity) — distinguished from [Total Return Units] which counts units. Both metrics are needed: a single high-volume return event could skew units while return event count stays low, revealing a different operational pattern.
+	measure 'Total Returns' = CALCULATE(COUNTROWS('Fact Returns'))
+		formatString: #,0
+		displayFolder: COO\Returns
+		lineageTag: b7f3e814-07ee-4bc5-ba16-dcf91aac1b7f
+
+	/// PURPOSE: Return rate for the online channel — isolates e-commerce return behaviour for COO channel performance analysis.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: Fact Returns filtered to online returns (StoreKey = -1, the sentinel value for online returns in this model's architecture) divided by Fact OnlineSales[SalesQuantity].
+	/// PHILOSOPHY: StoreKey = -1 is the architectural convention for online-originated returns (no physical store involved). This filter is applied directly in DAX rather than via a channel dimension relationship because Fact Returns does not have a ChannelKey column — channel is inferred from StoreKey sentinel values.
+	measure 'Online Return Rate %' =
+			VAR OnlineReturns = CALCULATE(SUM('Fact Returns'[ReturnQuantity]), 'Fact Returns'[StoreKey] = -1)
+			VAR OnlineQty     = SUM('Fact OnlineSales'[SalesQuantity])
+			RETURN DIVIDE(OnlineReturns, OnlineQty)
+		formatString: 0.00%
+		displayFolder: COO\Returns
+		lineageTag: f3b83240-77a1-437a-a044-3c02727c7679
+
+	/// PURPOSE: Return rate for the physical store channel — isolates in-store return behaviour for COO store operations analysis.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: Fact Returns filtered to store returns (CustomerKey = -1, the sentinel value for anonymous store returns in this model) divided by Fact StoreSales[SalesQuantity].
+	/// PHILOSOPHY: CustomerKey = -1 is the architectural convention for store returns where no customer identity is captured. This mirrors the StoreKey = -1 pattern used for online return isolation — both use the null-sentinel approach because the returns fact table combines both channels into a single grain.
+	measure 'Store Return Rate %' =
+			VAR StoreReturns = CALCULATE(SUM('Fact Returns'[ReturnQuantity]), 'Fact Returns'[CustomerKey] = -1)
+			VAR StoreQty     = SUM('Fact StoreSales'[SalesQuantity])
+			RETURN DIVIDE(StoreReturns, StoreQty)
+		formatString: 0.00%
+		displayFolder: COO\Returns
+		lineageTag: 0e416f63-1f31-4e07-aa90-bbc5fe105465
+
+	/// PURPOSE: Average refund value per return event — the COO's refund severity signal, useful for distinguishing high-value from low-value return clusters.
+	/// EXECUTIVE: COO · CFO
+	/// BUILDING BLOCKS: [Total Refund Amount] divided by [Total Returns] via DIVIDE.
+	/// PHILOSOPHY: A rising average refund per return indicates customers are returning higher-value items — a different risk profile than a rising return count driven by low-value items. This measure pairs with [Total Returns] to give the COO both volume and severity dimensions of the returns problem.
+	measure 'Avg Refund per Return' = DIVIDE([Total Refund Amount], [Total Returns])
+		formatString: $#,0.00
+		displayFolder: COO\Returns
+		lineageTag: 9191881a-c54b-43b1-9f60-5acde7aab628
+
+	/// PURPOSE: Store revenue per square foot of selling area — the primary retail productivity KPI for COO store performance benchmarking.
+	/// EXECUTIVE: COO
+	/// BUILDING BLOCKS: [Store Revenue] divided by SUM of Dim Store[SellingAreaSize]. Dim Store connects to Fact StoreSales via StoreKey. SellingAreaSize is a store attribute column in Dim Store.
+	/// PHILOSOPHY: Revenue per sq ft is the standard retail space productivity metric — it normalises revenue by store size, enabling fair comparison between large and small format stores. Without this normalisation, large stores would always rank highest regardless of efficiency.
+	measure 'Store Revenue per Sq Ft' =
+			VAR StoreRev  = [Store Revenue]
+			VAR TotalSqFt = CALCULATE(SUM('Dim Store'[SellingAreaSize]))
+			RETURN DIVIDE(StoreRev, TotalSqFt)
+		formatString: $#,0.00
+		displayFolder: COO\Store Performance
+		lineageTag: 744a3cad-1d7b-4caa-86ac-57a1a045a8c9
+
+	/// PURPOSE: Average revenue per distinct active store — the COO's store network productivity baseline.
+	/// EXECUTIVE: COO
+	/// BUILDING BLOCKS: [Store Revenue] divided by DISTINCTCOUNT of StoreKey from Fact StoreSales. Only stores with at least one transaction in the filter context are counted in the denominator.
+	/// PHILOSOPHY: Counting stores from Fact StoreSales (rather than ALL(Dim Store)) ensures that closed or inactive stores in the filter period are excluded from the denominator, producing an average that reflects only actively trading stores.
+	measure 'Avg Store Revenue' =
+			VAR StoreRev   = [Store Revenue]
+			VAR StoreCount = CALCULATE(DISTINCTCOUNT('Fact StoreSales'[StoreKey]))
+			RETURN DIVIDE(StoreRev, StoreCount)
+		formatString: $#,0.00
+		displayFolder: COO\Store Performance
+		lineageTag: e5474b05-1bb2-4d40-b6db-1dcca55cdc61
+
+	/// PURPOSE: Average revenue per order across both channels — arithmetically equivalent to [Average Order Value], retained as a named alias for COO efficiency dashboards where the 'per order' framing is preferred.
+	/// EXECUTIVE: COO · CSO
+	/// BUILDING BLOCKS: [Total Revenue] divided by [Total Orders] via DIVIDE. Inherits Fact OnlineSales and Fact StoreSales through base measures.
+	/// PHILOSOPHY: Identical result to [Average Order Value]. Both measures exist because the CEO and product personas use 'Average Order Value' while COO and operations dashboards use 'Revenue per Order' — same number, different label for audience-appropriate naming.
+	measure 'Revenue per Order' = DIVIDE([Total Revenue], [Total Orders])
+		formatString: $#,0.00
+		displayFolder: COO\Efficiency
+		lineageTag: 6c96ce1d-fb76-4d95-8167-308032363eef
+
+	/// PURPOSE: Average units per order across both channels — the basket size metric for COO and Product Manager to assess cross-sell depth.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: [Total Units Sold] divided by [Total Orders] via DIVIDE.
+	/// PHILOSOPHY: A rising units per order indicates successful cross-sell or bundle promotion. Paired with [Average Order Value] on the same visual, an increase in units with stable AOV signals price-mix shift toward lower-unit-price items, while an increase in both signals healthy basket growth.
+	measure 'Units per Order' = DIVIDE([Total Units Sold], [Total Orders])
+		formatString: 0.0
+		displayFolder: COO\Efficiency
+		lineageTag: 5eace5aa-4153-4450-8cd2-ad85ff6e1574
+
+	/// PURPOSE: Customer Acquisition Cost — average marketing spend required to acquire one new customer, segmented by acquisition channel for CMO ROI analysis.
+	/// EXECUTIVE: CMO · CFO
+	/// BUILDING BLOCKS: [Total Marketing Spend] divided by SUM of NewCustomersAcquired from Fact MarketingSpend. Connects to Dim AcquisitionChannel (AcquisitionChannelKey) for channel-level CAC decomposition.
+	/// PHILOSOPHY: Both spend and new customers acquired are drawn from Fact MarketingSpend to ensure the same temporal attribution. The Direct channel (Key=5) always returns BLANK because it carries zero spend by design. Used as the denominator in [CAC-to-CLV Ratio] to assess whether acquisition investment is justified by customer lifetime value.
+	measure 'Customer Acquisition Cost (CAC)' =
+			VAR Spend    = [Total Marketing Spend]
+			VAR NewCusts = SUM('Fact MarketingSpend'[NewCustomersAcquired])
+			RETURN
+			DIVIDE(Spend, NewCusts)
+		formatString: "\$"#,##0.00
+		displayFolder: CMO\Acquisition
+		lineageTag: 488f4285-bb95-441a-a125-70a64596ed47
+
+	/// PURPOSE: Estimated return on marketing spend — the CMO's efficiency signal for evaluating whether paid acquisition investment generates proportionate lifetime revenue.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: Estimated revenue (new customers acquired × [Historical CLV]) divided by [Total Marketing Spend]. Uses Fact MarketingSpend for both spend and customer counts, and [Historical CLV] from Fact OnlineSales.
+	/// PHILOSOPHY: ROAS is estimated using CLV rather than immediate transaction revenue because acquisition campaigns generate multi-period returns. Multiplying acquired customers by average CLV approximates the total revenue value of the acquired cohort — a forward-looking efficiency metric.
+	measure 'Return on Ad Spend (ROAS)' =
+			// ROAS computed as revenue attributed to paid channels divided by spend.
+			// Uses CLV proxy: acquired customers × Historical CLV as revenue estimation.
+			VAR AcquiredCusts = SUM('Fact MarketingSpend'[NewCustomersAcquired])
+			VAR AvgCLV = [Historical CLV]
+			VAR EstRevenue = AcquiredCusts * AvgCLV
+			VAR Spend = [Total Marketing Spend]
+			RETURN
+			DIVIDE(EstRevenue, Spend)
+		formatString: 0.00"x"
+		displayFolder: CMO\Campaign
+		lineageTag: 2676cca3-66eb-4ed2-be8b-b57c39534d66
+
+	/// PURPOSE: Average cost per click across paid marketing channels — the CMO's media efficiency signal for digital campaign management.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: [Total Marketing Spend] divided by SUM of Clicks from Fact MarketingSpend. Connects to Dim AcquisitionChannel for channel-level CPC comparison.
+	/// PHILOSOPHY: CPC is used alongside [Click-Through Rate (CTR)] to give a full picture of paid media health: CTR measures engagement quality, CPC measures cost efficiency. A high CPC with low CTR signals poor audience targeting.
+	measure 'Cost Per Click (CPC)' =
+			VAR Spend  = [Total Marketing Spend]
+			VAR Clicks = SUM('Fact MarketingSpend'[Clicks])
+			RETURN
+			DIVIDE(Spend, Clicks)
+		formatString: "\$"#,##0.00
+		displayFolder: CMO\Campaign
+		lineageTag: 542fd464-a040-40ae-9658-eb38168a1e67
+
+	/// PURPOSE: Ratio of customer lifetime value to acquisition cost — the CMO and CFO's definitive signal of whether the business model is economically sustainable.
+	/// EXECUTIVE: CMO · CFO
+	/// BUILDING BLOCKS: [Historical CLV] divided by [Customer Acquisition Cost (CAC)] via DIVIDE. Inherits Fact OnlineSales (for CLV) and Fact MarketingSpend (for CAC).
+	/// PHILOSOPHY: A CLV/CAC ratio below 1 means acquiring a customer costs more than their lifetime revenue — the business is structurally loss-making on customer acquisition. The widely cited benchmark is CLV/CAC > 3 for a healthy SaaS or e-commerce business. Displaying this ratio on the CMO dashboard makes the unit economics visible.
+	measure 'CAC-to-CLV Ratio' =
+			VAR CLV = [Historical CLV]
+			VAR CAC = [Customer Acquisition Cost (CAC)]
+			RETURN
+			DIVIDE(CLV, CAC)
+		formatString: 0.00"x"
+		displayFolder: CMO\Customer Segmentation
+		lineageTag: 90d77db8-d958-40ef-bf22-21d7b2deeb64
+
+	/// PURPOSE: Share of all acquired customers who came through paid digital channels — the CMO's channel dependency signal for acquisition portfolio diversification.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: DISTINCTCOUNT of CustomerKey from Fact CustomerAcquisition where Dim AcquisitionChannel[IsDigital] = TRUE, divided by total DISTINCTCOUNT of CustomerKey across all channels.
+	/// PHILOSOPHY: A high paid customer mix indicates heavy reliance on paid acquisition, which creates margin risk if media costs rise. Tracking this over time reveals whether organic and direct channels are growing in proportion — a healthier long-term acquisition mix.
+	measure 'Paid Customers Mix %' =
+			VAR PaidCust =
+				CALCULATE(
+					DISTINCTCOUNT('Fact CustomerAcquisition'[CustomerKey]),
+					'Dim AcquisitionChannel'[IsDigital] = TRUE()
+				)
+			VAR TotalCust =
+				DISTINCTCOUNT('Fact CustomerAcquisition'[CustomerKey])
+			RETURN
+			DIVIDE(PaidCust, TotalCust)
+		formatString: 0.00%
+		displayFolder: CMO\Acquisition
+		lineageTag: 84da272c-0e1d-4fa9-b91e-bcb20bf8b0c5
+
+	/// PURPOSE: Product-level return rate — the Product Manager's quality signal for identifying defective or misrepresented products driving return volume.
+	/// EXECUTIVE: Product Manager · COO
+	/// BUILDING BLOCKS: SUM of ReturnQuantity from Fact Returns divided by [Total Units Sold]. Both Fact Returns and the sales facts connect to Dim Product (ProductKey) enabling product-level filtering.
+	/// PHILOSOPHY: Used in a product-context matrix (sliced by Dim Product[ProductName] or ClassName) to rank products by return rate. High return rates signal either quality issues (COO action) or product description misalignment (Product Manager action). The measure is arithmetic-equivalent to [Return Rate %] but is placed in the Product Manager folder to signal its intended analytical context.
+	measure 'Product Return Rate %' =
+			VAR ReturnUnits = SUM('Fact Returns'[ReturnQuantity])
+			VAR SoldUnits   = [Total Units Sold]
+			RETURN
+			DIVIDE(ReturnUnits, SoldUnits)
+		formatString: 0.00%
+		displayFolder: Product Manager\Returns & Quality
+		lineageTag: 256dfd11-ced7-41d9-b64a-2c9418d7c737
+
+	/// PURPOSE: Inventory turnover rate — how many times average stock is sold and replaced in the filter period. A key supply chain efficiency metric for Product Manager and COO.
+	/// EXECUTIVE: Product Manager · COO
+	/// BUILDING BLOCKS: [Total Units Sold] divided by AVERAGE of OnHandQuantity from Fact Inventory. Both connect to Dim Product (ProductKey) for product-level drill-down.
+	/// PHILOSOPHY: Higher turnover indicates faster-moving stock and better working capital efficiency. AVERAGE of OnHandQuantity is used as the denominator (rather than ending inventory) because Fact Inventory contains periodic snapshots — averaging smooths out point-in-time fluctuations.
+	measure 'Inventory Turnover Rate' =
+			VAR UnitsSold = [Total Units Sold]
+			VAR AvgOnHand = CALCULATE(AVERAGE('Fact Inventory'[OnHandQuantity]))
+			RETURN
+			DIVIDE(UnitsSold, AvgOnHand)
+		formatString: 0.00"x"
+		displayFolder: Product Manager\Inventory
+		lineageTag: c703ff51-9d03-49e4-aa2d-f3bc1de019f0
+
+	/// PURPOSE: Number of weeks the current stock level can sustain at the current sales rate — the COO's stock run-out forecast and reorder trigger signal.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: AVERAGE of OnHandQuantity from Fact Inventory divided by weekly sales rate ([Total Units Sold] ÷ 52). Both draw from Fact Inventory and the sales facts, joined to Dim Product for product-level analysis.
+	/// PHILOSOPHY: Dividing by 52 converts annual sales to a weekly rate, making weeks-of-supply directly actionable for replenishment planning. A value below the lead time threshold (e.g. 4 weeks) triggers a reorder signal. The 52-week divisor assumes the filter context represents a full calendar year — apply with care on partial-year filters.
+	measure 'Weeks of Supply' =
+			VAR AvgOnHand   = CALCULATE(AVERAGE('Fact Inventory'[OnHandQuantity]))
+			VAR WeeklySales = DIVIDE([Total Units Sold], 52)
+			RETURN
+			DIVIDE(AvgOnHand, WeeklySales)
+		formatString: 0.0
+		displayFolder: Product Manager\Inventory
+		lineageTag: 0e55e2ab-a590-4616-af0b-075d944245a6
+
+	/// PURPOSE: Count of inventory snapshot records where stock status is 'Out of Stock' — the COO's availability failure count for store and product analysis.
+	/// EXECUTIVE: COO · Product Manager
+	/// BUILDING BLOCKS: COUNTROWS on Fact Inventory filtered to StockStatus = 'Out of Stock'. Connects to Dim Date (DateKey) for period filtering and Dim Store (StoreKey) and Dim Product (ProductKey) for location and product drill-down.
+	/// PHILOSOPHY: Counts snapshot records rather than distinct products to capture the duration dimension of stock-outs. A product out of stock for 10 snapshot periods contributes 10 to this count, making high-frequency stock-outs more visible than a simple distinct product count would.
+	measure 'Stock-Out Events' =
+			CALCULATE(
+				COUNTROWS('Fact Inventory'),
+				'Fact Inventory'[StockStatus] = "Out of Stock"
+			)
+		formatString: #,##0
+		displayFolder: Product Manager\Inventory
+		lineageTag: 8cf21fbf-8b01-4c1d-97df-b7b7b7a13f8a
+
+	/// PURPOSE: Percentage of available inventory actually sold in the period — the Product Manager's merchandise efficiency signal for category and seasonal performance.
+	/// EXECUTIVE: Product Manager
+	/// BUILDING BLOCKS: [Total Units Sold] divided by the sum of [Total Units Sold] + AVERAGE(OnHandQuantity) from Fact Inventory. The available pool is defined as units sold plus units still on hand.
+	/// PHILOSOPHY: Sell-through rate measures how efficiently merchandise is moving relative to what was available. A 100% sell-through means everything available was sold; low sell-through signals over-buying or slow-moving product that may require markdown. The AVERAGE OnHandQuantity approximates the average available stock across the period.
+	measure 'Sell-Through Rate %' =
+			VAR Sold   = [Total Units Sold]
+			VAR OnHand = CALCULATE(AVERAGE('Fact Inventory'[OnHandQuantity]))
+			RETURN
+			DIVIDE(Sold, Sold + OnHand)
+		formatString: 0.00%
+		displayFolder: Product Manager\Inventory
+		lineageTag: c07df2a1-ee18-4a69-9fce-0e602130b9df
+
+	/// PURPOSE: Total revenue within the current product category filter context — used by the Product Manager as a standalone category revenue card on category-level drill-through pages.
+	/// EXECUTIVE: Product Manager
+	/// BUILDING BLOCKS: [Total Revenue] in the current Dim Product category filter context. Dim Product connects to both Fact OnlineSales and Fact StoreSales via ProductKey.
+	/// PHILOSOPHY: This is an alias of [Total Revenue] designed to surface in the Product Manager folder with a category-specific name. Its value is identical to [Total Revenue] — the category filter context is applied by the visual or slicer on the report page, not inside the measure.
+	measure 'Revenue per Category' =
+			// [Total Revenue] surfaced in the P6 display folder for use in
+			// dim_vProduct[CategoryName] filter context on CSO category-mix visuals.
+			// No additional logic needed — filter context does the work.
+			[Total Revenue]
+		formatString: "\$"#,##0.00
+		displayFolder: Product Manager\Portfolio
+		lineageTag: b9327d89-fab4-43ac-8893-a0a773acd797
+
+	/// PURPOSE: Quota attainment as a percentage — the CSO's sales target achievement rate for commercial performance review.
+	/// EXECUTIVE: CSO
+	/// BUILDING BLOCKS: [Total Revenue] divided by SUM of SalesAmountQuota from Fact SalesQuota. Connects to Dim Date (DateKey), Dim Product (ProductKey), Dim Store (StoreKey), and Dim Currency (CurrencyKey).
+	/// PHILOSOPHY: Arithmetically equivalent to [Revenue vs Quota %] in the CFO folder. Both measures exist because the CSO views attainment through a commercial performance lens (am I hitting my number?) while the CFO views it through a financial planning lens (is revenue in line with budget?). Same calculation, different folder placement for audience relevance.
+	measure 'Quota Attainment %' =
+			VAR ActualRevenue = [Total Revenue]
+			VAR QuotaAmount   = SUM('Fact SalesQuota'[SalesAmountQuota])
+			RETURN
+			DIVIDE(ActualRevenue, QuotaAmount)
+		formatString: 0.00%
+		displayFolder: CSO\Sales Performance
+		lineageTag: 6835e67c-b32b-4778-a0fc-dbbad7ee45f0
+
+	/// PURPOSE: Net Promoter Score — the CMO and CEO's primary customer sentiment metric, ranging from -100 to +100.
+	/// EXECUTIVE: CMO · CEO
+	/// BUILDING BLOCKS: (Promoter count − Detractor count) ÷ Total Responses × 100. All three components come from Fact CustomerSurvey filtered by NPSCategory. Fact CustomerSurvey connects to Dim Date (SurveyDateKey) and Dim Customer (CustomerKey).
+	/// PHILOSOPHY: The standard Bain NPS formula is implemented directly. Three separate CALCULATE filters (one per NPSCategory value) are used rather than a single SWITCH to keep each component independently readable and debuggable. The retail benchmark for an excellent NPS is > 50.
+	measure 'NPS Score' =
+			VAR Promoters =
+				CALCULATE(
+					COUNTROWS('Fact CustomerSurvey'),
+					'Fact CustomerSurvey'[NPSCategory] = "Promoter"
+				)
+			VAR Detractors =
+				CALCULATE(
+					COUNTROWS('Fact CustomerSurvey'),
+					'Fact CustomerSurvey'[NPSCategory] = "Detractor"
+				)
+			VAR TotalResponses = COUNTROWS('Fact CustomerSurvey')
+			RETURN
+			DIVIDE(Promoters - Detractors, TotalResponses) * 100
+		formatString: #,##0.0
+		displayFolder: CMO\Brand
+		lineageTag: a17b7718-e5ab-476e-8fe2-d9d449ecb22c
+
+	/// PURPOSE: Share of survey respondents who are Promoters (NPS score 9–10) — the CMO's positive sentiment volume signal.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: COUNTROWS on Fact CustomerSurvey where NPSCategory = 'Promoter', divided by total survey response count.
+	/// PHILOSOPHY: Expressed as a percentage multiplied by 100 to match the conventional NPS reporting format. Tracking Promoter % independently from Detractor % allows the CMO to see whether improvements in NPS come from gaining promoters or losing detractors — two different strategic implications.
+	measure 'Promoter %' =
+			VAR Prom =
+				CALCULATE(
+					COUNTROWS('Fact CustomerSurvey'),
+					'Fact CustomerSurvey'[NPSCategory] = "Promoter"
+				)
+			VAR Total = COUNTROWS('Fact CustomerSurvey')
+			RETURN
+			DIVIDE(Prom, Total) * 100
+		formatString: 0.00%
+		displayFolder: CMO\Brand
+		lineageTag: 8eaa5629-ae28-4179-a39b-48b77fb4182c
+
+	/// PURPOSE: Share of survey respondents who are Detractors (NPS score 0–6) — the CMO's negative sentiment volume signal and primary churn risk indicator.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: COUNTROWS on Fact CustomerSurvey where NPSCategory = 'Detractor', divided by total survey response count.
+	/// PHILOSOPHY: A rising Detractor % with stable or rising NPS suggests Passive respondents are being reclassified as Detractors — a warning sign that typically precedes churn acceleration. Monitoring Detractor % separately from NPS reveals this dynamic before it appears in the headline score.
+	measure 'Detractor %' =
+			VAR Det =
+				CALCULATE(
+					COUNTROWS('Fact CustomerSurvey'),
+					'Fact CustomerSurvey'[NPSCategory] = "Detractor"
+				)
+			VAR Total = COUNTROWS('Fact CustomerSurvey')
+			RETURN
+			DIVIDE(Det, Total) * 100
+		formatString: 0.00%
+		displayFolder: CMO\Brand
+		lineageTag: 8679ac3b-f05b-4666-b55c-7ab49dd2043f
+
+	/// PURPOSE: Share of survey respondents who are Passives (NPS score 7–8) — the CMO's at-risk segment that is neither loyal nor actively dissatisfied.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: COUNTROWS on Fact CustomerSurvey where NPSCategory = 'Passive', divided by total survey response count.
+	/// PHILOSOPHY: Passives are the conversion opportunity — satisfied but not loyal. A high Passive % with low Promoter % indicates the brand has a large segment that could be converted to advocates through targeted retention campaigns. The three NPS segment percentages (Promoter % + Detractor % + Passive %) always sum to 100%.
+	measure 'Passive %' =
+			VAR Passw =
+				CALCULATE(
+					COUNTROWS('Fact CustomerSurvey'),
+					'Fact CustomerSurvey'[NPSCategory] = "Passive"
+				)
+			VAR Total = COUNTROWS('Fact CustomerSurvey')
+			RETURN
+			DIVIDE(Passw, Total) * 100
+		formatString: 0.00%
+		displayFolder: CMO\Brand
+		lineageTag: 6913a34e-f11c-4462-9c6a-d7198521c8dd
+
+	/// PURPOSE: Average Customer Satisfaction score — the CMO's post-transaction experience quality signal, complementing the relationship-focused NPS.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: AVERAGE of CSATScore from Fact CustomerSurvey. Connects to Dim Date (SurveyDateKey) and Dim Customer (CustomerKey).
+	/// PHILOSOPHY: CSAT measures transactional satisfaction (how was this interaction?) while NPS measures relationship loyalty (would you recommend us?). Both are needed on the CMO brand dashboard because a customer can be transactionally satisfied yet still not recommend the brand — a common pattern in commodity retail.
+	measure 'Avg CSAT Score' = AVERAGE('Fact CustomerSurvey'[CSATScore])
+		formatString: 0.0
+		displayFolder: CMO\Brand
+		lineageTag: 1767ae4d-c606-43ee-8f4c-1699c19a1997
+
+	/// PURPOSE: NPS score segmented by acquisition channel — the CMO's signal for whether different customer acquisition sources produce different long-term satisfaction outcomes.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: TREATAS bridge from Fact CustomerAcquisition[CustomerKey] to Fact CustomerSurvey[CustomerKey], filtered by the current Dim AcquisitionChannel context. Combines Fact CustomerAcquisition (AcquisitionChannelKey, CustomerKey) and Fact CustomerSurvey (NPSCategory, CustomerKey).
+	/// PHILOSOPHY: TREATAS creates a virtual relationship between two fact tables that share CustomerKey but have no direct model relationship. This is the project's standard cross-fact bridge pattern. The measure enables the CMO to answer: 'Do customers acquired via paid social give us higher NPS than customers acquired via email?' — a channel quality vs quantity insight.
+	measure 'NPS by Acquisition Channel' =
+			// TREATAS bridge — no model relationship between Fact CustomerSurvey
+			// and Dim AcquisitionChannel. Path resolved via Fact CustomerAcquisition.
+			// Use in Dim AcquisitionChannel filter context on the CMO dashboard.
+			VAR ChannelCusts =
+			    CALCULATETABLE(
+			        VALUES('Fact CustomerAcquisition'[CustomerKey])
+			    )
+			RETURN
+			CALCULATE(
+			    [NPS Score],
+			    TREATAS(
+			        ChannelCusts,
+			        'Fact CustomerSurvey'[CustomerKey]
+			    )
+			)
+		formatString: #,##0.0
+		displayFolder: CMO\Brand
+		lineageTag: efdbe683-e328-4246-9b83-f72da03de90c
+
+	/// PURPOSE: Month-over-month revenue growth rate — the CSO's short-cycle commercial momentum signal for weekly and monthly trading reviews.
+	/// EXECUTIVE: CSO
+	/// BUILDING BLOCKS: [Total Revenue] vs the previous month via DATEADD on Dim Date[Date] with -1 MONTH offset. Requires Dim Date to be marked as a Date Table.
+	/// PHILOSOPHY: MoM growth captures short-cycle momentum that YoY misses — a recovering business may show positive MoM while still negative YoY. Combining both growth rates on a CSO dashboard gives a 'direction and position' view of commercial performance.
+	measure 'Revenue MoM Growth %' =
+			VAR CurrentRev = [Total Revenue]
+			VAR PriorMonthRev =
+			    CALCULATE(
+			        [Total Revenue],
+			        DATEADD('Dim Date'[Date], -1, MONTH)
+			    )
+			RETURN
+			DIVIDE(CurrentRev - PriorMonthRev, PriorMonthRev)
+		formatString: 0.00%
+		displayFolder: CSO\Sales Performance
+		lineageTag: f58a0ae1-f2f2-4d32-a83e-d714adadb238
+
+	/// PURPOSE: Average revenue per calendar day in the current filter period — the CSO's run-rate normalisation metric for comparing periods of different lengths.
+	/// EXECUTIVE: CSO
+	/// BUILDING BLOCKS: [Total Revenue] divided by the count of distinct dates in the current filter context (COUNTROWS of VALUES on Dim Date[Date]).
+	/// PHILOSOPHY: Month-level comparisons are distorted by calendar differences (28 vs 31 days). Avg Daily Revenue normalises these differences so February vs March performance can be compared fairly. Used in CSO trading dashboards alongside [Revenue MTD] to give both cumulative and run-rate views simultaneously.
+	measure 'Avg Daily Revenue' =
+			VAR TotalRev = [Total Revenue]
+			VAR DayCount = COUNTROWS(VALUES('Dim Date'[Date]))
+			RETURN
+			DIVIDE(TotalRev, DayCount)
+		formatString: \$#,##0.00
+		displayFolder: CSO\Sales Performance
+		lineageTag: fa47d24c-9fd4-4299-a79c-a864bae01575
+
+	/// PURPOSE: Distinct count of online order numbers — the CSO's online transaction volume metric.
+	/// EXECUTIVE: CSO · COO
+	/// BUILDING BLOCKS: DISTINCTCOUNT on Fact OnlineSales[SalesOrderNumber]. Fact OnlineSales is at line-item grain — multiple rows per order number — so DISTINCTCOUNT is required to count orders, not line items. COALESCE returns 0 instead of BLANK when no orders exist.
+	/// PHILOSOPHY: COALESCE to 0 is applied because downstream measures that divide by order count (e.g. [Online AOV]) would return BLANK in the visual rather than an obvious zero — making the card appear empty rather than showing no-order periods clearly.
+	measure 'Online Order Count' =
+			VAR OnlineOrders =
+			    DISTINCTCOUNT('Fact OnlineSales'[SalesOrderNumber])
+			RETURN
+			COALESCE(OnlineOrders, 0)
+		formatString: #,##0
+		displayFolder: CSO\Channel
+		lineageTag: c93b84d6-4fc5-4f42-aa1a-74d26f9d814a
+
+	/// PURPOSE: Count of physical store transactions — the CSO's store transaction volume metric.
+	/// EXECUTIVE: CSO · COO
+	/// BUILDING BLOCKS: COUNTROWS on Fact StoreSales. Each row in Fact StoreSales represents one complete store transaction (already at transaction grain, no grouping needed). COALESCE returns 0 instead of BLANK.
+	/// PHILOSOPHY: COUNTROWS is correct here (not DISTINCTCOUNT) because the source table is already at transaction grain. Using DISTINCTCOUNT on a key column would produce the same result but is conceptually misleading — COUNTROWS makes the grain explicit.
+	measure 'Store Order Count' =
+			VAR StoreOrders = COUNTROWS('Fact StoreSales')
+			RETURN
+			COALESCE(StoreOrders, 0)
+		formatString: #,##0
+		displayFolder: CSO\Channel
+		lineageTag: a4a9506f-51cd-476f-9c15-0b7f95bde8d2
+
+	/// PURPOSE: Average order value for the online channel — the CSO's e-commerce basket size KPI.
+	/// EXECUTIVE: CSO
+	/// BUILDING BLOCKS: SUM of Fact OnlineSales[SalesAmount] divided by DISTINCTCOUNT of SalesOrderNumber. Uses SalesAmount (pre-computed at row level in the source) rather than SUMX for performance efficiency.
+	/// PHILOSOPHY: Uses SalesAmount directly rather than [Online Revenue] (which uses SUMX over UnitPrice) because AOV is a transactional metric where pre-aggregated SalesAmount at line level is sufficient and faster. The small numerical difference between SUM(SalesAmount) and SUMX(Qty×Price) reflects rounding in source data.
+	measure 'Online AOV' =
+			VAR Rev = SUM('Fact OnlineSales'[SalesAmount])
+			VAR Orders = DISTINCTCOUNT('Fact OnlineSales'[SalesOrderNumber])
+			RETURN
+			DIVIDE(Rev, Orders)
+		formatString: \$#,##0.00
+		displayFolder: CSO\Channel
+		lineageTag: 03c99237-0329-41ce-a57e-554265ad18a8
+
+	/// PURPOSE: Average transaction value for the physical store channel — the CSO's store basket size KPI.
+	/// EXECUTIVE: CSO · COO
+	/// BUILDING BLOCKS: SUM of Fact StoreSales[SalesAmount] divided by COUNTROWS of Fact StoreSales. Store transactions are already at grain — COUNTROWS gives the exact transaction count.
+	/// PHILOSOPHY: Mirrors [Online AOV] in structure. Comparing Online AOV vs Store AOV on the same visual gives the CSO a channel mix quality signal — if store AOV is consistently higher, it suggests in-person selling is adding basket value that the online channel is not capturing.
+	measure 'Store AOV' =
+			VAR Rev = SUM('Fact StoreSales'[SalesAmount])
+			VAR Orders = COUNTROWS('Fact StoreSales')
+			RETURN
+			DIVIDE(Rev, Orders)
+		formatString: \$#,##0.00
+		displayFolder: CSO\Channel
+		lineageTag: 3129b532-2da9-44bd-9a15-d5d0ef982eee
+
+	/// PURPOSE: Online channel share of total revenue — the CSO's channel mix tracker for digital-to-physical balance.
+	/// EXECUTIVE: CSO · CEO
+	/// BUILDING BLOCKS: SUM of Fact OnlineSales[SalesAmount] divided by [Total Revenue].
+	/// PHILOSOPHY: Uses SalesAmount (additive column) rather than SUMX(Qty×Price) for performance in this CSO metric — the mix ratio does not require the precision of the SUMX revenue definition. Note: a small numerical difference from [Online Sales Share %] may exist due to this difference in revenue definition. Consider standardising to one approach if the discrepancy is material.
+	measure 'Channel Revenue Mix %' =
+			VAR OnlineRev = SUM('Fact OnlineSales'[SalesAmount])
+			VAR TotalRev = [Total Revenue]
+			RETURN
+			DIVIDE(OnlineRev, TotalRev)
+		formatString: 0.0%
+		displayFolder: CSO\Channel
+		lineageTag: 915dcca3-389e-4ecd-9a6a-0fc10acf83d5
+
+	/// PURPOSE: Count of new customers acquired in the current date filter period — the CSO's acquisition volume signal sourced from the dedicated acquisition fact table.
+	/// EXECUTIVE: CSO · CMO
+	/// BUILDING BLOCKS: DISTINCTCOUNT of CustomerKey from Fact CustomerAcquisition, filtered to rows where AcquisitionDate falls within the MIN/MAX date boundaries of the current Dim Date filter context.
+	/// PHILOSOPHY: Sourced from Fact CustomerAcquisition (rather than Fact OnlineSales) because the acquisition fact table carries the official acquisition date and channel attribution. This makes [New Customers (Period)] the acquisition-attributed version, while [New Customers] in the CEO folder is the purchase-event-based version — the two may differ slightly by timing.
+	measure 'New Customers (Period)' =
+			VAR MinDate = MIN('Dim Date'[Date])
+			VAR MaxDate = MAX('Dim Date'[Date])
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT('Fact CustomerAcquisition'[CustomerKey]),
+			    'Fact CustomerAcquisition'[AcquisitionDate] >= MinDate,
+			    'Fact CustomerAcquisition'[AcquisitionDate] <= MaxDate
+			)
+		formatString: #,##0
+		displayFolder: CSO\Customer Acquisition
+		lineageTag: e6af21d2-9728-4f79-a94b-45de0c37989e
+
+	/// PURPOSE: Average number of online orders per distinct purchasing customer — the CSO's purchase frequency signal for loyalty and engagement analysis.
+	/// EXECUTIVE: CSO · CMO
+	/// BUILDING BLOCKS: DISTINCTCOUNT of SalesOrderNumber divided by DISTINCTCOUNT of CustomerKey, both from Fact OnlineSales.
+	/// PHILOSOPHY: Purchase frequency is an online-only metric because store transactions have no CustomerKey (anonymous). Higher purchase frequency indicates stronger customer engagement and typically correlates with higher CLV. A declining frequency trend is an early churn warning signal.
+	measure 'Avg Purchase Frequency' =
+			VAR TxCount = DISTINCTCOUNT('Fact OnlineSales'[SalesOrderNumber])
+			VAR CustCount = DISTINCTCOUNT('Fact OnlineSales'[CustomerKey])
+			RETURN
+			DIVIDE(TxCount, CustCount)
+		formatString: #,##0.00
+		displayFolder: CSO\Productivity
+		lineageTag: 612ed0b8-19b6-407e-8c74-0f6fe0e44609
+
+	/// PURPOSE: Share of customers with two or more orders — the CSO's repeat buyer loyalty signal.
+	/// EXECUTIVE: CSO · CMO
+	/// BUILDING BLOCKS: FILTER over VALUES(Fact OnlineSales[CustomerKey]) keeping only customers with DISTINCTCOUNT(SalesOrderNumber) > 1, divided by total distinct customer count.
+	/// PHILOSOPHY: The FILTER-VALUES-CALCULATE pattern is used to compute a customer-level aggregate (order count per customer) inside a measure without requiring a calculated column. This is the standard DAX approach for conditional DISTINCTCOUNT with a per-customer threshold.
+	measure 'Repeat Customer Rate %' =
+			VAR RepeatCustomers =
+			    CALCULATE(
+			        DISTINCTCOUNT('Fact OnlineSales'[CustomerKey]),
+			        FILTER(
+			            VALUES('Fact OnlineSales'[CustomerKey]),
+			            CALCULATE(
+			                DISTINCTCOUNT('Fact OnlineSales'[SalesOrderNumber])
+			            ) > 1
+			        )
+			    )
+			VAR TotalCust = DISTINCTCOUNT('Fact OnlineSales'[CustomerKey])
+			RETURN
+			DIVIDE(RepeatCustomers, TotalCust)
+		formatString: 0.00%
+		displayFolder: CSO\Productivity
+		lineageTag: 38142a54-d844-40f4-b697-e3e697c3cbb3
+
+	/// PURPOSE: Combined orders (online + store) divided by distinct online customers — a composite cross-channel basket depth signal for the CSO.
+	/// EXECUTIVE: CSO
+	/// BUILDING BLOCKS: [Total Orders] (online DISTINCTCOUNT + store COUNTROWS) divided by [Total Customers] (online DISTINCTCOUNT only).
+	/// PHILOSOPHY: The mixed denominator (online customers only) with a cross-channel numerator is intentional — it measures how many total transactions the identifiable customer base generates across both channels, including anonymous store visits. This treats store transactions as additional touchpoints of the online customer base.
+	measure 'Avg Orders per Customer' =
+			VAR TotalOrders = [Total Orders]
+			VAR TotalCusts = [Total Customers]
+			RETURN
+			DIVIDE(TotalOrders, TotalCusts)
+		formatString: #,##0.00
+		displayFolder: CSO\Customer Behavior
+		lineageTag: 2214edb0-93d8-4ceb-a5d9-5dc250ee7595
+
+	/// PURPOSE: Share of online revenue generated by repeat buyers — the CSO's customer loyalty monetisation signal.
+	/// EXECUTIVE: CSO · CMO
+	/// BUILDING BLOCKS: FILTER-VALUES-CALCULATE pattern over Fact OnlineSales, summing SalesAmount only for CustomerKey values with DISTINCTCOUNT(SalesOrderNumber) > 1, divided by total Fact OnlineSales[SalesAmount].
+	/// PHILOSOPHY: A high repeat customer revenue share means the business is disproportionately dependent on its loyal core for revenue — a positive loyalty signal but also a concentration risk if that core churns. Tracking this alongside [Repeat Customer Rate %] reveals whether repeat buyers are simply numerous or whether each one spends significantly more.
+	measure 'Returning Customer Revenue %' =
+			VAR RepeatRev =
+			    CALCULATE(
+			        SUM('Fact OnlineSales'[SalesAmount]),
+			        FILTER(
+			            VALUES('Fact OnlineSales'[CustomerKey]),
+			            CALCULATE(
+			                DISTINCTCOUNT('Fact OnlineSales'[SalesOrderNumber])
+			            ) > 1
+			        )
+			    )
+			VAR TotalRev = SUM('Fact OnlineSales'[SalesAmount])
+			RETURN
+			DIVIDE(RepeatRev, TotalRev)
+		formatString: 0.0%
+		displayFolder: CSO\Customer Behavior
+		lineageTag: b03e2315-8622-4c80-a153-c938fdda3aa0
+
+	/// PURPOSE: Current category's share of total revenue across all product categories — the Product Manager's portfolio contribution metric.
+	/// EXECUTIVE: Product Manager · CSO
+	/// BUILDING BLOCKS: [Total Revenue] in the current Dim Product filter context divided by CALCULATE([Total Revenue], ALL('Dim Product')) which removes the category filter to give a total across all products.
+	/// PHILOSOPHY: ALL('Dim Product') removes the product category filter while preserving all other filters (date, store, channel), ensuring the denominator reflects total revenue for the same time period and geography — not an unconditional all-time total.
+	measure 'Category Revenue Share %' =
+			VAR CatRev = [Total Revenue]
+			VAR AllRev = CALCULATE([Total Revenue], ALL('Dim Product'))
+			RETURN
+			DIVIDE(CatRev, AllRev)
+		formatString: 0.0%
+		displayFolder: CSO\Product Mix
+		lineageTag: d0251603-bea3-4120-9af8-8d3e9aca4732
+
+	/// PURPOSE: Average lifetime revenue per distinct online customer across the full data window — the CMO and CFO's base CLV metric for acquisition ROI and unit economics.
+	/// EXECUTIVE: CMO · CFO
+	/// BUILDING BLOCKS: SUM of Fact OnlineSales[SalesAmount] divided by DISTINCTCOUNT of CustomerKey from the same table. Covers the full temporal range of the data (2023–2025) within the current filter context.
+	/// PHILOSOPHY: Historical CLV is used as the simpler, verifiable CLV definition — total revenue attributed to each customer over their observed lifetime, averaged across all customers. It is the foundation for [ROAS] and [CAC-to-CLV Ratio]. A predictive CLV model would extend this with cohort survival rates, but historical CLV is the correct starting anchor.
+	measure 'Historical CLV' =
+			VAR TotalRev = SUM('Fact OnlineSales'[SalesAmount])
+			VAR CustCount = DISTINCTCOUNT('Fact OnlineSales'[CustomerKey])
+			RETURN
+			DIVIDE(TotalRev, CustCount)
+		formatString: \$#,##0.00
+		displayFolder: CMO\Customer Segmentation
+		lineageTag: 7bc03490-686c-41d5-a6ae-d4aafadf5a13
+
+	/// PURPOSE: Average lifetime revenue per customer segmented by acquisition channel — the CMO's signal for which acquisition channels produce the highest-value customers.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: TREATAS bridge from Fact CustomerAcquisition[CustomerKey] to Fact OnlineSales[CustomerKey], scoped to the current Dim AcquisitionChannel filter context. Combines Fact CustomerAcquisition (channel attribution) and Fact OnlineSales (revenue history).
+	/// PHILOSOPHY: TREATAS creates a virtual join between the two fact tables via the shared CustomerKey, enabling channel-filtered revenue aggregation without a direct model relationship between the facts. This is the project's standard cross-fact bridge pattern — same mechanism as [NPS by Acquisition Channel].
+	measure 'CLV by Acquisition Channel' =
+			-- Applied in Dim AcquisitionChannel filter context
+			VAR ChannelCusts =
+			    CALCULATETABLE(
+			        VALUES('Fact CustomerAcquisition'[CustomerKey])
+			    )
+			VAR ChannelRevenue =
+			    CALCULATE(
+			        SUM('Fact OnlineSales'[SalesAmount]),
+			        TREATAS(ChannelCusts, 'Fact OnlineSales'[CustomerKey])
+			    )
+			VAR CustCount = COUNTROWS(ChannelCusts)
+			RETURN
+			DIVIDE(ChannelRevenue, CustCount)
+		formatString: \$#,##0.00
+		displayFolder: CMO\Customer Segmentation
+		lineageTag: 56e872de-a9a8-4fdc-94cb-1c193cb00bcb
+
+	/// PURPOSE: Count of customers whose last purchase was more than 365 days before the model reference date (31 Dec 2025) — the CMO's churn volume signal.
+	/// EXECUTIVE: CMO · CEO
+	/// BUILDING BLOCKS: FILTER-VALUES-CALCULATE pattern over Fact OnlineSales[CustomerKey], identifying customers where MAX(OrderDate) is more than 365 days before the fixed cutoff date DATE(2025, 12, 31).
+	/// PHILOSOPHY: The fixed reference date (2025-12-31) is used rather than TODAY() because the dataset covers a defined historical window (2023–2025) and a dynamic TODAY() would classify all customers as churned once the date passes the dataset end. The 365-day threshold is the industry standard retail churn definition and can be made dynamic via a What-If parameter if needed.
+	measure 'Churned Customers' =
+			VAR ChurnThresholdDays = 365
+			VAR CutoffDate = DATE(2025, 12, 31)
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT('Fact OnlineSales'[CustomerKey]),
+			    FILTER(
+			        VALUES('Fact OnlineSales'[CustomerKey]),
+			        VAR LastPurchase =
+			            CALCULATE(MAX('Fact OnlineSales'[OrderDate]))
+			        RETURN
+			        DATEDIFF(LastPurchase, CutoffDate, DAY) > ChurnThresholdDays
+			    )
+			)
+		formatString: #,##0
+		displayFolder: CMO\Retention
+		lineageTag: bdd1ffda-7887-4e54-8516-4ff99f097850
+
+	/// PURPOSE: Share of customers who remain active (last purchase within 365 days of the model reference date) — the CMO's retention rate headline KPI.
+	/// EXECUTIVE: CMO · CEO
+	/// BUILDING BLOCKS: (DISTINCTCOUNT(CustomerKey) − [Churned Customers]) divided by DISTINCTCOUNT(CustomerKey) from Fact OnlineSales.
+	/// PHILOSOPHY: Defined as the complement of the churn rate (1 − churn %) rather than independently counting active customers, ensuring [Customer Retention Rate %] + churn rate = 100% exactly. This arithmetic consistency is important for CMO retention dashboards where the two metrics must reconcile.
+	measure 'Customer Retention Rate %' =
+			VAR Total = DISTINCTCOUNT('Fact OnlineSales'[CustomerKey])
+			VAR Churned = [Churned Customers]
+			RETURN
+			DIVIDE(Total - Churned, Total)
+		formatString: 0.00%
+		displayFolder: CMO\Retention
+		lineageTag: 322ac78d-09f2-4773-9e00-0beba410561f
+
+	/// PURPOSE: Share of online revenue from customers with 2+ lifetime orders — the CMO's loyalty revenue concentration metric.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: SUM of Fact OnlineSales[SalesAmount] filtered to CustomerKey values with DISTINCTCOUNT(SalesOrderNumber) > 1, divided by total Fact OnlineSales[SalesAmount].
+	/// PHILOSOPHY: Arithmetically identical to [Returning Customer Revenue %] in the CSO folder. Placed in the CMO·Retention folder because the CMO views this as a loyalty investment return metric, while the CSO views it as a channel performance signal. Same number, different strategic context.
+	measure 'Repeat Customer Revenue %' =
+			VAR RepeatRev =
+			    CALCULATE(
+			        SUM('Fact OnlineSales'[SalesAmount]),
+			        FILTER(
+			            VALUES('Fact OnlineSales'[CustomerKey]),
+			            CALCULATE(
+			                DISTINCTCOUNT('Fact OnlineSales'[SalesOrderNumber])
+			            ) > 1
+			        )
+			    )
+			VAR TotalRev = SUM('Fact OnlineSales'[SalesAmount])
+			RETURN
+			DIVIDE(RepeatRev, TotalRev)
+		formatString: 0.0%
+		displayFolder: CMO\Retention
+		lineageTag: 203b8213-0fbc-47d2-9214-5931865f2e9a
+
+	/// PURPOSE: Sum of paid media impressions across all marketing channels — the CMO's awareness reach signal for top-of-funnel media planning.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: SUM of Impressions from Fact MarketingSpend. Connects to Dim AcquisitionChannel (AcquisitionChannelKey) and Dim Date (MonthStartDateKey).
+	/// PHILOSOPHY: COALESCE to 0 prevents BLANK from appearing in card visuals when no impressions data exists for the selected period. Impressions alone are a reach metric — always used alongside [Click-Through Rate (CTR)] to distinguish reach from engagement.
+	measure 'Total Impressions' =
+			VAR Impressions = SUM('Fact MarketingSpend'[Impressions])
+			RETURN
+			COALESCE(Impressions, 0)
+		formatString: #,##0
+		displayFolder: CMO\Acquisition
+		lineageTag: 4e6da342-d6e0-46d9-8d72-38dcf5f3e415
+
+	/// PURPOSE: Clicks divided by impressions — the CMO's paid media engagement quality signal.
+	/// EXECUTIVE: CMO
+	/// BUILDING BLOCKS: SUM of Clicks divided by SUM of Impressions from Fact MarketingSpend via DIVIDE. The Direct channel (Key=5) carries zero impressions and returns BLANK — this is correct and expected behaviour.
+	/// PHILOSOPHY: CTR measures how compelling the ad creative and targeting are, independent of spend level. A high CTR with a high CPC is preferable to a low CTR with a low CPC — the former indicates the audience is engaged even at higher cost. Use alongside [Cost Per Click (CPC)] for a complete media quality assessment.
+	measure 'Click-Through Rate (CTR)' =
+			VAR Clicks = SUM('Fact MarketingSpend'[Clicks])
+			VAR Impressions = SUM('Fact MarketingSpend'[Impressions])
+			RETURN
+			DIVIDE(Clicks, Impressions)
+		formatString: 0.00%
+		displayFolder: CMO\Acquisition
+		lineageTag: e216adf8-f277-4f1d-b6a2-01dbbb6a5468
+
+	/// PURPOSE: Year-over-year growth rate of total marketing spend — the CMO's budget trajectory signal for board-level marketing investment review.
+	/// EXECUTIVE: CMO · CFO
+	/// BUILDING BLOCKS: [Total Marketing Spend] compared to the same period last year via SAMEPERIODLASTYEAR on Dim Date[Date]. Requires Dim Date to be marked as a Date Table.
+	/// PHILOSOPHY: Used alongside [Revenue YoY Growth %] to assess whether marketing investment growth is proportionate to revenue growth. If marketing spend grows faster than revenue, the efficiency ratio ([Marketing Spend % of Revenue]) will deteriorate — a CFO alert signal.
+	measure 'Marketing Spend YoY Growth %' =
+			VAR CurrentSpend = [Total Marketing Spend]
+			VAR PriorSpend =
+			    CALCULATE(
+			        [Total Marketing Spend],
+			        SAMEPERIODLASTYEAR('Dim Date'[Date])
+			    )
+			RETURN
+			DIVIDE(CurrentSpend - PriorSpend, PriorSpend)
+		formatString: 0.00%
+		displayFolder: CMO\Budget
+		lineageTag: 93c1e8cf-788b-4df9-b024-52e3e09d86ba
+
+	/// PURPOSE: Gross margin percentage within the current product category or filter context — the Product Manager's category profitability signal.
+	/// EXECUTIVE: Product Manager
+	/// BUILDING BLOCKS: SUM of GrossProfit from both Fact OnlineSales and Fact StoreSales divided by [Total Revenue]. GrossProfit is a pre-computed column in both fact tables (SalesAmount − TotalCost at row level in the SQL view layer).
+	/// PHILOSOPHY: Using the pre-computed GrossProfit column from the Parquet source is preferred over recalculating (SalesAmount − TotalCost) in DAX because it ensures the margin calculation is consistent with the SQL view layer definition. This model receives data from Parquet files exported from SQL Server views where GrossProfit is already computed.
+	measure 'Category Gross Margin %' =
+			VAR GP =
+			    SUM('Fact OnlineSales'[GrossProfit]) +
+			    SUM('Fact StoreSales'[GrossProfit])
+			VAR Rev = [Total Revenue]
+			RETURN
+			DIVIDE(GP, Rev)
+		formatString: 0.00%
+		displayFolder: Product Manager\Category
+		lineageTag: 2b70fd48-732a-4d6c-87f6-111fa70cc159
+
+	/// PURPOSE: Year-over-year revenue growth rate within the current product category — the Product Manager's category momentum signal.
+	/// EXECUTIVE: Product Manager
+	/// BUILDING BLOCKS: [Total Revenue] in current category context vs SAMEPERIODLASTYEAR on Dim Date[Date]. Requires Dim Date to be marked as a Date Table. Connects through Dim Product (ProductKey) for category filtering.
+	/// PHILOSOPHY: Identical in structure to [Revenue YoY Growth %] but placed in the Product Manager·Category folder to signal its intended use in a product-sliced context. The category filter is applied by the visual or slicer — the measure itself is context-agnostic.
+	measure 'Category Revenue YoY Growth %' =
+			VAR CurrentRev = [Total Revenue]
+			VAR PriorRev =
+			    CALCULATE(
+			        [Total Revenue],
+			        SAMEPERIODLASTYEAR('Dim Date'[Date])
+			    )
+			RETURN
+			DIVIDE(CurrentRev - PriorRev, PriorRev)
+		formatString: 0.00%
+		displayFolder: Product Manager\Category
+		lineageTag: 89ffaafb-458b-4d83-aa91-c8fee4daf1ac
+
+	/// PURPOSE: Share of total revenue concentrated in the top 10 products by revenue — the Product Manager's portfolio concentration risk signal.
+	/// EXECUTIVE: Product Manager
+	/// BUILDING BLOCKS: TOPN(10, ALL('Dim Product'[ProductName]), [Total Revenue], DESC) selects the 10 highest-revenue products across the full catalogue, regardless of the current filter. Their combined revenue is divided by total revenue across ALL products.
+	/// PHILOSOPHY: ALL('Dim Product') in the TOPN call ensures the top 10 are always the global top 10, not just the top 10 within the current filter — this makes the concentration measure meaningful as a portfolio-level signal. A ratio above 30–40% signals unhealthy revenue concentration.
+	measure 'Top 10 Products Revenue %' =
+			VAR Top10Rev =
+			    CALCULATE(
+			        [Total Revenue],
+			        TOPN(
+			            10,
+			            ALL('Dim Product'[ProductName]),
+			            [Total Revenue],
+			            DESC
+			        )
+			    )
+			VAR AllRev = CALCULATE([Total Revenue], ALL('Dim Product'))
+			RETURN
+			DIVIDE(Top10Rev, AllRev)
+		formatString: 0.0%
+		displayFolder: Product Manager\Portfolio
+		lineageTag: f3a42176-c7bf-4e6e-9e97-7958fa8b4ab5
+
+	/// PURPOSE: Revenue-weighted average unit selling price across both channels — the Product Manager's price realisation tracker.
+	/// EXECUTIVE: Product Manager · CSO
+	/// BUILDING BLOCKS: [Total Revenue] divided by [Total Units Sold]. Arithmetically equivalent to [Average Unit Price] in the CFO folder — placed here for Product Manager dashboard access.
+	/// PHILOSOPHY: Reflects actual transacted prices including all promotions and discounts. A declining Avg Selling Price trend alongside stable [Average Unit Cost] signals margin compression driven by discounting — a Product Manager alert to review promotion strategy.
+	measure 'Avg Selling Price' =
+			VAR TotalRev = [Total Revenue]
+			VAR TotalUnits = [Total Units Sold]
+			RETURN
+			DIVIDE(TotalRev, TotalUnits)
+		formatString: \$#,##0.00
+		displayFolder: Product Manager\Pricing
+		lineageTag: 661b652a-d5a4-4409-802c-b643af3c9c28
+
+	/// PURPOSE: Average monetary discount per unit sold across both channels — the Product Manager's per-unit price erosion signal.
+	/// EXECUTIVE: Product Manager
+	/// BUILDING BLOCKS: SUM of DiscountAmount from Fact OnlineSales and Fact StoreSales divided by [Total Units Sold].
+	/// PHILOSOPHY: Per-unit discount is a more actionable signal than total discount amount because it normalises for volume — a rising Avg Discount per Unit while volume is flat means the business is giving away more per unit, which compresses margin without growing the customer base.
+	measure 'Avg Discount per Unit' =
+			VAR TotalDisc =
+			    SUM('Fact OnlineSales'[DiscountAmount]) +
+			    SUM('Fact StoreSales'[DiscountAmount])
+			VAR TotalUnits = [Total Units Sold]
+			RETURN
+			DIVIDE(TotalDisc, TotalUnits)
+		formatString: \$#,##0.00
+		displayFolder: Product Manager\Pricing
+		lineageTag: dda9fbca-ea48-44dd-a684-523e385ae164
+
+	/// PURPOSE: Count of distinct products with at least one sale in the current filter context — the Product Manager's active portfolio breadth signal.
+	/// EXECUTIVE: Product Manager
+	/// BUILDING BLOCKS: UNION of distinct ProductKey values from Fact OnlineSales and Fact StoreSales, with COUNTROWS on the unioned set. COALESCE returns 0 instead of BLANK.
+	/// PHILOSOPHY: UNION across both fact tables ensures a product is counted as active if it sold in either channel — a product that only sells in-store would be missed if only Fact OnlineSales were queried. COUNTROWS on the UNION result correctly deduplicates products that appear in both channels.
+	measure 'Active SKU Count' =
+			VAR CombinedSKUs =
+			    COUNTROWS(
+			        UNION(
+			            VALUES('Fact OnlineSales'[ProductKey]),
+			            VALUES('Fact StoreSales'[ProductKey])
+			        )
+			    )
+			RETURN
+			COALESCE(CombinedSKUs, 0)
+		formatString: #,##0
+		displayFolder: Product Manager\Performance
+		lineageTag: 789b2311-898d-4860-bde6-ddd59e6e1baa
+
+	/// PURPOSE: Gross margin percentage within the current individual product filter context — the Product Manager's product-level profitability signal for drill-through pages.
+	/// EXECUTIVE: Product Manager
+	/// BUILDING BLOCKS: SUM of GrossProfit from Fact OnlineSales and Fact StoreSales divided by [Total Revenue]. Arithmetically identical to [Category Gross Margin %] — the expression is the same; the difference is the intended filter context (product-level vs category-level).
+	/// PHILOSOPHY: Retained as a separate measure rather than an alias to make the Product Manager drill-through page self-contained — the measure name signals its intended context to report developers. Consider consolidating with [Category Gross Margin %] if maintaining two identical expressions becomes a maintenance burden.
+	measure 'Gross Margin % (Product)' =
+			VAR GP =
+			    SUM('Fact OnlineSales'[GrossProfit]) +
+			    SUM('Fact StoreSales'[GrossProfit])
+			VAR Rev = [Total Revenue]
+			RETURN
+			DIVIDE(GP, Rev)
+		formatString: 0.00%
+		displayFolder: Product Manager\Performance
+		lineageTag: 1fac73e2-fb30-4d04-b7f1-703688fa10c8
+
+	column _
+		isHidden
+		lineageTag: 87532e5f-7aa6-44c6-8c3f-8a0a2f81bef3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [_]
+
+	partition _Measures = calculated
+		mode: import
+		source = ROW("_", BLANK())
+

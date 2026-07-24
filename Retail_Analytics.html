@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contoso Retail BI — Full Architecture Deep Dive</title>
+<style>
+  /* ── TOKENS ─────────────────────────────────────── */
+  :root {
+    /* Background */
+    --bg:        #F8FAFC;
+    --bg2:       #FFFFFF;
+    --bg3:       #F1F5F9;
+
+    /* Borders */
+    --border:    #D1D5DB;
+
+    /* Text */
+    --text:      #111827;
+    --text2:     #4B5563;
+    --text3:     #6B7280;
+
+    /* Blue */
+    --blue:      #2563EB;
+    --blue-l:    #3B82F6;
+    --blue-dim:  #DBEAFE;
+
+    /* Green */
+    --green:     #16A34A;
+    --green-l:   #22C55E;
+    --green-dim: #DCFCE7;
+
+    /* Amber */
+    --amber:     #D97706;
+    --amber-l:   #F59E0B;
+    --amber-dim: #FEF3C7;
+
+    /* Red */
+    --red:       #DC2626;
+    --red-l:     #EF4444;
+    --red-dim:   #FEE2E2;
+
+    /* Purple */
+    --purple:    #7C3AED;
+    --purple-l:  #8B5CF6;
+    --purple-dim:#EDE9FE;
+
+    /* Teal */
+    --teal:      #0F766E;
+    --teal-l:    #14B8A6;
+    --teal-dim:  #CCFBF1;
+
+    /* Fonts */
+    --mono:      'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --sans:      'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* ── NAV ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex; align-items: center; gap: 6px;
+    overflow-x: auto; white-space: nowrap;
+    height: 48px;
+  }
+  nav a {
+    color: var(--text2); text-decoration: none;
+    font-size: 12px; font-weight: 500;
+    padding: 4px 10px; border-radius: 6px;
+    transition: all .15s;
+    flex-shrink: 0;
+  }
+  nav a:hover { color: var(--text); background: var(--bg3); }
+  nav .nav-logo {
+    font-weight: 700; font-size: 13px; color: var(--blue-l);
+    margin-right: 12px; flex-shrink: 0;
+  }
+  nav .sep { color: var(--border); font-size: 16px; }
+.company-logo{
+    margin-left:auto;
+    height:65px;
+    width:auto;
+    object-fit:contain;
+}
+
+  /* ── LAYOUT ──────────────────────────────────────── */
+  main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ── HERO ────────────────────────────────────────── */
+  .hero {
+    text-align: center;
+    padding: 60px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--blue-l); margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 4vw, 44px); font-weight: 700;
+    line-height: 1.15; color: var(--text); margin-bottom: 14px;
+    letter-spacing: -.02em;
+  }
+  .hero h1 span { color: var(--blue-l); }
+  .hero p {
+    font-size: 16px; color: var(--text2);
+    max-width: 640px; margin: 0 auto;
+  }
+
+  /* ── SECTIONS ────────────────────────────────────── */
+  section {
+    margin-bottom: 72px;
+    scroll-margin-top: 64px;
+  }
+  .section-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-size: 22px; font-weight: 700; color: var(--text);
+    letter-spacing: -.01em; margin-bottom: 6px;
+  }
+  .section-sub {
+    font-size: 14px; color: var(--text2);
+    margin-bottom: 28px; max-width: 780px;
+  }
+  .divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 56px 0;
+  }
+
+ /* ── CARDS ───────────────────────────────────────── */
+
+.card{
+    background:#FFFFFF;
+    border:1px solid #E5E7EB;
+    border-radius:14px;
+    padding:22px 26px;
+    margin-bottom:18px;
+    box-shadow:0 4px 12px rgba(15,23,42,.06);
+    transition:all .25s ease;
+}
+
+.card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 24px rgba(15,23,42,.10);
+}
+
+.card-title{
+    font-size:15px;
+    font-weight:700;
+    color:#111827;
+    margin-bottom:8px;
+}
+
+.card-body{
+    font-size:13.5px;
+    color:#4B5563;
+    line-height:1.8;
+}
+
+/* ── GRID ───────────────────────────────────────── */
+
+.grid2{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px;
+}
+
+.grid3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:18px;
+}
+
+@media(max-width:700px){
+    .grid2,
+    .grid3{
+        grid-template-columns:1fr;
+    }
+}
+
+/* ── PRO / CON ───────────────────────────────────── */
+
+.pro-con-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin-top:20px;
+}
+
+.pro{
+    background:#ECFDF5;
+    border:1px solid #A7F3D0;
+    border-left:5px solid #22C55E;
+    border-radius:12px;
+    padding:18px;
+}
+
+.con{
+    background:#FEF2F2;
+    border:1px solid #FECACA;
+    border-left:5px solid #EF4444;
+    border-radius:12px;
+    padding:18px;
+}
+
+.pro .label{
+    font-size:12px;
+    font-weight:700;
+    color:#15803D;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin-bottom:8px;
+}
+
+.con .label{
+    font-size:12px;
+    font-weight:700;
+    color:#DC2626;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin-bottom:8px;
+}
+
+.pro li,
+.con li{
+    font-size:13px;
+    color:#374151;
+    line-height:1.7;
+    margin-left:18px;
+    margin-bottom:6px;
+}
+  /* ── CODE ────────────────────────────────────────── */
+  pre {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px;
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    overflow-x: auto; line-height: 1.6; margin: 12px 0;
+  }
+  .kw { color: var(--purple-l); }
+  .fn { color: var(--blue-l); }
+  .str { color: var(--green-l); }
+  .cm { color: var(--text3); font-style: italic; }
+  .num { color: var(--amber-l); }
+
+  /* ── TAGS ────────────────────────────────────────── */
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; margin-right: 4px;
+  }
+  .tag-blue   { background: var(--blue-dim);   color: var(--blue-l); }
+  .tag-green  { background: var(--green-dim);  color: var(--green-l); }
+  .tag-amber  { background: var(--amber-dim);  color: var(--amber-l); }
+  .tag-red    { background: var(--red-dim);    color: var(--red-l); }
+  .tag-purple { background: var(--purple-dim); color: var(--purple-l); }
+  .tag-teal   { background: var(--teal-dim);   color: var(--teal-l); }
+
+ /* ── CALLOUT ─────────────────────────────────────── */
+
+.callout{
+    border-left:5px solid;
+    background:#FFFFFF;
+    padding:16px 20px;
+    border-radius:12px;
+    margin:18px 0;
+    font-size:13.5px;
+    line-height:1.8;
+    color:#374151;
+    box-shadow:0 3px 10px rgba(15,23,42,.05);
+}
+
+/* Info */
+.callout.info{
+    border-color:#3B82F6;
+    background:#EFF6FF;
+}
+
+/* Success */
+.callout.good{
+    border-color:#22C55E;
+    background:#ECFDF5;
+}
+
+/* Warning */
+.callout.warn{
+    border-color:#F59E0B;
+    background:#FFFBEB;
+}
+
+/* Purple / Note */
+.callout.phi{
+    border-color:#8B5CF6;
+    background:#F5F3FF;
+}
+
+.callout strong{
+    color:#111827;
+    font-weight:700;
+}
+
+ /* ── DIAGRAMS ─────────────────────────────────────── */
+
+.diagram{
+    background:#FFFFFF;
+    border:1px solid #E5E7EB;
+    border-radius:14px;
+    overflow:hidden;
+    margin:24px 0;
+    box-shadow:0 4px 12px rgba(15,23,42,.06);
+}
+
+.diagram-header{
+    background:#F8FAFC;
+    border-bottom:1px solid #E5E7EB;
+    padding:14px 18px;
+    font-size:13px;
+    font-weight:700;
+    color:#1F2937;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.diagram-body{
+    background:#FFFFFF;
+    padding:24px;
+    overflow-x:auto;
+}
+
+  /* Flow nodes */
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: nowrap; overflow-x: auto; }
+  .node {
+    flex-shrink: 0;
+    border-radius: 8px; border: 1px solid;
+    padding: 10px 14px; text-align: center;
+    min-width: 110px; max-width: 140px;
+  }
+  .node-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+  .node-sub   { font-size: 11px; line-height: 1.4; }
+  .arrow { display: flex; align-items: center; padding: 0 4px; color: var(--text3); font-size: 18px; flex-shrink: 0; }
+  .arrow-down { text-align: center; color: var(--text3); font-size: 20px; padding: 4px 0; }
+
+  .n-blue   { background: var(--blue-dim);   border-color: var(--blue);   }
+  .n-blue .node-label   { color: var(--blue-l); }
+  .n-blue .node-sub     { color: #7AB8FD; }
+  .n-green  { background: var(--green-dim);  border-color: var(--green);  }
+  .n-green .node-label  { color: var(--green-l); }
+  .n-green .node-sub    { color: #7CC78A; }
+  .n-amber  { background: var(--amber-dim);  border-color: var(--amber);  }
+  .n-amber .node-label  { color: var(--amber-l); }
+  .n-amber .node-sub    { color: #C9A030; }
+  .n-purple { background: var(--purple-dim); border-color: var(--purple); }
+  .n-purple .node-label { color: var(--purple-l); }
+  .n-purple .node-sub   { color: #C5A3F7; }
+  .n-red    { background: var(--red-dim);    border-color: var(--red);    }
+  .n-red .node-label    { color: var(--red-l); }
+  .n-red .node-sub      { color: #F28580; }
+  .n-teal   { background: var(--teal-dim);   border-color: var(--teal);   }
+  .n-teal .node-label   { color: var(--teal-l); }
+  .n-teal .node-sub     { color: #5DD5CC; }
+  .n-gray   { background: var(--bg3);        border-color: var(--border); }
+  .n-gray .node-label   { color: var(--text2); }
+  .n-gray .node-sub     { color: var(--text3); }
+
+  /* Vertical stack */
+  .vstack { display: flex; flex-direction: column; gap: 8px; }
+  .hstack { display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; }
+
+  /* Step boxes */
+  .step-box {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+  }
+  .step-num {
+    display: inline-flex; width: 22px; height: 22px;
+    border-radius: 50%; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; margin-right: 8px; flex-shrink: 0;
+  }
+
+  /* TREATAS diagram */
+  .fact-box {
+    background: var(--bg3); border: 2px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; min-width: 160px;
+  }
+  .fact-box h4 { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+  .fact-col { font-size: 11px; color: var(--text2); padding: 2px 0; }
+  .fact-col.key { color: var(--amber-l); font-weight: 600; }
+  .fact-col.bridge { color: var(--blue-l); font-weight: 600; background: var(--blue-dim); border-radius: 4px; padding: 2px 6px; margin: 2px 0; }
+  .bridge-line {
+    display: flex; align-items: center; gap: 8px;
+    margin: 16px 0; padding: 10px 14px;
+    background: var(--blue-dim); border: 1px dashed var(--blue);
+    border-radius: 8px; font-size: 12px; color: var(--blue-l);
+  }
+
+  /* ── TABLE ───────────────────────────────────────── */
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin:18px 0;
+    background:#FFFFFF;
+    border:1px solid #E5E7EB;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 4px 12px rgba(15,23,42,.05);
+}
+
+th{
+    background:#F8FAFC;
+    color:#1F2937;
+    font-size:12px;
+    font-weight:700;
+    text-align:left;
+    padding:14px 16px;
+    border-bottom:2px solid #E5E7EB;
+}
+
+td{
+    padding:14px 16px;
+    font-size:13px;
+    color:#4B5563;
+    border-bottom:1px solid #F1F5F9;
+    vertical-align:top;
+}
+
+tbody tr:nth-child(even){
+    background:#FAFBFC;
+}
+
+tbody tr:hover{
+    background:#EFF6FF;
+    transition:.2s;
+}
+
+tr:last-child td{
+    border-bottom:none;
+}
+
+  /* Steps guide */
+  .steps-guide { counter-reset: step; }
+  .steps-guide .step {
+    display: flex; gap: 16px; padding: 14px 0;
+    border-bottom: 1px solid var(--bg3);
+  }
+  .steps-guide .step:last-child { border-bottom: none; }
+  .steps-guide .step::before {
+    counter-increment: step;
+    content: counter(step);
+    display: flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; flex-shrink: 0;
+    background: var(--blue-dim); color: var(--blue-l);
+    border: 1px solid var(--blue); border-radius: 50%;
+    font-size: 12px; font-weight: 700; margin-top: 2px;
+  }
+  .steps-guide .step-content { flex: 1; }
+  .steps-guide .step-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .steps-guide .step-desc { font-size: 13px; color: var(--text2); }
+
+  /* Stat row */
+  .stat-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+  .stat {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 130px;
+  }
+  .stat-val { font-size: 22px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* Warning box */
+  .warning-box {
+    background: var(--amber-dim); border: 1px solid var(--amber);
+    border-radius: 8px; padding: 12px 14px; margin: 12px 0;
+    font-size: 13px; color: var(--amber-l);
+  }
+  .signature{
+    position: fixed;
+    bottom: 18px;
+    right: 20px;
+    font-size: 12px;
+    color:#777;
+    font-style: italic;
+    font-family: "Segoe UI", sans-serif;
+    opacity:.8;
+    z-index:9999;
+}
+</style>
+</head>
+
+
+<body>
+
+<nav>
+  <span class="nav-logo">⬡ Contoso BI</span>
+  <span class="sep">|</span>
+
+  <a href="#architecture">Architecture</a>
+  <a href="#parquet">Parquet</a>
+  <a href="#parquet-reading">Reading Steps</a>
+  <a href="#table-buffer">Table.Buffer</a>
+  <a href="#pure-function">Pure Function</a>
+  <a href="#binary-buffer">Binary.Buffer</a>
+  <a href="#schema-dict">Schema Dict</a>
+  <a href="#treatas">TREATAS</a>
+  <a href="#incremental">Incremental Plan</a>
+  <a href="#dual-mode">Dual Mode Steps</a>
+
+  <img src="logo.png" class="company-logo" alt="Logo">
+
+  
+</nav>
+
+<main>
+
+<!-- ════════════════ HERO ════════════════ -->
+<div class="hero">
+  <p class="hero-eyebrow">Contoso Retail DW · End-to-End BI Analytics · Advanced power Bi Programme</p>
+  <h1>Full Data Architecture<br><span>Deep Dive</span></h1>
+  <p>Every pattern, every decision, every engineering trade-off across the six layers of the Contoso Retail BI stack — from SQL Server to VertiPaq.</p>
+</div>
+
+<!-- ════════════════ SECTION 1: FULL ARCHITECTURE ════════════════ -->
+<section id="architecture">
+  <p class="section-eyebrow">Layer 1 of 6</p>
+  <h2 class="section-title">The Complete Data Architecture</h2>
+  <p class="section-sub">Six layers form the full pipeline from Microsoft's ContosoRetailDW source database to the executive dashboards. Every decision at each layer was designed to push business logic as far upstream as possible — what the project calls Roche's Maxim.</p>
+
+  <div class="diagram">
+    <div class="diagram-header">📐 Full End-to-End Data Flow</div>
+    <div class="diagram-body">
+      <div class="flow" style="justify-content:center; flex-wrap:wrap; gap:6px;">
+        <div class="node n-red" style="min-width:130px;">
+          <div class="node-label">SQL Server 2025</div>
+          <div class="node-sub">[dbo] Source<br>Read-Only<br>15 tables</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-green">
+          <div class="node-label">[gen] Schema</div>
+          <div class="node-sub">Synthetic Extension<br>Scripts 01–08<br>10 tables</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-blue">
+          <div class="node-label">[dim]+[fact]</div>
+          <div class="node-sub">Semantic Views<br>Scripts 09–10<br>22 views</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-purple">
+          <div class="node-label">Python v7</div>
+          <div class="node-sub">export_contoso<br>_views_v7.py<br>8 optimisations</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-amber">
+          <div class="node-label">22 Parquet Files</div>
+          <div class="node-sub">Snappy-compressed<br>+ SchemaDictionary<br>.csv</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-teal">
+          <div class="node-label">SharePoint</div>
+          <div class="node-sub">Cloud Storage<br>Team-accessible<br>intrast.sharepoint</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-blue">
+          <div class="node-label">Power Query M</div>
+          <div class="node-sub">5 Patterns<br>2 Loader Fns<br>IsDev toggle</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-green">
+          <div class="node-label">VertiPaq Model</div>
+          <div class="node-sub">22 tables<br>39 relationships<br>102 measures</div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+        <div class="step-box">
+          <span class="step-num" style="background:var(--red-dim);color:var(--red-l);border:1px solid var(--red);">S</span>
+          <strong style="color:var(--text);">Source immutability</strong>
+          <p style="font-size:12px;color:var(--text2);margin-top:4px;">[dbo] is never touched. Zero UPDATE/INSERT/DELETE. Fully repeatable — drop [gen]+[dim]+[fact] and rebuild identically.</p>
+        </div>
+        <div class="step-box">
+          <span class="step-num" style="background:var(--blue-dim);color:var(--blue-l);border:1px solid var(--blue);">R</span>
+          <strong style="color:var(--text);">Roche's Maxim</strong>
+          <p style="font-size:12px;color:var(--text2);margin-top:4px;">All logic pushed upstream. SQL views transform. Python exports. Power Query just applies schema. DAX only aggregates.</p>
+        </div>
+        <div class="step-box">
+          <span class="step-num" style="background:var(--green-dim);color:var(--green-l);border:1px solid var(--green);">T</span>
+          <strong style="color:var(--text);">Temporal consistency</strong>
+          <p style="font-size:12px;color:var(--text2);margin-top:4px;">+16 year shift at view layer only. Fixed reference date 2025-12-31. GETDATE() never used. Reproducible on any machine on any date.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════ SECTION 2: PARQUET DEEP DIVE ════════════════ -->
+<section id="parquet">
+  <p class="section-eyebrow">The Storage Format</p>
+  <h2 class="section-title">Parquet Files — Technology, Performance & Limits</h2>
+  <p class="section-sub">Apache Parquet is a columnar binary storage format designed for analytical workloads. Understanding why it was chosen — and what problems it introduces — explains several engineering decisions in the export pipeline and Power Query layer.</p>
+
+  <div class="stat-row">
+    <div class="stat"><div class="stat-val">22</div><div class="stat-label">Parquet files exported</div></div>
+    <div class="stat"><div class="stat-val">32 GB</div><div class="stat-label">Raw data compressed</div></div>
+    <div class="stat"><div class="stat-val">5–10×</div><div class="stat-label">Compression vs CSV</div></div>
+    <div class="stat"><div class="stat-val">Snappy</div><div class="stat-label">Compression codec</div></div>
+    <div class="stat"><div class="stat-val">~350</div><div class="stat-label">Column type mappings</div></div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:600;color:var(--text);margin:24px 0 12px;">What makes Parquet columnar — and why it matters</h3>
+  
+  <div class="diagram">
+    <div class="diagram-header">🗂 Row Store vs Column Store — How Parquet reads data</div>
+    <div class="diagram-body">
+      <div class="grid2">
+        <div>
+          <p style="font-size:12px;font-weight:600;color:var(--red-l);margin-bottom:8px;">❌ CSV / Row-oriented store</p>
+          <pre style="font-size:11px;">Row 1: [DateKey=20240101, ProductKey=101, StoreKey=5, SalesAmount=450.00, TotalCost=310.00, ...]
+Row 2: [DateKey=20240101, ProductKey=102, StoreKey=5, SalesAmount=220.00, TotalCost=150.00, ...]
+Row 3: [DateKey=20240102, ProductKey=101, StoreKey=7, SalesAmount=780.00, TotalCost=530.00, ...]
+...
+
+→ Power Query asks for SalesAmount only
+→ Must read ALL columns of ALL rows first
+→ Reads 19 unnecessary columns per row
+→ 13M rows × 19 cols = 247M field reads</pre>
+        </div>
+        <div>
+          <p style="font-size:12px;font-weight:600;color:var(--green-l);margin-bottom:8px;">✅ Parquet / Column-oriented store</p>
+          <pre style="font-size:11px;">Column: DateKey     → [20240101, 20240101, 20240102, ...]
+Column: ProductKey  → [101, 102, 101, ...]
+Column: StoreKey    → [5, 5, 7, ...]
+Column: SalesAmount → [450.00, 220.00, 780.00, ...]  ← read only this
+Column: TotalCost   → [310.00, 150.00, 530.00, ...]
+...
+
+→ Power Query asks for SalesAmount only
+→ Reads ONLY the SalesAmount column stripe
+→ 13M rows × 1 col = 13M field reads (column pruning)
+→ 19× less I/O for single-column aggregation</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:600;color:var(--text);margin:24px 0 12px;">Why Snappy compression — not GZIP or uncompressed</h3>
+  <div class="card">
+    <div class="card-body">
+      <p>Parquet supports multiple compression codecs. Snappy was chosen over GZIP and Zstandard for a specific reason: <strong style="color:var(--text);">Snappy prioritises decompression speed over compression ratio</strong>. When Power Query reads a Parquet file from SharePoint, it decompresses column stripes on the fly. GZIP achieves ~40% smaller files but decompresses 5–10× slower than Snappy. For a 13M-row fact table, the decompression time difference is material. Snappy provides 5–10× compression vs CSV while keeping decompression fast enough that network latency dominates, not CPU decompression time.</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Format</th><th>Compression vs CSV</th><th>Type fidelity</th><th>Decompress speed</th><th>Column pruning</th><th>Verdict</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>CSV</td><td>1× (baseline)</td><td>❌ All text, types lost</td><td>N/A (no compress)</td><td>❌ No</td><td><span class="tag tag-red">Rejected</span></td></tr>
+      <tr><td>Excel (.xlsx)</td><td>~2×</td><td>⚠️ Partial</td><td>Slow (ZIP)</td><td>❌ No</td><td><span class="tag tag-red">Rejected</span></td></tr>
+      <tr><td>JSON</td><td>0.8× (larger)</td><td>⚠️ No int/float distinction</td><td>N/A</td><td>❌ No</td><td><span class="tag tag-red">Rejected</span></td></tr>
+      <tr><td>Parquet + GZIP</td><td>8–12×</td><td>✅ Full fidelity</td><td>Slow (CPU-bound)</td><td>✅ Yes</td><td><span class="tag tag-amber">Possible</span></td></tr>
+      <tr><td><strong>Parquet + Snappy</strong></td><td><strong>5–10×</strong></td><td>✅ Full fidelity</td><td><strong>Fast</strong></td><td>✅ Yes</td><td><span class="tag tag-green">Chosen ✓</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:15px;font-weight:600;color:var(--text);margin:24px 0 12px;">Parquet limitations and how this project resolves them</h3>
+  <div class="grid2">
+    <div>
+      <div class="callout warn"><strong>Limitation 1 — Type metadata conflicts.</strong> Parquet embeds its own type metadata (INT32, DOUBLE, BYTE_ARRAY). Power Query's Parquet reader occasionally misinterprets INT32 as Int64 or MONEY as generic number, silently corrupting currency column formatting. There is no warning — the values are numerically correct but formatted wrong.</div>
+      <div class="callout good"><strong>Resolution → Schema Dictionary injection.</strong> A SchemaDictionary.csv maps every (FileName, ColumnName) pair to its authoritative M type string. Power Query strips all Parquet-inferred types and re-applies from the CSV. Parquet metadata is ignored entirely. See Section 6 for the detailed workflow.</div>
+    </div>
+    <div>
+      <div class="callout warn"><strong>Limitation 2 — Streaming parse failures.</strong> The Mashup Engine streams large Parquet files lazily from SharePoint. If the SharePoint connection is interrupted mid-stream (common with 13M-row files over corporate networks), the partial parse crashes with a cryptic error. The file appears to load but the table is truncated or empty.</div>
+      <div class="callout good"><strong>Resolution → Binary.Buffer() anti-streaming.</strong> Every Parquet file is fully downloaded into RAM before parsing begins. Binary.Buffer() forces complete file retrieval first. This trades memory for reliability — the correct trade-off for a 31.5M row model where a mid-parse crash wastes 30+ minutes. See Section 5.</div>
+    </div>
+    <div>
+      <div class="callout warn"><strong>Limitation 3 — NULL column schema mismatches.</strong> fact.vReturns uses UNION ALL to combine online and physical return events. Physical returns have NULL CustomerKey; online returns have NULL StoreKey. Pandas reads all-NULL integer columns as float64(NaN). When the first non-NULL integer chunk arrives, ParquetWriter sees a schema mismatch (float64 vs int64) and crashes.</div>
+      <div class="callout good"><strong>Resolution → Nullable schema locking.</strong> _make_nullable_schema() marks every field as nullable=True in the Arrow schema before the first write. All chunks are cast with safe=False, allowing float64(NaN) → int64(null) coercion without error. The locked schema is applied to every subsequent chunk, preventing type-drift crashes across chunks.</div>
+    </div>
+    <div>
+      <div class="callout warn"><strong>Limitation 4 — Full re-export on every run.</strong> Parquet is a static file format. There is no native delta or incremental mechanism. Every export run re-processes all 13M rows of fact.vOnlineSales from scratch, taking 30+ minutes. As data volume grows, this cost scales linearly.</div>
+      <div class="callout good"><strong>Resolution → Planned: watermark-based delta export.</strong> See Section 9 for the full incremental refresh plan. The current architecture is designed with this upgrade in mind — the SQL views expose DateKey columns that can serve as watermark boundaries for delta queries.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════ SECTION 3: PARQUET READING STEPS ════════════════ -->
+<section id="parquet-reading">
+  <p class="section-eyebrow">Workflow Detail</p>
+  <h2 class="section-title">Parquet File Reading — Step by Step</h2>
+  <p class="section-sub">How a single Parquet file goes from SharePoint storage to a fully typed Power BI table, through each stage of the M loading pipeline.</p>
+
+  <div class="diagram">
+    <div class="diagram-header">📖 Complete Parquet Reading Workflow — fact_vOnlineSales.parquet</div>
+    <div class="diagram-body">
+      <div class="vstack">
+        <!-- Step 1 -->
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue-l);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+            <div style="width:2px;flex:1;background:var(--border);margin:4px 0;min-height:30px;"></div>
+          </div>
+          <div class="step-box" style="flex:1;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--blue-l);margin-bottom:4px;">DataSource query — SharePoint folder listing (one API call, buffered)</div>
+            <div style="font-size:12px;color:var(--text2);">SharePoint.Files(pSharedSiteURL) returns a table of all files in the folder. Table.Buffer() materialises this into RAM — <strong style="color:var(--text);">one API call for all 22 tables</strong>. The buffered table is a named expression shared by every downstream table query.</div>
+            <pre style="font-size:11px;margin-top:8px;"><span class="fn">FileRow</span> = DataSource{[Name=<span class="str">"fact_vOnlineSales.parquet"</span>]},
+<span class="fn">BinaryData</span> = FileRow[Content]  <span class="cm">-- binary bytes of the .parquet file</span></pre>
+          </div>
+        </div>
+        <!-- Step 2 -->
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--purple-dim);border:1px solid var(--purple);color:var(--purple-l);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+            <div style="width:2px;flex:1;background:var(--border);margin:4px 0;min-height:30px;"></div>
+          </div>
+          <div class="step-box" style="flex:1;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--purple-l);margin-bottom:4px;">Binary.Buffer() — complete file download before parsing</div>
+            <div style="font-size:12px;color:var(--text2);">Binary.Buffer(BinaryContent) forces the entire 13M-row Parquet file into RAM <em>before</em> Parquet.Document() is called. Without this, the Mashup Engine streams the file lazily and a network interruption mid-stream produces a crashed, truncated table with no warning.</div>
+            <pre style="font-size:11px;margin-top:8px;"><span class="fn">ImportedParquet</span> = <span class="kw">Parquet.Document</span>(<span class="kw">Binary.Buffer</span>(BinaryContent))
+<span class="cm">-- Full 13M rows now in RAM. Network is no longer involved.</span></pre>
+          </div>
+        </div>
+        <!-- Step 3 -->
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--red-dim);border:1px solid var(--red);color:var(--red-l);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+            <div style="width:2px;flex:1;background:var(--border);margin:4px 0;min-height:30px;"></div>
+          </div>
+          <div class="step-box" style="flex:1;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--red-l);margin-bottom:4px;">Strip all Parquet-inferred types → type any</div>
+            <div style="font-size:12px;color:var(--text2);">All columns are reset to <code>type any</code>, removing Parquet's own embedded type metadata. This is the first half of the defensive re-typing pattern — clearing the field before authoritative types are applied.</div>
+            <pre style="font-size:11px;margin-top:8px;"><span class="fn">ActualColumns</span> = <span class="kw">Table.ColumnNames</span>(ImportedParquet),
+<span class="fn">StripCorruptTypes</span> = <span class="kw">Table.TransformColumnTypes</span>(
+  ImportedParquet,
+  <span class="kw">List.Transform</span>(ActualColumns, <span class="kw">each</span> {_, <span class="kw">type any</span>})  <span class="cm">-- ALL → type any</span>
+)</pre>
+          </div>
+        </div>
+        <!-- Step 4 -->
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber-l);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
+            <div style="width:2px;flex:1;background:var(--border);margin:4px 0;min-height:30px;"></div>
+          </div>
+          <div class="step-box" style="flex:1;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--amber-l);margin-bottom:4px;">Schema Dictionary lookup — find authoritative types for this file</div>
+            <div style="font-size:12px;color:var(--text2);">SchemaMapping (the buffered SchemaDictionary.csv) is filtered to rows where FileName = "fact_vOnlineSales.parquet". ValidSchema then cross-checks that each column in the dictionary actually exists in the imported table — guarding against schema drift.</div>
+            <pre style="font-size:11px;margin-top:8px;"><span class="fn">TableSchema</span> = <span class="kw">Table.SelectRows</span>(SchemaMapping, <span class="kw">each</span> ([FileName] = FileName)),
+<span class="fn">ValidSchema</span>  = <span class="kw">Table.SelectRows</span>(TableSchema, <span class="kw">each</span>
+  <span class="kw">List.Contains</span>(ActualColumns, [ColumnName]))  <span class="cm">-- column must exist in file</span></pre>
+          </div>
+        </div>
+        <!-- Step 5 -->
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--green-dim);border:1px solid var(--green);color:var(--green-l);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">5</div>
+            <div style="width:2px;flex:1;background:var(--border);margin:4px 0;min-height:30px;"></div>
+          </div>
+          <div class="step-box" style="flex:1;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--green-l);margin-bottom:4px;">Apply authoritative SQL-layer types from Schema Dictionary</div>
+            <div style="font-size:12px;color:var(--text2);">The TypeMap record maps string type names to actual M type values. SchemaList converts each dictionary row into the {ColumnName, Type} pair format that Table.TransformColumnTypes expects. The result is a fully typed table where every column uses the SQL Server's authoritative data type.</div>
+            <pre style="font-size:11px;margin-top:8px;"><span class="fn">TypeMap</span> = [#<span class="str">"Int64.Type"</span>=Int64.Type, #<span class="str">"Currency.Type"</span>=Currency.Type, ...],
+<span class="fn">SchemaList</span> = <span class="kw">List.Transform</span>(<span class="kw">Table.ToRecords</span>(ValidSchema), <span class="kw">each</span>
+  {Record.Field(_, <span class="str">"ColumnName"</span>), Record.Field(TypeMap, Record.Field(_, <span class="str">"DataType"</span>))}),
+<span class="fn">TypedTable</span> = <span class="kw">Table.TransformColumnTypes</span>(StripCorruptTypes, SchemaList)</pre>
+          </div>
+        </div>
+        <!-- Step 6 (facts only) -->
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal-l);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">6</div>
+          </div>
+          <div class="step-box" style="flex:1;">
+            <div style="font-size:13px;font-weight:600;color:var(--teal-l);margin-bottom:4px;">IsDev row limiting — facts only, never dimensions</div>
+            <div style="font-size:12px;color:var(--text2);">Only in fxLoadFactParquet (not fxLoadDimParquet). IsDev=true applies Table.FirstN(TypedTable, 10000) — reducing local refresh from 30+ minutes to under 2 minutes. Dimensions always load at full volume to preserve referential integrity and slicer functionality. This asymmetric design is deliberate and documented.</div>
+            <pre style="font-size:11px;margin-top:8px;"><span class="cm">-- fxLoadFactParquet only (NOT in fxLoadDimParquet)</span>
+<span class="fn">DevFilterApplied</span> = <span class="kw">if</span> IsDev = <span class="kw">true</span>
+  <span class="kw">then</span> <span class="kw">Table.FirstN</span>(TypedTable, <span class="num">10000</span>)  <span class="cm">-- dev: 10K rows</span>
+  <span class="kw">else</span> TypedTable                         <span class="cm">-- prod: all 13M rows</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════ SECTION 4: TABLE.BUFFER ════════════════ -->
+<section id="table-buffer">
+  <p class="section-eyebrow">Pattern 1 of 5</p>
+  <h2 class="section-title">Table.Buffer() — Metadata Caching</h2>
+  <p class="section-sub">The single highest-impact Power Query optimisation for SharePoint-hosted models. One line of code eliminates 21 out of 22 SharePoint API calls per refresh cycle.</p>
+
+  <div class="callout phi"><strong>The core problem:</strong> SharePoint.Files() is not a static local lookup. Every time a Power Query table query references DataSource, the Mashup Engine makes a live API call to SharePoint to list the folder contents. Without Table.Buffer(), 22 separate table queries each call SharePoint independently — 22 API calls, 22 network round-trips, 22 authentication handshakes. This is not just slow; it creates rate-limiting risk on corporate SharePoint tenants.</div>
+
+  <div class="diagram">
+    <div class="diagram-header">🔄 Without Table.Buffer() — 22 SharePoint API calls</div>
+    <div class="diagram-body">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;">
+        <div class="vstack" style="gap:4px;">
+          <div class="step-box" style="font-size:11px;border-color:var(--red);">Fact OnlineSales query</div>
+          <div class="step-box" style="font-size:11px;border-color:var(--red);">Fact StoreSales query</div>
+          <div class="step-box" style="font-size:11px;border-color:var(--red);">Fact Returns query</div>
+          <div class="step-box" style="font-size:11px;color:var(--text3);">... 19 more table queries</div>
+        </div>
+        <div style="text-align:center;color:var(--red-l);">
+          <div style="font-size:28px;">⚡</div>
+          <div style="font-size:11px;font-weight:600;color:var(--red-l);">22 API calls<br>~22 × 800ms<br>= ~18 seconds<br>wasted</div>
+        </div>
+        <div class="node n-teal" style="min-width:140px;text-align:center;">
+          <div class="node-label">SharePoint API</div>
+          <div class="node-sub">Receives 22 identical<br>folder listing requests<br>Rate limit risk!</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;background:var(--red-dim);border:1px solid var(--red);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red-l);">
+        Each query independently calls <code>SharePoint.Files(pSharedSiteURL)</code> → filters to the folder → reads file metadata. The 22 queries run without knowing about each other.
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-header">✅ With Table.Buffer() — 1 SharePoint API call, result shared</div>
+    <div class="diagram-body">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:center;">
+        <div class="node n-teal" style="text-align:center;">
+          <div class="node-label">SharePoint API</div>
+          <div class="node-sub">Called exactly ONCE<br>by DataSource query</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-amber" style="text-align:center;">
+          <div class="node-label">Table.Buffer()</div>
+          <div class="node-sub">Folder listing loaded<br>into RAM as named<br>expression "DataSource"</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="vstack" style="gap:4px;">
+          <div class="step-box" style="font-size:11px;border-color:var(--green);">Fact OnlineSales → reads from RAM</div>
+          <div class="step-box" style="font-size:11px;border-color:var(--green);">Fact StoreSales → reads from RAM</div>
+          <div class="step-box" style="font-size:11px;border-color:var(--green);">Dim Date → reads from RAM</div>
+          <div class="step-box" style="font-size:11px;color:var(--text3);">... 19 more → all from RAM</div>
+        </div>
+      </div>
+      <pre style="margin-top:14px;font-size:11.5px;"><span class="cm">-- DataSource named expression (runs ONCE per refresh)</span>
+<span class="kw">let</span>
+  Source        = <span class="fn">SharePoint.Files</span>(pSharedSiteURL, [ApiVersion = 15]),
+  FilteredFolder = <span class="fn">Table.SelectRows</span>(Source, <span class="kw">each</span> ([Folder Path] = pSharedFolderPath)),
+  <span class="fn">BufferedTable</span>  = <span class="fn">Table.Buffer</span>(FilteredFolder)  <span class="cm">-- ← THE KEY LINE: materialise into RAM</span>
+<span class="kw">in</span>
+  BufferedTable
+
+<span class="cm">-- Every table query then does this (no API call — reads from RAM):</span>
+FileRow   = DataSource{[Name=<span class="str">"fact_vOnlineSales.parquet"</span>]},  <span class="cm">-- row lookup in buffer</span>
+BinaryData = FileRow[Content]</pre>
+      <div style="background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--green-l);">
+        <strong>Impact:</strong> 22 API calls → 1 API call. ~18 seconds of SharePoint round-trip overhead eliminated. No rate-limit risk. The buffered table also means all 22 table queries see a <em>consistent</em> folder state — no risk of a file being updated mid-refresh changing what some queries see.
+      </div>
+    </div>
+  </div>
+
+  <div class="callout info"><strong>SchemaMapping also uses Table.Buffer().</strong> The SchemaDictionary.csv query ends with <code>BufferedMapping = Table.Buffer(PromotedHeaders)</code>. Without this, the dictionary lookup inside both fxLoadFactParquet and fxLoadDimParquet would re-read the CSV from SharePoint on every table call — 22 more API calls. Table.Buffer() on SchemaMapping eliminates these too, loading the ~350 column type mappings into RAM once and reusing them across all 22 table loads.</div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════ SECTION 5: PURE FUNCTION PATTERN ════════════════ -->
+<section id="pure-function">
+  <p class="section-eyebrow">Pattern 2 of 5</p>
+  <h2 class="section-title">The Pure Function Pattern & Static Analyser Evasion</h2>
+  <p class="section-sub">How fxLoadFactParquet and fxLoadDimParquet are designed to fool the Power BI Service static analyser into granting gateway-free cloud refresh.</p>
+
+  <div class="callout phi"><strong>The core problem — the static analyser:</strong> When you publish a Power BI model to the Service and enable scheduled refresh, the Service runs a static analysis pass over all M queries. It scans every function body for data source references (SharePoint.Files, SQL.Database, etc.). If it finds a data source inside a function body, it classifies that function as a <em>dynamic data source</em> — meaning it cannot know at parse time what the source URL will be. Dynamic sources require an on-premises data gateway. A gateway is infrastructure that must be deployed, maintained, and kept running. Avoiding it is a significant operational simplification.</div>
+
+  <div class="diagram">
+    <div class="diagram-header">❌ Naïve approach — data source INSIDE function body → gateway required</div>
+    <div class="diagram-body">
+      <pre style="font-size:11.5px;"><span class="cm">-- This is what you SHOULD NOT do:</span>
+<span class="fn">fxLoadParquet_WRONG</span> = (FileName <span class="kw">as</span> <span class="kw">text</span>) =>
+  <span class="kw">let</span>
+    Source = <span class="fn">SharePoint.Files</span>(pSharedSiteURL),       <span class="cm">-- ← DATA SOURCE INSIDE FUNCTION</span>
+    File   = <span class="fn">Table.SelectRows</span>(Source, <span class="kw">each</span> [Name] = FileName),
+    ...
+  <span class="kw">in</span> ...
+
+<span class="cm">-- Static analyser sees SharePoint.Files() inside the function body
+-- → flags as "dynamic data source"
+-- → Power BI Service: "This datasource requires a gateway"
+-- → You must install and maintain an on-premises gateway ❌</span></pre>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-header">✅ Pure function pattern — data source OUTSIDE function → no gateway needed</div>
+    <div class="diagram-body">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:start;margin-bottom:16px;">
+        <div>
+          <p style="font-size:12px;font-weight:600;color:var(--blue-l);margin-bottom:8px;">DataSource query (named expression)</p>
+          <pre style="font-size:11px;"><span class="cm">-- SharePoint navigation ISOLATED here</span>
+<span class="kw">let</span>
+  Source = <span class="fn">SharePoint.Files</span>(pSharedSiteURL),
+  Filtered = <span class="fn">Table.SelectRows</span>(Source, ...),
+  BufferedTable = <span class="fn">Table.Buffer</span>(Filtered)
+<span class="kw">in</span> BufferedTable
+<span class="cm">
+-- Static analyser: "static data source ✓"
+-- It sees a named expression, not a dynamic call</span></pre>
+        </div>
+        <div class="arrow" style="margin-top:60px;">→</div>
+        <div>
+          <p style="font-size:12px;font-weight:600;color:var(--green-l);margin-bottom:8px;">fxLoadFactParquet (pure function)</p>
+          <pre style="font-size:11px;"><span class="cm">-- No SharePoint navigation inside!</span>
+(BinaryContent <span class="kw">as binary</span>, FileName <span class="kw">as text</span>) =>
+<span class="kw">let</span>
+  Parsed = <span class="fn">Parquet.Document</span>(<span class="fn">Binary.Buffer</span>(BinaryContent)),
+  <span class="cm">-- receives binary from CALLER, not from SharePoint</span>
+  ...
+<span class="kw">in</span> TypedTable
+<span class="cm">
+-- Static analyser: "no data source here ✓"
+-- Pure function: output depends only on inputs</span></pre>
+        </div>
+      </div>
+
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:12px;">
+        <p style="font-weight:600;color:var(--text);margin-bottom:8px;">Each table's M code (generated by query_call.py)</p>
+        <pre style="font-size:11px;"><span class="cm">-- Fact OnlineSales table partition source (in TMDL)</span>
+<span class="kw">let</span>
+  FileRow     = DataSource{[Name=<span class="str">"fact_vOnlineSales.parquet"</span>]},  <span class="cm">-- reads from buffer</span>
+  BinaryData  = FileRow[Content],                                   <span class="cm">-- gets binary bytes</span>
+  ProcessedData = <span class="fn">fxLoadFactParquet</span>(BinaryData, <span class="str">"fact_vOnlineSales.parquet"</span>)
+<span class="kw">in</span>
+  ProcessedData
+
+<span class="cm">-- SharePoint navigation (DataSource) → happens once in a named expression
+-- Binary passing (BinaryData) → goes into the pure function
+-- Static analyser: sees only a buffered table reference → static source → no gateway</span></pre>
+      </div>
+
+      <div style="margin-top:14px;background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--green-l);">
+        <strong>Result:</strong> Power BI Service classifies the model as using a static data source. Scheduled refresh works directly from the cloud — no gateway infrastructure required. This decision alone eliminates the need to deploy, maintain, and monitor an on-premises gateway server.
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:16px;">
+    <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⚠️ Maintenance rule — never break the pure function contract</p>
+    <p style="font-size:13px;color:var(--text2);">Adding any data source call (SharePoint.Files, SQL.Database, Web.Contents, etc.) inside fxLoadFactParquet or fxLoadDimParquet will silently break cloud refresh. The Service will not warn you at publish time — it will only fail at the first scheduled refresh. The pure function boundary must be treated as a hard architectural rule: <strong style="color:var(--text);">all data source navigation lives in named expressions (DataSource, SchemaMapping), never inside loader functions.</strong></p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════ SECTION 6: BINARY.BUFFER ════════════════ -->
+<section id="binary-buffer">
+  <p class="section-eyebrow">Pattern 3 of 5</p>
+  <h2 class="section-title">Binary.Buffer() — Anti-Streaming Pattern</h2>
+  <p class="section-sub">Why fully buffering a 13M-row Parquet file into RAM before parsing is the correct engineering trade-off for a SharePoint-hosted model.</p>
+
+  <div class="callout phi"><strong>The Mashup Engine's default behaviour:</strong> Without Binary.Buffer(), the Power Query Mashup Engine is lazy. When Parquet.Document(BinaryContent) is called, the engine begins streaming the binary content from SharePoint and parsing it incrementally — consuming less RAM at the cost of a persistent, live network connection for the duration of the parse. For small local files, this works fine. For large Parquet files over a corporate SharePoint connection, it fails.</div>
+
+  <div class="diagram">
+    <div class="diagram-header">📡 Without Binary.Buffer() — lazy streaming (vulnerable)</div>
+    <div class="diagram-body">
+      <div class="flow" style="gap:6px;justify-content:center;flex-wrap:wrap;">
+        <div class="node n-teal" style="min-width:110px;">
+          <div class="node-label">SharePoint</div>
+          <div class="node-sub">fact_vOnlineSales<br>.parquet<br>(large file)</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-amber" style="min-width:130px;">
+          <div class="node-label">Network stream</div>
+          <div class="node-sub">Bytes flow lazily<br>as parsing proceeds<br>Connection stays open</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-blue" style="min-width:120px;">
+          <div class="node-label">Parquet.Document</div>
+          <div class="node-sub">Parses incrementally<br>Reads chunks as<br>stream delivers</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-red" style="min-width:130px;">
+          <div class="node-label">⚡ Network drop</div>
+          <div class="node-sub">Stream interrupted<br>at row 7,432,000<br>Parse crashes</div>
+        </div>
+      </div>
+      <div style="background:var(--red-dim);border:1px solid var(--red);border-radius:8px;padding:10px 14px;margin-top:12px;font-size:12px;color:var(--red-l);">
+        Result: Table loads with 7,432,000 rows instead of 13,000,000. No error message. No warning. The next visual that queries this table will silently return incorrect totals — missing 5.5M rows of data. This is the worst possible failure mode because it produces plausible-looking wrong numbers.
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-header">✅ With Binary.Buffer() — complete download before parse (reliable)</div>
+    <div class="diagram-body">
+      <div class="flow" style="gap:6px;justify-content:center;flex-wrap:wrap;">
+        <div class="node n-teal" style="min-width:110px;">
+          <div class="node-label">SharePoint</div>
+          <div class="node-sub">fact_vOnlineSales<br>.parquet</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-purple" style="min-width:140px;">
+          <div class="node-label">Binary.Buffer()</div>
+          <div class="node-sub">Downloads complete<br>file into RAM first<br>Network closes ✓</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-blue" style="min-width:130px;">
+          <div class="node-label">Parquet.Document()</div>
+          <div class="node-sub">Parses from RAM<br>No network involved<br>Cannot be interrupted</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-green" style="min-width:120px;">
+          <div class="node-label">Complete table</div>
+          <div class="node-sub">All 13M rows<br>Guaranteed complete<br>Zero truncation risk</div>
+        </div>
+      </div>
+      <div style="background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:10px 14px;margin-top:12px;font-size:12px;color:var(--green-l);">
+        <strong>Trade-off documented:</strong> Binary.Buffer() uses more RAM during refresh (the entire Parquet file in memory before parsing). For a 31.5M row model with peak binary size ~3–4 GB, this is acceptable. The alternative — silent data truncation producing incorrect BI reports — is not acceptable at any RAM savings.
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════ SECTION 7: SCHEMA DICTIONARY ════════════════ -->
+<section id="schema-dict">
+  <p class="section-eyebrow">Pattern 4 of 5</p>
+  <h2 class="section-title">Schema Dictionary — Defensive Re-Typing</h2>
+  <p class="section-sub">How a single CSV file prevents silent type corruption across all 350+ columns in the model.</p>
+
+  <div class="callout phi"><strong>The core problem — Parquet type drift:</strong> Parquet stores column type metadata (INT32, DOUBLE, BYTE_ARRAY) in its own format. Power Query's Parquet reader applies these types when loading. The problem: Power Query's interpretation of Parquet types does not always match SQL Server's intent. Most critically, SQL Server MONEY columns serialise to Parquet as DOUBLE. Power Query reads them back as <code>type number</code> — not <code>Currency.Type</code>. The numeric value is identical, but the Power BI visual applies generic number formatting instead of currency formatting. Every currency column in all 11 fact tables would be silently wrong.</div>
+
+  <div class="diagram">
+    <div class="diagram-header">🔢 Type journey — SQL Server → Python → Parquet → Power Query (without Schema Dict)</div>
+    <div class="diagram-body">
+      <div class="flow" style="gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;">
+        <div class="node n-red" style="min-width:110px;">
+          <div class="node-label">SQL Server</div>
+          <div class="node-sub">SalesAmount<br>MONEY type<br>(4 decimal places)</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-amber" style="min-width:120px;">
+          <div class="node-label">Python / PyArrow</div>
+          <div class="node-sub">Serialises as<br>Parquet DOUBLE<br>(float64)</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-purple" style="min-width:120px;">
+          <div class="node-label">Parquet file</div>
+          <div class="node-sub">Metadata says:<br>"SalesAmount<br>= DOUBLE"</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-red" style="min-width:130px;">
+          <div class="node-label">Power Query</div>
+          <div class="node-sub">Reads as<br>type number ❌<br>Not Currency.Type</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node n-red" style="min-width:120px;">
+          <div class="node-label">Power BI visual</div>
+          <div class="node-sub">Shows: 450.00<br>instead of: $450.00<br>Silent corruption</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-header">✅ With Schema Dictionary — authoritative SQL types always win</div>
+    <div class="diagram-body">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:start;">
+        <div>
+          <p style="font-size:12px;font-weight:600;color:var(--amber-l);margin-bottom:8px;">SchemaDictionary.csv (generated by Python)</p>
+          <pre style="font-size:11px;">FileName,ColumnName,DataType,SqlDataType
+fact_vOnlineSales.parquet,DateKey,Int64.Type,int
+fact_vOnlineSales.parquet,CustomerKey,Int64.Type,int
+fact_vOnlineSales.parquet,SalesAmount,Currency.Type,money  ← authoritative
+fact_vOnlineSales.parquet,TotalCost,Currency.Type,money    ← authoritative
+fact_vOnlineSales.parquet,GrossProfit,Currency.Type,money  ← authoritative
+fact_vOnlineSales.parquet,IsOnTime,type logical,bit        ← authoritative
+...</pre>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">~350 column mappings, one row per (file, column) pair. Generated from INFORMATION_SCHEMA.COLUMNS — always in sync with SQL Server schema.</div>
+        </div>
+        <div class="arrow" style="margin-top:50px;">→</div>
+        <div class="vstack" style="gap:8px;">
+          <div class="step-box">
+            <div style="font-size:12px;font-weight:600;color:var(--red-l);margin-bottom:3px;">Step A: Strip all Parquet types → type any</div>
+            <div style="font-size:11px;color:var(--text2);">Parquet's DOUBLE for SalesAmount is removed. Column is now untyped.</div>
+          </div>
+          <div class="arrow-down">↓</div>
+          <div class="step-box">
+            <div style="font-size:12px;font-weight:600;color:var(--amber-l);margin-bottom:3px;">Step B: Look up SalesAmount in Schema Dict</div>
+            <div style="font-size:11px;color:var(--text2);">FileName="fact_vOnlineSales.parquet", ColumnName="SalesAmount" → DataType="Currency.Type"</div>
+          </div>
+          <div class="arrow-down">↓</div>
+          <div class="step-box">
+            <div style="font-size:12px;font-weight:600;color:var(--green-l);margin-bottom:3px;">Step C: Apply Currency.Type → correct ✓</div>
+            <div style="font-size:11px;color:var(--text2);">Power BI now formats SalesAmount as $450.00 with currency symbol and 4-decimal precision.</div>
+          </div>
+        </div>
+      </div>
+      <table style="margin-top:14px;">
+        <thead><tr><th>SQL Type</th><th>M Type Applied</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>int, bigint, smallint, tinyint</td><td><code>Int64.Type</code></td><td>Universal integer. VertiPaq compresses integers best with Value Encoding.</td></tr>
+          <tr><td>varchar, nvarchar, char, nchar</td><td><code>type text</code></td><td>Text. Column folding and cardinality reduction in VertiPaq.</td></tr>
+          <tr><td>date</td><td><code>type date</code></td><td>DATE not promoted to datetime — avoids time component overhead.</td></tr>
+          <tr><td>datetime, datetime2</td><td><code>type datetime</code></td><td>Full timestamp with time component preserved.</td></tr>
+          <tr><td><strong>money, smallmoney</strong></td><td><strong>Currency.Type</strong></td><td><strong>4-decimal precision. Triggers currency formatting in Power BI visuals.</strong></td></tr>
+          <tr><td>decimal, numeric, float</td><td><code>type number</code></td><td>General numeric — not currency-formatted.</td></tr>
+          <tr><td>bit</td><td><code>type logical</code></td><td>Boolean. Enables direct use as TRUE/FALSE filter without conversion.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════ SECTION 8: TREATAS ════════════════ -->
+<section id="treatas">
+  <p class="section-eyebrow">DAX Cross-Fact Pattern</p>
+  <h2 class="section-title">TREATAS — Cross-Fact Table Filtering</h2>
+  <p class="section-sub">How DAX bridges two fact tables that share a business key but have no model relationship, without corrupting the star schema.</p>
+
+  <div class="callout phi"><strong>The problem TREATAS solves:</strong> In a strict Kimball star schema, creating a direct relationship between two fact tables is forbidden. It creates ambiguous filter propagation paths — a "fan trap" — where a single dimension filter propagates to multiple fact tables simultaneously, multiplying rows and producing incorrect aggregations. Yet there are legitimate business questions that require filtering one fact table based on data in another. TREATAS is the DAX solution that enables cross-fact filtering without creating a model relationship.</div>
+
+  <div class="card">
+    <div class="card-title">TREATAS in plain language</div>
+    <div class="card-body">
+      <code>TREATAS(table_expression, column1, column2, ...)</code> takes a table (or column values) and tells DAX to treat it <em>as if</em> those values were a filter on the specified target columns — even though no relationship exists between them in the model. The name stands for <strong>TREAT AS</strong>: treat this set of values as if they were coming from a related column.
+      <br><br>
+      Think of it as a temporary virtual relationship that exists only for the duration of the current CALCULATE evaluation, then vanishes. It does not persist in the model and cannot create fan traps.
+    </div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-header">📐 The three TREATAS bridges in this model</div>
+    <div class="diagram-body">
+
+      <!-- Bridge 1 -->
+      <p style="font-size:12px;font-weight:600;color:var(--blue-l);margin-bottom:10px;">Bridge 1 — NPS Score by Channel (Fact OnlineSales → Fact CustomerAcquisition → Fact CustomerSurvey)</p>
+      <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:20px;">
+        <div class="fact-box">
+          <h4 style="color:var(--blue-l);">Fact OnlineSales</h4>
+          <div class="fact-col key">CustomerKey (FK)</div>
+          <div class="fact-col">SalesAmount</div>
+          <div class="fact-col">DateKey</div>
+          <div class="fact-col bridge">CustomerKey ← bridge start</div>
+        </div>
+        <div class="arrow" style="margin-top:30px;">→ TREATAS 1 →</div>
+        <div class="fact-box">
+          <h4 style="color:var(--purple-l);">Fact CustomerAcquisition</h4>
+          <div class="fact-col bridge">CustomerKey ← bridge target</div>
+          <div class="fact-col">AcquisitionChannelKey</div>
+          <div class="fact-col">AcquisitionDate</div>
+          <div class="fact-col bridge">CustomerKey ← bridge start 2</div>
+        </div>
+        <div class="arrow" style="margin-top:30px;">→ TREATAS 2 →</div>
+        <div class="fact-box">
+          <h4 style="color:var(--green-l);">Fact CustomerSurvey</h4>
+          <div class="fact-col bridge">CustomerKey ← bridge target</div>
+          <div class="fact-col">NPSScore</div>
+          <div class="fact-col">NPSCategory</div>
+          <div class="fact-col">CSATScore</div>
+        </div>
+      </div>
+      <pre style="font-size:11.5px;margin-bottom:20px;"><span class="cm">-- [NPS by Acquisition Channel] — from the model (actual measure)</span>
+<span class="fn">NPS by Acquisition Channel</span> =
+<span class="kw">VAR</span> ChannelCusts =
+    <span class="fn">CALCULATETABLE</span>(
+        <span class="fn">VALUES</span>(<span class="str">'Fact CustomerAcquisition'</span>[CustomerKey])
+        <span class="cm">-- filtered by current Dim AcquisitionChannel slicer context automatically</span>
+    )
+<span class="kw">RETURN</span>
+<span class="fn">CALCULATE</span>(
+    [NPS Score],
+    <span class="fn">TREATAS</span>(
+        ChannelCusts,                          <span class="cm">-- the customer keys for this channel</span>
+        <span class="str">'Fact CustomerSurvey'</span>[CustomerKey]    <span class="cm">-- TREAT AS if they were survey CustomerKeys</span>
+    )
+)
+<span class="cm">-- Result: NPS calculated only for customers acquired via the selected channel
+-- No model relationship between these tables — TREATAS creates the virtual bridge</span></pre>
+
+      <!-- Bridge 2 -->
+      <p style="font-size:12px;font-weight:600;color:var(--amber-l);margin-bottom:10px;">Bridge 2 — Avg Fulfilment Days (Fact OnlineSales → Fact OrderFulfillment via SalesOrderNumber)</p>
+      <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:20px;">
+        <div class="fact-box">
+          <h4 style="color:var(--blue-l);">Fact OnlineSales</h4>
+          <div class="fact-col bridge">SalesOrderNumber ← bridge start</div>
+          <div class="fact-col">CustomerKey</div>
+          <div class="fact-col">ProductKey</div>
+          <div class="fact-col">SalesAmount</div>
+        </div>
+        <div class="arrow" style="margin-top:30px;">→ TREATAS →</div>
+        <div class="fact-box">
+          <h4 style="color:var(--amber-l);">Fact OrderFulfillment</h4>
+          <div class="fact-col bridge">SalesOrderNumber ← bridge target</div>
+          <div class="fact-col">ProcessingDays</div>
+          <div class="fact-col">TotalFulfillmentDays</div>
+          <div class="fact-col">IsOnTime</div>
+        </div>
+      </div>
+      <pre style="font-size:11.5px;margin-bottom:20px;"><span class="cm">-- [M7 Avg Fulfillment Days TREATAS] — from the DQ testing measures</span>
+<span class="kw">VAR</span> OrdersInContext =
+    <span class="fn">VALUES</span>(<span class="str">'Fact OnlineSales'</span>[SalesOrderNumber])  <span class="cm">-- orders matching current filters</span>
+<span class="kw">VAR</span> AvgFulfillmentDays =
+    <span class="fn">CALCULATE</span>(
+        <span class="fn">AVERAGE</span>(<span class="str">'Fact OrderFulfillment'</span>[TotalFulfillmentDays]),
+        <span class="fn">TREATAS</span>(
+            OrdersInContext,
+            <span class="str">'Fact OrderFulfillment'</span>[SalesOrderNumber]
+        )
+    )
+<span class="kw">RETURN</span> AvgFulfillmentDays</pre>
+
+      <!-- Bridge 3 -->
+      <p style="font-size:12px;font-weight:600;color:var(--green-l);margin-bottom:10px;">Bridge 3 — CLV by Acquisition Channel (Fact CustomerAcquisition → Fact OnlineSales via CustomerKey)</p>
+      <pre style="font-size:11.5px;"><span class="cm">-- [CLV by Acquisition Channel]</span>
+<span class="kw">VAR</span> ChannelCusts =
+    <span class="fn">CALCULATETABLE</span>(<span class="fn">VALUES</span>(<span class="str">'Fact CustomerAcquisition'</span>[CustomerKey]))
+<span class="kw">VAR</span> ChannelRevenue =
+    <span class="fn">CALCULATE</span>(
+        <span class="fn">SUM</span>(<span class="str">'Fact OnlineSales'</span>[SalesAmount]),
+        <span class="fn">TREATAS</span>(ChannelCusts, <span class="str">'Fact OnlineSales'</span>[CustomerKey])
+    )
+<span class="kw">VAR</span> CustCount = <span class="fn">COUNTROWS</span>(ChannelCusts)
+<span class="kw">RETURN</span> <span class="fn">DIVIDE</span>(ChannelRevenue, CustCount, 0)</pre>
+    </div>
+  </div>
+
+  <div class="callout warn"><strong>TREATAS in DirectQuery mode fires multiple SQL queries.</strong> As demonstrated in the DQ testing session (H4 benchmark), each TREATAS bridge fires an independent SQL round-trip — the CustomerKey values from Table A are sent to SQL Server as an IN clause filter for Table B. Three bridges in the NPS chain = 3 SQL queries per visual render = 5,000–20,000ms total. In Import mode, VertiPaq resolves all TREATAS bridges in the storage engine in a single pass, sub-500ms. This is the primary architectural argument for Import over DirectQuery for this model.</div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════ SECTION 9: INCREMENTAL REFRESH ════════════════ -->
+<section id="incremental">
+  <p class="section-eyebrow">Improvement Plan · Not Yet Implemented</p>
+  <h2 class="section-title">Incremental Refresh — Watermark & Partition Plan</h2>
+  <p class="section-sub">The current architecture re-processes all 31.5M rows on every export and refresh cycle. This plan introduces two coordinated mechanisms to make both the Python export and the Power BI refresh incremental.</p>
+
+  <div class="warning-box">⚠️ This is a plan for your approval — no implementation has been done. Review the concepts and architecture below, then confirm approval to proceed.</div>
+
+  <h3 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 12px;">Concept 1 — Watermark-Based Delta Export (Python layer)</h3>
+  <div class="card">
+    <div class="card-body">
+      A <strong style="color:var(--text);">watermark column</strong> is a monotonically increasing value (typically a date or timestamp) that marks the "high water mark" of the last successfully exported data. On the next export run, only rows where the watermark column exceeds the last stored watermark are exported — the delta. All prior rows are assumed unchanged and already exported.
+      <br><br>
+      In this project, <strong style="color:var(--text);">DateKey (INT YYYYMMDD)</strong> is the natural watermark column for all fact views. It is already present in all 11 fact tables, is INT-typed (fast comparison), and is monotonically increasing (new orders always have higher DateKeys than older orders).
+    </div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 12px;">Concept 2 — Power BI Incremental Refresh Partitions</h3>
+  <div class="card">
+    <div class="card-body">
+      Power BI's incremental refresh (available on Premium capacity) splits a table into multiple time-partitioned segments. The model maintains one partition per time window (e.g., one per month). On each refresh, only the most recent N partitions are refreshed — older partitions are kept as-is in compressed VertiPaq storage, never re-loaded. The RangeStart and RangeEnd parameters define the refresh boundary for each partition.
+      <br><br>
+      This requires: (1) Power BI Premium or Premium Per User capacity, (2) a datetime or date column defined as the partition key, (3) RangeStart and RangeEnd Power Query parameters in the M code, (4) the data source to support query folding so Power BI can push the date range filter down to the source.
+    </div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-header">🔄 Incremental Refresh — Full Architecture Plan</div>
+    <div class="diagram-body">
+      <div class="vstack" style="gap:14px;">
+
+        <div style="background:var(--bg3);border-radius:8px;padding:14px 16px;">
+          <p style="font-size:13px;font-weight:600;color:var(--amber-l);margin-bottom:10px;">Phase 1 — Python export: watermark-based delta Parquet</p>
+          <div class="flow" style="gap:6px;justify-content:center;flex-wrap:wrap;">
+            <div class="node n-blue" style="min-width:120px;">
+              <div class="node-label">watermark.json</div>
+              <div class="node-sub">Stores last<br>exported DateKey<br>e.g. 20250615</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="node n-purple" style="min-width:130px;">
+              <div class="node-label">Python v8</div>
+              <div class="node-sub">Reads watermark<br>Queries only<br>DateKey > watermark</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="node n-amber" style="min-width:130px;">
+              <div class="node-label">Delta Parquet</div>
+              <div class="node-sub">Only new rows<br>e.g. 3 days<br>of new data</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="node n-teal" style="min-width:120px;">
+              <div class="node-label">SharePoint</div>
+              <div class="node-sub">Uploads delta file<br>fact_vOnlineSales<br>_delta.parquet</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="node n-green" style="min-width:120px;">
+              <div class="node-label">Update watermark</div>
+              <div class="node-sub">Saves today's<br>max DateKey as<br>new watermark</div>
+            </div>
+          </div>
+          <pre style="font-size:11px;margin-top:12px;"><span class="cm">-- Delta query added to get_query_for_view() for large fact views:</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> [fact].[vOnlineSales] <span class="kw">WITH</span> (NOLOCK)
+<span class="kw">WHERE</span> DateKey > <span class="num">{last_watermark_datekey}</span>  <span class="cm">-- e.g. WHERE DateKey > 20250615</span>
+<span class="cm">-- Only exports rows added since last run. For a 3-day delta: ~100K rows vs 13M rows.</span>
+<span class="cm">-- Export time: minutes instead of 30+ minutes.</span></pre>
+        </div>
+
+        <div style="background:var(--bg3);border-radius:8px;padding:14px 16px;">
+          <p style="font-size:13px;font-weight:600;color:var(--blue-l);margin-bottom:10px;">Phase 2 — Power BI: incremental refresh partitions</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">M code change — RangeStart/End parameters added</p>
+              <pre style="font-size:11px;"><span class="cm">-- New Power Query parameters (required):</span>
+<span class="fn">RangeStart</span> = #datetime(2024, 1, 1, 0, 0, 0) <span class="kw">meta</span> [IsParameterQuery=<span class="kw">true</span>, ...]
+<span class="fn">RangeEnd</span>   = #datetime(2025, 12, 31, 23, 59, 59) <span class="kw">meta</span> [IsParameterQuery=<span class="kw">true</span>, ...]
+
+<span class="cm">-- Each table's M code adds a date filter:</span>
+<span class="fn">DateFiltered</span> = <span class="fn">Table.SelectRows</span>(TypedTable, <span class="kw">each</span>
+  [OrderDate] >= <span class="fn">DateTime.Date</span>(RangeStart) <span class="kw">and</span>
+  [OrderDate] &lt; <span class="fn">DateTime.Date</span>(RangeEnd)
+)</pre>
+            </div>
+            <div>
+              <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">Partition structure Power BI maintains automatically</p>
+              <div class="vstack" style="gap:4px;">
+                <div class="step-box" style="font-size:11px;border-color:var(--border);">Archive partition — Jan 2023–Dec 2023 (never refreshed)</div>
+                <div class="step-box" style="font-size:11px;border-color:var(--border);">Archive partition — Jan 2024–Dec 2024 (never refreshed)</div>
+                <div class="step-box" style="font-size:11px;border-color:var(--green);">Rolling partition — Oct 2025 (refreshed monthly)</div>
+                <div class="step-box" style="font-size:11px;border-color:var(--green);">Rolling partition — Nov 2025 (refreshed monthly)</div>
+                <div class="step-box" style="font-size:11px;border-color:var(--blue);">Current partition — Dec 2025 (refreshed daily)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:12px 16px;">
+          <p style="font-size:12px;font-weight:600;color:var(--green-l);margin-bottom:6px;">Expected impact</p>
+          <div class="grid2" style="gap:8px;">
+            <div style="font-size:12px;color:var(--text2);">Python export: 30+ min → <strong style="color:var(--green-l);">~2–5 min</strong> (delta only)</div>
+            <div style="font-size:12px;color:var(--text2);">Power BI refresh: all 13M rows → <strong style="color:var(--green-l);">only recent partition</strong></div>
+            <div style="font-size:12px;color:var(--text2);">SharePoint upload: 32 GB → <strong style="color:var(--green-l);">~100 MB delta</strong> per day</div>
+            <div style="font-size:12px;color:var(--text2);">Historical data: never re-processed — <strong style="color:var(--green-l);">always preserved</strong></div>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <strong>Prerequisites before implementation:</strong> (1) Power BI Premium Per User or Premium capacity — incremental refresh partitions require Premium. (2) The Parquet source must support query folding (RangeStart/End filters must push down to the file filter). Since the source is Parquet files on SharePoint, Power Query cannot fold date filters to the file level — this requires either switching to a DirectQuery source for the partition layer, or implementing file-level date partitioning (one Parquet file per month). This is the key architectural decision to resolve before implementation begins.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════════ SECTION 10: DUAL MODE GUIDE ════════════════ -->
+<section id="dual-mode">
+  <p class="section-eyebrow">Action Required — Composite Model Step</p>
+  <h2 class="section-title">How to Set Dual Storage Mode — Step-by-Step</h2>
+  <p class="section-sub">Dual mode allows a dimension table to behave as Import when queried with Import fact tables, and as DirectQuery when queried with DirectQuery fact tables. This is the recommended storage mode for all dimension tables in a Composite Model — it eliminates "weak relationships" and ensures full DAX compatibility in both query contexts.</p>
+
+  <div class="callout phi"><strong>Why Dual instead of plain Import for dimensions in Composite Mode:</strong> When a dimension table is Import and a fact table is DirectQuery, Power BI creates a "limited relationship" (also called a weak relationship) between them. Limited relationships lose bidirectional cross-filtering capability and some DAX functions behave differently. Dual mode eliminates limited relationships — the dimension can act as Import (fast) or DirectQuery (live) depending on which fact table it is being queried with, making it fully compatible with both storage modes simultaneously.</div>
+
+  <div class="diagram">
+    <div class="diagram-header">🔧 Setting Dual Mode in Power BI Desktop — Complete Walkthrough</div>
+    <div class="diagram-body">
+      <div class="steps-guide">
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Open the Composite Model file in Power BI Desktop</div>
+            <div class="step-desc">Open the Retail Analytics - Composite Storage Mode file (currently on localhost:59158). Ensure all tables are visible in the Data pane. This process must be done in the Composite file — not the Import-only file or the DirectQuery file.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Switch to Model view</div>
+            <div class="step-desc">Click the Model view icon in the left sidebar (the three boxes connected by lines icon). This opens the relationship diagram where all tables and their connections are visible.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Select the first dimension table — Dim Date</div>
+            <div class="step-desc">Click once on the <strong>Dim Date</strong> table card in the model diagram. The table becomes selected with a highlight border. You will see the table's properties in the Properties pane on the right side of the screen.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Open the Properties pane and find Storage mode</div>
+            <div class="step-desc">In the Properties pane on the right, look for the <strong>Advanced</strong> section. You will see a <strong>Storage mode</strong> dropdown showing the current value (likely "Import"). Click the dropdown.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Select "Dual" from the Storage mode dropdown</div>
+            <div class="step-desc">The dropdown shows three options: Import, DirectQuery, and Dual. Select <strong>Dual</strong>. Power BI will show a confirmation dialog warning that changing storage mode may require a model refresh. Accept the dialog.</div>
+            <div style="background:var(--amber-dim);border:1px solid var(--amber);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--amber-l);margin-top:8px;">⚠️ The confirmation dialog says "Changing storage mode may remove data from the model." This is expected — Dual mode needs to reload the table. Click OK to proceed.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Repeat for all 11 dimension tables</div>
+            <div class="step-desc">Repeat steps 3–5 for each remaining dimension: <strong>Dim Product, Dim Customer, Dim Store, Dim Channel, Dim AcquisitionChannel, Dim Currency, Dim Promotion, Dim PaymentMethod, Dim ReturnReason, Dim Employee</strong>. Each one must be individually selected and set to Dual mode. You can also hold Ctrl and click multiple dimension tables at once — the Properties pane will show the shared storage mode setting and you can change all selected tables simultaneously.</div>
+            <pre style="font-size:11px;margin-top:8px;"><span class="cm">-- 11 tables to set to Dual mode:</span>
+Dim Date             → Dual ✓
+Dim Product          → Dual ✓
+Dim Customer         → Dual ✓
+Dim Store            → Dual ✓
+Dim Channel          → Dual ✓
+Dim AcquisitionChannel → Dual ✓
+Dim Currency         → Dual ✓
+Dim Promotion        → Dual ✓
+Dim PaymentMethod    → Dual ✓
+Dim ReturnReason     → Dual ✓
+Dim Employee         → Dual ✓</pre>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Verify the 3 large fact tables remain DirectQuery</div>
+            <div class="step-desc">Click on <strong>Fact OnlineSales</strong>, <strong>Fact StoreSales</strong>, and <strong>Fact Inventory</strong> individually and confirm their storage mode shows <strong>DirectQuery</strong> in the Properties pane. These must NOT be changed to Dual or Import — they are the live data layer of the Composite Model.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Verify small fact tables remain Import</div>
+            <div class="step-desc">Check <strong>Fact OrderFulfillment, Fact CustomerSurvey, Fact CustomerAcquisition, Fact OrderPayment, Fact MarketingSpend, Fact SalesQuota, Fact Returns, Fact ExchangeRate</strong>. All should show <strong>Import</strong>. These are the TREATAS bridge targets and must stay Import to collapse cross-fact SQL chains to zero queries.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Refresh the model and verify relationships</div>
+            <div class="step-desc">Click <strong>Home → Refresh</strong> to reload the model with the new Dual-mode dimensions. After refresh, return to Model view and check that all relationships between Dual dimensions and DirectQuery facts now show as <strong>solid lines</strong> (strong relationships), not dashed lines (limited/weak relationships). Dashed lines indicate a limited relationship — if you see them, a dimension is still set to Import, not Dual.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Configure aggregation table for Fact OnlineSales (if not done)</div>
+            <div class="step-desc">After Dual mode is set, right-click on <strong>Agg OnlineSales (the Import aggregation table)</strong> in the model view and select <strong>Manage aggregations</strong>. Map each agg column to its corresponding DQ fact column per the Phase 3 plan. Save. Power BI will now auto-route KPI card queries to the Import agg table and drill-through queries to the DQ fact.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-content">
+            <div class="step-title">Export TMDL to preserve the Dual mode configuration</div>
+            <div class="step-desc">After all storage modes are set correctly: connect via the MCP server using the current port (run ListLocalInstances first), then call ExportToTmdlFolder to C:\Users\Public\RetailAnalytics_Composite_DualMode and manually copy to your Git-tracked D: drive project path. This is the critical step — without it, all Dual mode settings are lost if Power BI Desktop restarts.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--green);border-radius:10px;padding:16px;margin-top:16px;">
+    <p style="font-size:13px;font-weight:600;color:var(--green-l);margin-bottom:10px;">Expected model state after Dual mode setup</p>
+    <table>
+      <thead><tr><th>Table group</th><th>Storage mode</th><th>Relationship type</th><th>What this enables</th></tr></thead>
+      <tbody>
+        <tr><td>All 11 Dim tables</td><td><strong>Dual</strong></td><td>Strong (solid line)</td><td>Fast Import for slicer queries + DirectQuery for fact joins</td></tr>
+        <tr><td>Fact OnlineSales</td><td>DirectQuery</td><td>Strong with Dual dims</td><td>Live 13M-row data, KPI queries routed to agg table</td></tr>
+        <tr><td>Fact StoreSales</td><td>DirectQuery</td><td>Strong with Dual dims</td><td>Live store data</td></tr>
+        <tr><td>Fact Inventory</td><td>DirectQuery</td><td>Strong with Dual dims</td><td>Live stock status (DQ W1 win preserved)</td></tr>
+        <tr><td>8 small fact tables</td><td>Import</td><td>Strong (same source group)</td><td>TREATAS bridges: 3 SQL queries → 0 SQL queries for NPS chain</td></tr>
+        <tr><td>Agg OnlineSales</td><td>Import</td><td>Mapped to DQ fact</td><td>Sub-10ms for KPI tiles, auto-routed by Power BI engine</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div style="text-align:center;padding:40px 0 20px;border-top:1px solid var(--border);margin-top:40px;">
+  <p style="font-size:13px;color:var(--text3);">Contoso Retail DW · End-to-End BI Analytics ·  Shimaa Ezzat </p>
+  <p style="font-size:12px;color:var(--text3);margin-top:4px;">Architecture reference document generated from live model state · localhost:52597</p>
+</div>
+
+</main>
+<div class="signature">
+    Prepared by: Shimaa Ezzat
+</div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+table 'dim vAcquisitionChannel'
+	lineageTag: 166ae451-2934-40f1-8e32-023c9dc6900e
+
+	column AcquisitionChannelKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 9c64886a-c770-476c-8d9f-74b049359443
+		summarizeBy: count
+		sourceColumn: AcquisitionChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelName
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(50)
+		lineageTag: b8936bcf-5eff-4b92-845c-e15b7dc76de2
+		summarizeBy: none
+		sourceColumn: ChannelName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelCategory
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(20)
+		lineageTag: baff7158-0194-4447-bce6-005f7a268e52
+		summarizeBy: none
+		sourceColumn: ChannelCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsDigital
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: 160827dc-0ecf-46b6-a04b-d6ac9a4261c9
+		summarizeBy: none
+		sourceColumn: IsDigital
+
+		annotation SummarizationSetBy = Automatic
+
+	column EstimatedCACLow
+		dataType: double
+		isNullable: false
+		sourceProviderType: decimal(19, 4)
+		lineageTag: 8a0a3c02-06e7-4f2c-b419-eda3a42ffc05
+		summarizeBy: sum
+		sourceColumn: EstimatedCACLow
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EstimatedCACHigh
+		dataType: double
+		isNullable: false
+		sourceProviderType: decimal(19, 4)
+		lineageTag: 690165a7-b12e-4b8b-8b82-6994fcacf050
+		summarizeBy: sum
+		sourceColumn: EstimatedCACHigh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CACMidpoint
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: money
+		lineageTag: 25b9678b-86d5-4bbd-8ebc-df05c82a46e3
+		summarizeBy: sum
+		sourceColumn: CACMidpoint
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	partition 'dim vAcquisitionChannel' = m
+		mode: directQuery
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "dim", Item = "vAcquisitionChannel"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

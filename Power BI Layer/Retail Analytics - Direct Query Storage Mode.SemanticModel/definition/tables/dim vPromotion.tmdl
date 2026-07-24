@@ -1,0 +1,156 @@
+table 'dim vPromotion'
+	lineageTag: 45a3f9a2-8a3e-4348-82e5-163868fd8239
+
+	column PromotionKey
+		dataType: int64
+		isNullable: false
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 18aa77fa-b56e-4473-b3b6-6ce6a87ce042
+		summarizeBy: count
+		sourceColumn: PromotionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionLabel
+		dataType: string
+		sourceProviderType: nvarchar(100)
+		lineageTag: 4aa07f24-43d4-4de2-a444-ba8a3c089a6f
+		summarizeBy: none
+		sourceColumn: PromotionLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionName
+		dataType: string
+		sourceProviderType: nvarchar(100)
+		lineageTag: 5d7f77ee-6af7-48ad-98a7-bc158d7d8c5e
+		summarizeBy: none
+		sourceColumn: PromotionName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionDescription
+		dataType: string
+		sourceProviderType: nvarchar(255)
+		lineageTag: e0cb42de-3fc3-4aeb-82a1-662a59e8c213
+		summarizeBy: none
+		sourceColumn: PromotionDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionType
+		dataType: string
+		sourceProviderType: nvarchar(50)
+		lineageTag: 16b91776-5502-4918-a343-395b5329baa2
+		summarizeBy: none
+		sourceColumn: PromotionType
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionCategory
+		dataType: string
+		sourceProviderType: nvarchar(50)
+		lineageTag: 23590ded-3fb6-4fde-9a65-7dd245e30601
+		summarizeBy: none
+		sourceColumn: PromotionCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiscountPercent
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 26289589-162f-463f-bba0-ecd5a98f0501
+		summarizeBy: sum
+		sourceColumn: DiscountPercent
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MinQuantity
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 7899a521-3a58-4f62-82df-ebe60a193fe8
+		summarizeBy: sum
+		sourceColumn: MinQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column MaxQuantity
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 1077b873-bc06-45a1-80b7-aed4a748b9ee
+		summarizeBy: sum
+		sourceColumn: MaxQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiscountTier
+		dataType: string
+		isNullable: false
+		sourceProviderType: varchar(11)
+		lineageTag: 4d15bb3c-5ef9-4292-b991-27be487450ce
+		summarizeBy: none
+		sourceColumn: DiscountTier
+
+		annotation SummarizationSetBy = Automatic
+
+	column StartDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: 5beb15c5-16e9-4acc-9952-682e971f0eb8
+		summarizeBy: none
+		sourceColumn: StartDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column EndDate
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: 70cc28a0-6693-4ee8-9cb1-259fdc6e3ddb
+		summarizeBy: none
+		sourceColumn: EndDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PromotionStatus
+		dataType: string
+		isNullable: false
+		sourceProviderType: varchar(7)
+		lineageTag: 3ca04041-6657-418d-996e-e9614164c1b3
+		summarizeBy: none
+		sourceColumn: PromotionStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionDurationDays
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 543bf0ee-491a-49ae-b0f9-18fe275fd525
+		summarizeBy: sum
+		sourceColumn: PromotionDurationDays
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dim vPromotion' = m
+		mode: directQuery
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "dim", Item = "vPromotion"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

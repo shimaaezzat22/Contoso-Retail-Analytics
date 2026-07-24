@@ -1,0 +1,82 @@
+table 'Fact CustomerAcquisition'
+	lineageTag: 56c8ad78-d623-4004-a3e6-8ddaa9248dd2
+
+	column CustomerKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 305796f7-de0a-44ec-838f-11112d5d7fc2
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionChannelKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: eedd77cc-869c-42ab-a8d1-068f9bb50d6c
+		summarizeBy: none
+		sourceColumn: AcquisitionChannelKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionDateKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d534386a-7138-4a6b-bf7f-9c01d1a7980a
+		summarizeBy: none
+		sourceColumn: AcquisitionDateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcquisitionDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: cb58b612-bc2b-4b85-b5b2-bd435d3eb988
+		summarizeBy: none
+		sourceColumn: AcquisitionDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CACMidpoint
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: e70edcc5-e1eb-4efc-8e24-c03bac79e545
+		summarizeBy: sum
+		sourceColumn: CACMidpoint
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column CACTier
+		dataType: string
+		lineageTag: 9579e093-f6fd-49b7-8ee0-601f958147e5
+		summarizeBy: none
+		sourceColumn: CACTier
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact CustomerAcquisition' = m
+		mode: import
+		queryGroup: 'Loaded Facts'
+		source =
+				let
+					FileRow = DataSource{[Name="fact_vCustomerAcquisition.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadFactParquet(BinaryData, "fact_vCustomerAcquisition.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

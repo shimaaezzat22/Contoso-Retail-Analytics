@@ -1,0 +1,50 @@
+table 'Dim Channel'
+	lineageTag: 086dd780-ea3e-4154-a317-3bc0301a01fb
+
+	column ChannelKey
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: b37586d6-8ab8-4065-9612-8c53bec54d45
+		summarizeBy: none
+		sourceColumn: ChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelLabel
+		dataType: string
+		lineageTag: d76cfd69-7456-4fac-9206-525f3a5d9c10
+		summarizeBy: none
+		sourceColumn: ChannelLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelName
+		dataType: string
+		lineageTag: 1ad67729-4a32-4fa8-90c0-8daabcae1d67
+		summarizeBy: none
+		sourceColumn: ChannelName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelDescription
+		dataType: string
+		lineageTag: b51fec55-3a65-46f7-975e-e7c05e7a4cbd
+		summarizeBy: none
+		sourceColumn: ChannelDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Channel' = m
+		mode: import
+		queryGroup: 'Loaded Dimensions'
+		source =
+				let
+					FileRow = DataSource{[Name="dim_vChannel.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadDimParquet(BinaryData, "dim_vChannel.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

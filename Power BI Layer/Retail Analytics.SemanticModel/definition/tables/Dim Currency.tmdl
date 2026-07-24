@@ -1,0 +1,50 @@
+table 'Dim Currency'
+	lineageTag: 275f7988-5fd4-4575-97e5-cd6ad64ea5d6
+
+	column CurrencyKey
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: ad263948-d7f3-4c3e-95e1-b70c031e5f25
+		summarizeBy: none
+		sourceColumn: CurrencyKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyLabel
+		dataType: string
+		lineageTag: 0a341251-b619-4908-b378-6bafee933bcb
+		summarizeBy: none
+		sourceColumn: CurrencyLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyName
+		dataType: string
+		lineageTag: d5d1c381-181a-4e03-b5d8-1280da9b9c49
+		summarizeBy: none
+		sourceColumn: CurrencyName
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrencyDescription
+		dataType: string
+		lineageTag: 0686bc6d-f8bf-4dae-92a3-a0ca28804ddf
+		summarizeBy: none
+		sourceColumn: CurrencyDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Currency' = m
+		mode: import
+		queryGroup: 'Loaded Dimensions'
+		source =
+				let
+					FileRow = DataSource{[Name="dim_vCurrency.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadDimParquet(BinaryData, "dim_vCurrency.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

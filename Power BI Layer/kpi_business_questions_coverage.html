@@ -1,0 +1,473 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:16px 0;font-family:var(--font-sans)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;border-bottom:1px solid var(--color-border-tertiary);padding-bottom:8px}
+.tab{padding:5px 12px;border-radius:6px 6px 0 0;font-size:12px;font-weight:500;cursor:pointer;color:var(--color-text-secondary);border:1px solid transparent;border-bottom:none;background:transparent;transition:all .15s}
+.tab.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-tertiary)}
+.section{display:none}.section.active{display:block}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;font-size:11px}
+.leg{display:flex;align-items:center;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.g{background:#1D9E75}.y{background:#BA7517}.r{background:#E24B4A}.b{background:#378ADD}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 10px;font-size:11px;font-weight:500;color:var(--color-text-secondary);border-bottom:2px solid var(--color-border-tertiary);background:var(--color-background-secondary);position:sticky;top:0;z-index:1}
+td{padding:7px 10px;border-bottom:1px solid var(--color-border-tertiary);vertical-align:top;line-height:1.5}
+tr:hover td{background:var(--color-background-secondary)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;white-space:nowrap}
+.badge-g{background:#E1F5EE;color:#0F6E56}.badge-y{background:#FAEEDA;color:#854F0B}.badge-r{background:#FCEBEB;color:#A32D2D}.badge-b{background:#E6F1FB;color:#185FA5}
+.kpi-cat{font-weight:500;font-size:13px;color:var(--color-text-primary);padding:10px;background:var(--color-background-secondary);border-radius:6px;margin:8px 0 4px}
+.scroll-t{overflow-x:auto;border:1px solid var(--color-border-tertiary);border-radius:8px}
+.role-hdr{display:flex;align-items:center;gap:8px;padding:8px 0 4px;margin-top:12px}
+.role-pill{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.scard{border:1px solid var(--color-border-tertiary);border-radius:8px;padding:12px;background:var(--color-background-secondary)}
+.snum{font-size:22px;font-weight:500;line-height:1}
+.slbl{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
+.rec-block{border-left:3px solid var(--color-border-info);padding:8px 12px;background:var(--color-background-info);border-radius:0 6px 6px 0;margin:6px 0;font-size:12px;line-height:1.6}
+.gap-block{border-left:3px solid var(--color-border-danger);padding:8px 12px;background:var(--color-background-danger);border-radius:0 6px 6px 0;margin:6px 0;font-size:12px;line-height:1.6}
+.gap-title{font-weight:500;font-size:13px;color:var(--color-text-danger);margin-bottom:2px}
+.rec-title{font-weight:500;font-size:13px;color:var(--color-text-info);margin-bottom:2px}
+.muted{color:var(--color-text-secondary);font-size:11px}
+.sources{font-size:11px;color:var(--color-text-secondary);font-style:italic}
+</style>
+<div class="wrap">
+<div class="tabs">
+  <button class="tab active" onclick="showTab('overview')">Overview</button>
+  <button class="tab" onclick="showTab('kpis')">Standard KPIs</button>
+  <button class="tab" onclick="showTab('ceo')">CEO</button>
+  <button class="tab" onclick="showTab('cfo')">CFO</button>
+  <button class="tab" onclick="showTab('coo')">COO</button>
+  <button class="tab" onclick="showTab('cso')">CSO</button>
+  <button class="tab" onclick="showTab('cmo')">CMO</button>
+  <button class="tab" onclick="showTab('pm')">Product Mgr</button>
+  <button class="tab" onclick="showTab('gaps')">Gaps & Recs</button>
+</div>
+
+<!-- OVERVIEW -->
+<div class="section active" id="tab-overview">
+  <div class="summary-grid">
+    <div class="scard"><div class="snum" style="color:var(--color-text-success)">68</div><div class="slbl">✅ Fully answerable</div></div>
+    <div class="scard"><div class="snum" style="color:var(--color-text-warning)">12</div><div class="slbl">⚡ Partially answerable</div></div>
+    <div class="scard"><div class="snum" style="color:var(--color-text-danger)">21</div><div class="slbl">❌ Not currently answerable</div></div>
+  </div>
+  <div class="legend">
+    <div class="leg"><div class="dot g"></div><span>Fully answerable — all required data exists in model</span></div>
+    <div class="leg"><div class="dot b"></div><span>Partially answerable — proxy or approximation possible</span></div>
+    <div class="leg"><div class="dot y"></div><span>Requires additional DAX — data exists, measure not yet built</span></div>
+    <div class="leg"><div class="dot r"></div><span>Not answerable — source data missing from model</span></div>
+  </div>
+  <div class="scroll-t">
+  <table>
+    <thead><tr><th>Domain</th><th>Role</th><th>Total Qs</th><th>✅ Full</th><th>⚡ Partial</th><th>❌ Gap</th></tr></thead>
+    <tbody>
+      <tr><td>Overall Performance</td><td>CEO</td><td>19</td><td>14</td><td>3</td><td>2</td></tr>
+      <tr><td>Financial Health</td><td>CFO</td><td>22</td><td>14</td><td>5</td><td>3</td></tr>
+      <tr><td>Operations</td><td>COO</td><td>20</td><td>13</td><td>4</td><td>3</td></tr>
+      <tr><td>Sales</td><td>CSO</td><td>20</td><td>16</td><td>2</td><td>2</td></tr>
+      <tr><td>Marketing</td><td>CMO</td><td>22</td><td>12</td><td>6</td><td>4</td></tr>
+      <tr><td>Product</td><td>Product Mgr</td><td>23</td><td>15</td><td>4</td><td>4</td></tr>
+      <tr style="font-weight:500;background:var(--color-background-secondary)"><td colspan="2">Total (excl. KPI section)</td><td>126</td><td>84</td><td>24</td><td>18</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted" style="margin-top:8px">Note: Some questions appear across multiple roles and are counted once per role. KPI section assessed separately in the KPIs tab.</p>
+</div>
+
+<!-- KPIS -->
+<div class="section" id="tab-kpis">
+  <div class="scroll-t">
+  <table>
+    <thead><tr><th>KPI</th><th>Category</th><th>Status</th><th>Source Tables</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td colspan="5" class="kpi-cat">Financial KPIs</td></tr>
+      <tr><td>Gross Merchandise Value (GMV)</td><td>Financial</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>Sum of SalesAmount across both fact tables</td></tr>
+      <tr><td>Revenue & Revenue Growth Rate</td><td>Financial</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Date</td><td>YoY via SAMEPERIODLASTYEAR on Dim Date</td></tr>
+      <tr><td>Average Order Value (AOV)</td><td>Financial</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>Divide GMV by distinct order count</td></tr>
+      <tr><td>Gross Margin & Net Margin</td><td>Financial</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Fact Returns</td><td>GrossProfit column already exists in both sales facts</td></tr>
+      <tr><td>Customer Acquisition Cost (CAC)</td><td>Financial</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerAcquisition, Fact MarketingSpend</td><td>CACMidpoint in both tables; MarketingSpend has CostPerAcquisition</td></tr>
+      <tr><td>Customer Lifetime Value (CLV)</td><td>Financial</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Customer</td><td>Historical CLV via SUMX per customer; CustomerTenureYears in Dim Customer</td></tr>
+      <tr><td>CAC to CLV Ratio</td><td>Financial</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerAcquisition, sales facts</td><td>Derived measure from CLV ÷ CAC</td></tr>
+      <tr><td>Return on Ad Spend (ROAS)</td><td>Financial</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact MarketingSpend, Fact CustomerAcquisition, sales facts</td><td>Channel-attributed revenue approximated via AcquisitionChannelKey linkage; no direct ad-to-sale attribution row</td></tr>
+      <tr><td colspan="5" class="kpi-cat">Operational KPIs</td></tr>
+      <tr><td>Conversion Rate</td><td>Operational</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No website traffic / session data. No impressions-to-purchase funnel data in model</td></tr>
+      <tr><td>Cart Abandonment Rate</td><td>Operational</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No cart/session table. MarketingSpend has Impressions & Clicks but no cart events</td></tr>
+      <tr><td>Order Fulfillment Rate</td><td>Operational</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OrderFulfillment</td><td>FulfillmentStatus, SLAStatus columns available</td></tr>
+      <tr><td>Average Delivery Time</td><td>Operational</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OrderFulfillment</td><td>TotalFulfillmentDays, TransitDays, ProcessingDays columns available</td></tr>
+      <tr><td>Return Rate</td><td>Operational</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, Fact OnlineSales, Fact StoreSales</td><td>ReturnQuantity vs SalesQuantity</td></tr>
+      <tr><td>Inventory Turnover</td><td>Operational</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory, Fact StoreSales</td><td>COGS ÷ Average Inventory Value; all components available</td></tr>
+      <tr><td>Stock-out Rate</td><td>Operational</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory</td><td>StockStatus column; OnHandQuantity = 0 filter</td></tr>
+      <tr><td>Website Traffic & Unique Visitors</td><td>Operational</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No web analytics integration. MarketingSpend has Impressions as a proxy only</td></tr>
+      <tr><td colspan="5" class="kpi-cat">Customer KPIs</td></tr>
+      <tr><td>Customer Retention Rate</td><td>Customer</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Customer</td><td>Cohort-based retention via DateFirstPurchase in Dim Customer</td></tr>
+      <tr><td>Customer Churn Rate</td><td>Customer</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Customer</td><td>Customers with no purchase in trailing N months</td></tr>
+      <tr><td>Net Promoter Score (NPS)</td><td>Customer</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerSurvey</td><td>NPSScore, NPSCategory, NPSContribution all available</td></tr>
+      <tr><td>Repeat Purchase Rate</td><td>Customer</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>Customers with 2+ orders ÷ total customers</td></tr>
+      <tr><td>Customer Satisfaction Score (CSAT)</td><td>Customer</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerSurvey</td><td>CSATScore, IsSatisfied columns available</td></tr>
+      <tr><td>Active Customer Base</td><td>Customer</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>Purchased within last 90 days filter on Dim Date</td></tr>
+      <tr><td colspan="5" class="kpi-cat">Marketing KPIs</td></tr>
+      <tr><td>Traffic Sources & Channel Performance</td><td>Marketing</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact MarketingSpend, Dim AcquisitionChannel</td><td>Acquisition channel performance available; web traffic source breakdown not available</td></tr>
+      <tr><td>Email Open & Click-through Rates</td><td>Marketing</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No email campaign table in model</td></tr>
+      <tr><td>Social Media Engagement Rate</td><td>Marketing</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No social media data table in model</td></tr>
+      <tr><td>Cost Per Click (CPC)</td><td>Marketing</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact MarketingSpend</td><td>CostPerClick column available</td></tr>
+      <tr><td>Cost Per Acquisition (CPA)</td><td>Marketing</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact MarketingSpend</td><td>CostPerAcquisition column available</td></tr>
+      <tr><td>Promotion Effectiveness</td><td>Marketing</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Promotion</td><td>PromotionKey linkage + DiscountAmount columns</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- CEO -->
+<div class="section" id="tab-ceo">
+  <div class="scroll-t">
+  <table>
+    <thead><tr><th>#</th><th>Business Question</th><th>Status</th><th>Required Tables / Columns</th><th>DAX Approach</th></tr></thead>
+    <tbody>
+      <tr><td colspan="5" class="kpi-cat">1. Overall Performance</td></tr>
+      <tr><td>1.1</td><td>Total GMV and evolution over time?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Date</td><td>SUM(SalesAmount) across both facts + time intelligence</td></tr>
+      <tr><td>1.2</td><td>Year-over-year revenue growth rate?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Date</td><td>DIVIDE([Total Revenue] - [PY Revenue], [PY Revenue])</td></tr>
+      <tr><td>1.3</td><td>Are we meeting quarterly and annual revenue targets?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact SalesQuota, Fact OnlineSales, Fact StoreSales</td><td>Actual vs SalesAmountQuota by DateKey</td></tr>
+      <tr><td>1.4</td><td>Current profitability and profit margin trend?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Fact Returns</td><td>GrossProfit / SalesAmount; net of returns</td></tr>
+      <tr><td colspan="5" class="kpi-cat">2. Growth Analysis</td></tr>
+      <tr><td>2.1</td><td>Which geographic regions show strongest growth?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store (StoreContinent/Country), sales facts</td><td>YoY growth sliced by StoreCountry / CustomerCountry</td></tr>
+      <tr><td>2.2</td><td>Customer base growth rate?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerAcquisition, Dim Date</td><td>COUNT(CustomerKey) by AcquisitionDateKey period</td></tr>
+      <tr><td>2.3</td><td>Which product categories are driving growth?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, Fact OnlineSales, Fact StoreSales</td><td>YoY by CategoryName</td></tr>
+      <tr><td>2.4</td><td>Market penetration rate in different regions?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No total addressable market (TAM) data. Cannot compute penetration % without external benchmark data</td></tr>
+      <tr><td colspan="5" class="kpi-cat">3. Customer Intelligence</td></tr>
+      <tr><td>3.1</td><td>Customer acquisition trend?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerAcquisition, Dim Date</td><td>NewCustomersAcquired by month from MarketingSpend or COUNTROWS(CustomerAcquisition)</td></tr>
+      <tr><td>3.2</td><td>Customer retention rate vs. benchmarks?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Customer</td><td>Internal retention computable; industry benchmark requires external data</td></tr>
+      <tr><td>3.3</td><td>Average customer lifetime value?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Customer</td><td>AVERAGEX(customers, [Total Revenue per Customer])</td></tr>
+      <tr><td>3.4</td><td>% of revenue from repeat customers?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>CALCULATE with repeat customer filter / Total Revenue</td></tr>
+      <tr><td colspan="5" class="kpi-cat">4. Strategic Positioning</td></tr>
+      <tr><td>4.1</td><td>Top 10 products by revenue and profitability?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, Fact OnlineSales, Fact StoreSales</td><td>RANKX on SalesAmount and GrossProfit</td></tr>
+      <tr><td>4.2</td><td>Most valuable customer segments?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Customer (IncomeGroup, AgeGroup, LifeStage), sales facts</td><td>Revenue + CLV by segment attributes</td></tr>
+      <tr><td>4.3</td><td>Average order value trend?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Date</td><td>GMV / DISTINCTCOUNT(SalesOrderNumber) over time</td></tr>
+      <tr><td>4.4</td><td>How effective are promotional campaigns in driving incremental revenue?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Promotion, Fact OnlineSales, Fact StoreSales</td><td>Sales with vs. without PromotionKey filter; uplift %</td></tr>
+      <tr><td colspan="5" class="kpi-cat">5. Risk and Opportunities</td></tr>
+      <tr><td>5.1</td><td>Product return rate — increasing or decreasing?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, Fact OnlineSales, Fact StoreSales</td><td>ReturnQuantity / SalesQuantity over time</td></tr>
+      <tr><td>5.2</td><td>Concerning trends in customer churn?</td><td><span class="badge badge-g">✅ Full</span></td><td>Sales facts, Dim Date, Dim Customer</td><td>Customers last active > N months ago; trend over time</td></tr>
+      <tr><td>5.3</td><td>Which stores or regions are underperforming?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store, Fact StoreSales, Fact SalesQuota</td><td>Actual vs quota; below-average contribution flag</td></tr>
+      <tr><td>5.4</td><td>Seasonal patterns to prepare for?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Date (EuropeSeason, NorthAmericaSeason, IsHoliday), sales facts</td><td>Sales by season/holiday flag in Dim Date</td></tr>
+      <tr><td colspan="5" class="kpi-cat">6. Operational Excellence</td></tr>
+      <tr><td>6.1</td><td>Sales per employee?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Store (EmployeeCount), sales facts</td><td>EmployeeCount exists in Dim Store — proxy possible. Not exact headcount by period</td></tr>
+      <tr><td>6.2</td><td>How efficiently are we converting traffic to sales?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No website traffic data. MarketingSpend.Clicks is the closest proxy but not visit-to-purchase conversion</td></tr>
+      <tr><td>6.3</td><td>Inventory turnover rate by category?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory, Fact StoreSales, Dim Product</td><td>COGS / Avg Inventory Value grouped by CategoryName</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- CFO -->
+<div class="section" id="tab-cfo">
+  <div class="scroll-t">
+  <table>
+    <thead><tr><th>#</th><th>Business Question</th><th>Status</th><th>Required Tables / Columns</th><th>DAX Approach</th></tr></thead>
+    <tbody>
+      <tr><td colspan="5" class="kpi-cat">1. Revenue Analysis</td></tr>
+      <tr><td>1.1</td><td>Monthly, quarterly, annual revenue trend?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Date</td><td>SalesAmount + DATESYTD / DATESQTD / DATESMTD</td></tr>
+      <tr><td>1.2</td><td>Revenue breakdown by category, region, segment?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, Dim Store, Dim Customer, sales facts</td><td>CALCULATE with dimension slices</td></tr>
+      <tr><td>1.3</td><td>Revenue concentration — top 20% of customers?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Customer</td><td>PERCENTILEX + CALCULATE for Pareto 80/20 analysis</td></tr>
+      <tr><td>1.4</td><td>Revenue predictability (coefficient of variation)?</td><td><span class="badge badge-g">✅ Full</span></td><td>Sales facts, Dim Date</td><td>StdDev / Mean of monthly revenue; requires statistical DAX</td></tr>
+      <tr><td colspan="5" class="kpi-cat">2. Profitability Analysis</td></tr>
+      <tr><td>2.1</td><td>Gross margin by product category and individual product?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Product</td><td>GrossProfit / SalesAmount by CategoryName / ProductName</td></tr>
+      <tr><td>2.2</td><td>Net margin after discounts and returns?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Fact Returns</td><td>(GrossProfit - DiscountAmount - ReturnAmount) / SalesAmount</td></tr>
+      <tr><td>2.3</td><td>Most and least profitable products / categories?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts</td><td>RANKX on GrossProfit and Gross Margin %</td></tr>
+      <tr><td>2.4</td><td>Contribution margin by customer segment?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Customer, Fact OnlineSales, Fact StoreSales</td><td>GrossProfit sliced by IncomeGroup / AgeGroup / LifeStage</td></tr>
+      <tr><td colspan="5" class="kpi-cat">3. Cost Management</td></tr>
+      <tr><td>3.1</td><td>Total COGS and trend?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>SUM(TotalCost) across both facts</td></tr>
+      <tr><td>3.2</td><td>Cost as percentage of revenue?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>DIVIDE(TotalCost, SalesAmount)</td></tr>
+      <tr><td>3.3</td><td>Unit cost variation across products?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Product</td><td>AVERAGEX on UnitCost by ProductName; variance measure</td></tr>
+      <tr><td>3.4</td><td>Impact of returns on bottom line?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns</td><td>SUM(ReturnAmount) + SUM(RefundAmount) from Fact Returns</td></tr>
+      <tr><td colspan="5" class="kpi-cat">4. Pricing and Discounting</td></tr>
+      <tr><td>4.1</td><td>Average selling price vs. unit cost by category?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Product</td><td>AVERAGEX on UnitPrice and UnitCost grouped by category</td></tr>
+      <tr><td>4.2</td><td>Price realization (actual vs. listed price)?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Product (CatalogPrice)</td><td>DIVIDE(UnitPrice, CatalogPrice) — actual vs catalog</td></tr>
+      <tr><td>4.3</td><td>Revenue lost to discounts?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>SUM(DiscountAmount)</td></tr>
+      <tr><td>4.4</td><td>Discount % trend and margin impact?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Promotion, Dim Date</td><td>DiscountAmount / SalesAmount over time; margin delta with/without</td></tr>
+      <tr><td>4.5</td><td>Are promotional discounts driving profitable volume?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Promotion, Fact OnlineSales, Fact StoreSales</td><td>GrossProfit in promoted vs. non-promoted rows</td></tr>
+      <tr><td colspan="5" class="kpi-cat">5. Customer Economics</td></tr>
+      <tr><td>5.1</td><td>Customer acquisition cost by channel?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact MarketingSpend, Fact CustomerAcquisition, Dim AcquisitionChannel</td><td>MonthlySpend / NewCustomersAcquired by channel</td></tr>
+      <tr><td>5.2</td><td>Average customer lifetime value?</td><td><span class="badge badge-g">✅ Full</span></td><td>Sales facts, Dim Customer</td><td>AVERAGEX(customers, revenue per customer)</td></tr>
+      <tr><td>5.3</td><td>CAC to CLV ratio?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerAcquisition, sales facts</td><td>DIVIDE([Avg CLV], [Avg CAC])</td></tr>
+      <tr><td>5.4</td><td>Payback period for customer acquisition?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact CustomerAcquisition, Fact MarketingSpend, sales facts</td><td>CAC / (Monthly Revenue per Customer) approximated; needs cohort-level monthly revenue curve</td></tr>
+      <tr><td colspan="5" class="kpi-cat">6. Cash Flow Indicators</td></tr>
+      <tr><td>6.1</td><td>Average days sales outstanding?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact OrderPayment, Fact OrderFulfillment</td><td>OrderDate to DeliveryDate proxy available; no true AR aging data</td></tr>
+      <tr><td>6.2</td><td>Inventory value and turnover rate?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory</td><td>InventoryValue, OnHandQuantity, DaysInStock all available</td></tr>
+      <tr><td>6.3</td><td>Working capital implications of returns?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact Returns</td><td>RefundAmount + ReturnAmount as cash outflow proxy; no payment terms/settlement timing data</td></tr>
+      <tr><td colspan="5" class="kpi-cat">7. Currency Impact</td></tr>
+      <tr><td>7.1</td><td>Currency transaction performance?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact ExchangeRate, Dim Currency, sales facts</td><td>Revenue by CurrencyKey; converted via AverageRate</td></tr>
+      <tr><td>7.2</td><td>Currency fluctuation exposure?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact ExchangeRate</td><td>RateDirection, AverageRate vs EndOfDayRate over time</td></tr>
+      <tr><td>7.3</td><td>Which currencies generate most revenue/profit?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact ExchangeRate, Dim Currency, sales facts</td><td>GMV and GrossProfit sliced by CurrencyKey</td></tr>
+      <tr><td colspan="5" class="kpi-cat">8. Financial Forecasting</td></tr>
+      <tr><td>8.1</td><td>Projected revenue for next quarter?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Sales facts, Dim Date</td><td>Power BI built-in forecast visual on trend line; no formal statistical model in DAX</td></tr>
+      <tr><td>8.2</td><td>Projected annual revenue at current growth rate?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Sales facts, Dim Date</td><td>Annualized extrapolation via YTD + growth rate; no ML forecasting layer</td></tr>
+      <tr><td>8.3</td><td>Scenarios impacting financial targets?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No what-if parameter tables. Requires Power BI What-If parameters + scenario DAX measures</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- COO -->
+<div class="section" id="tab-coo">
+  <div class="scroll-t">
+  <table>
+    <thead><tr><th>#</th><th>Business Question</th><th>Status</th><th>Required Tables / Columns</th><th>DAX Approach</th></tr></thead>
+    <tbody>
+      <tr><td colspan="5" class="kpi-cat">1. Order Fulfillment</td></tr>
+      <tr><td>1.1</td><td>Average order processing time by region and store?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OrderFulfillment, Dim Store</td><td>AVERAGEX(ProcessingDays) by StoreKey</td></tr>
+      <tr><td>1.2</td><td>Order fulfillment rate?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OrderFulfillment</td><td>FulfillmentStatus = 'Delivered' / total orders; SLAStatus</td></tr>
+      <tr><td>1.3</td><td>Orders processed daily, weekly, monthly?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OrderFulfillment, Dim Date</td><td>COUNTROWS by date grain</td></tr>
+      <tr><td>1.4</td><td>Peak order volume period — how well do we handle it?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OrderFulfillment, Dim Date</td><td>Volume by period; SLAStatus at peak vs normal periods</td></tr>
+      <tr><td colspan="5" class="kpi-cat">2. Inventory Management</td></tr>
+      <tr><td>2.1</td><td>Inventory turnover by product category?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory, Fact StoreSales, Dim Product</td><td>TotalCost / AVG(InventoryValue) by CategoryName</td></tr>
+      <tr><td>2.2</td><td>Fast-moving vs. slow-moving products?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory, Fact StoreSales, Dim Product</td><td>DaysInStock + SalesQuantity; rank by velocity</td></tr>
+      <tr><td>2.3</td><td>Stock-out frequency?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory</td><td>COUNTROWS where StockStatus = 'Out of Stock' or OnHandQuantity = 0</td></tr>
+      <tr><td>2.4</td><td>Optimal inventory level by product?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact Inventory</td><td>SafetyStockQuantity available as reference; optimization model requires demand forecasting outside scope</td></tr>
+      <tr><td colspan="5" class="kpi-cat">3. Returns Management</td></tr>
+      <tr><td>3.1</td><td>Overall return rate?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, sales facts</td><td>ReturnQuantity / SalesQuantity</td></tr>
+      <tr><td>3.2</td><td>Products with highest return rates?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, Dim Product</td><td>RANKX on return rate by ProductKey</td></tr>
+      <tr><td>3.3</td><td>Return rate by customer segment?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, Dim Customer</td><td>CALCULATE(return rate) sliced by AgeGroup, IncomeGroup</td></tr>
+      <tr><td>3.4</td><td>Patterns in return reasons?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, Dim ReturnReason</td><td>ReturnReasonCategory, ReturnReasonName breakdowns</td></tr>
+      <tr><td>3.5</td><td>Cost impact of returns on operations?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns</td><td>SUM(ReturnAmount + RefundAmount); % of gross revenue</td></tr>
+      <tr><td colspan="5" class="kpi-cat">4. Store Performance</td></tr>
+      <tr><td>4.1</td><td>Most productive stores (sales per square foot)?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store (SellingAreaSize), Fact StoreSales</td><td>DIVIDE([Store Sales], MAX(SellingAreaSize)) per store</td></tr>
+      <tr><td>4.2</td><td>Sales distribution across stores?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store, Fact StoreSales</td><td>SalesAmount by StoreKey; contribution %</td></tr>
+      <tr><td>4.3</td><td>Store type performance comparison?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store (StoreType, StoreSizeCategory), Fact StoreSales</td><td>Revenue and margin by StoreType</td></tr>
+      <tr><td>4.4</td><td>Consistently underperforming stores?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store, Fact StoreSales, Fact SalesQuota</td><td>Stores below quota for N consecutive periods</td></tr>
+      <tr><td colspan="5" class="kpi-cat">5. Operational Efficiency</td></tr>
+      <tr><td>5.1</td><td>Average items per order?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>SUM(SalesQuantity) / DISTINCTCOUNT(SalesOrderNumber)</td></tr>
+      <tr><td>5.2</td><td>Order value distribution?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>OrderValue bands via calculated buckets</td></tr>
+      <tr><td>5.3</td><td>Utilization of store selling area?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store (SellingAreaSize), Fact StoreSales</td><td>Sales density = Revenue / SellingAreaSize</td></tr>
+      <tr><td>5.4</td><td>Relationship between store size and performance?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store (StoreSizeCategory, SellingAreaSize), Fact StoreSales</td><td>Scatter: SellingAreaSize vs Revenue by store</td></tr>
+      <tr><td colspan="5" class="kpi-cat">6. Process Optimization</td></tr>
+      <tr><td>6.1</td><td>Peak vs. off-peak sales periods?</td><td><span class="badge badge-g">✅ Full</span></td><td>Sales facts, Dim Date</td><td>Sales by CalendarWeek, CalendarDayOfWeek, IsHoliday</td></tr>
+      <tr><td>6.2</td><td>Resource allocation based on demand patterns?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Sales facts, Fact OrderFulfillment, Dim Date</td><td>Demand patterns available; resource allocation model is operational, not BI</td></tr>
+      <tr><td>6.3</td><td>Time-of-day sales pattern?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No time-of-day column in any fact table. OrderDate is date-only, no timestamp</td></tr>
+      <tr><td colspan="5" class="kpi-cat">7. Quality Metrics</td></tr>
+      <tr><td>7.1</td><td>Defect rate (returns as proxy)?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, Dim ReturnReason</td><td>IsOperationalFailure filter on ReturnReason; return rate as defect proxy</td></tr>
+      <tr><td>7.2</td><td>Quality issues with specific suppliers/manufacturers?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, Dim Product (Manufacturer)</td><td>Return rate by Manufacturer from Dim Product</td></tr>
+      <tr><td>7.3</td><td>Customer satisfaction trend?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerSurvey</td><td>AVG(CSATScore), IsSatisfied % trend over SurveyDateKey</td></tr>
+      <tr><td colspan="5" class="kpi-cat">8. Capacity Planning</td></tr>
+      <tr><td>8.1</td><td>Current capacity utilization?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Store, Fact OrderFulfillment</td><td>SellingAreaSize utilization proxy; no throughput capacity model</td></tr>
+      <tr><td>8.2</td><td>Sufficient capacity for projected growth?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>Requires growth forecast + capacity model — outside current model scope</td></tr>
+      <tr><td>8.3</td><td>Which regions require capacity expansion?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Store, sales facts, Fact OrderFulfillment</td><td>SLA breach rate + growth rate by region as expansion proxy</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- CSO -->
+<div class="section" id="tab-cso">
+  <div class="scroll-t">
+  <table>
+    <thead><tr><th>#</th><th>Business Question</th><th>Status</th><th>Required Tables / Columns</th><th>DAX Approach</th></tr></thead>
+    <tbody>
+      <tr><td colspan="5" class="kpi-cat">1. Sales Performance</td></tr>
+      <tr><td>1.1</td><td>Overall sales trend (daily/weekly/monthly/quarterly)?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact OnlineSales, Fact StoreSales, Dim Date</td><td>SalesAmount by all date grains</td></tr>
+      <tr><td>1.2</td><td>Sales growth rate by period?</td><td><span class="badge badge-g">✅ Full</span></td><td>Sales facts, Dim Date</td><td>DIVIDE([Current Period] - [Prior Period], [Prior Period])</td></tr>
+      <tr><td>1.3</td><td>Meeting sales targets and quotas?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact SalesQuota, sales facts</td><td>Actual vs SalesAmountQuota; % attainment</td></tr>
+      <tr><td>1.4</td><td>Sales performance by region and store?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store, sales facts</td><td>SalesAmount by StoreContinent, StoreCountry, StoreName</td></tr>
+      <tr><td colspan="5" class="kpi-cat">2. Sales Channel Analysis</td></tr>
+      <tr><td>2.1</td><td>Store performance by sales volume?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store, Fact StoreSales</td><td>SalesAmount by StoreName</td></tr>
+      <tr><td>2.2</td><td>Which stores contribute most to total revenue?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store, Fact StoreSales</td><td>Store contribution % = Store Revenue / Total Revenue</td></tr>
+      <tr><td>2.3</td><td>Sales per store and per square foot?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store (SellingAreaSize), Fact StoreSales</td><td>Revenue per store; DIVIDE by SellingAreaSize</td></tr>
+      <tr><td>2.4</td><td>Expand, maintain, or close stores?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store (StoreStatus, StoreAgeYears), Fact StoreSales, Fact SalesQuota</td><td>Performance vs quota + trend; StoreStatus flag</td></tr>
+      <tr><td colspan="5" class="kpi-cat">3. Product Sales Mix</td></tr>
+      <tr><td>3.1</td><td>Top-selling products by volume and revenue?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts</td><td>RANKX by SalesQuantity and SalesAmount</td></tr>
+      <tr><td>3.2</td><td>Sales distribution across product categories?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (CategoryName, SubcategoryName), sales facts</td><td>SalesAmount % by category hierarchy</td></tr>
+      <tr><td>3.3</td><td>Highest and lowest sales velocity?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory, sales facts, Dim Product</td><td>SalesQuantity / DaysInStock velocity measure</td></tr>
+      <tr><td>3.4</td><td>Product penetration rate across customer base?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, Dim Customer, sales facts</td><td>Customers who bought product X / Total Customers</td></tr>
+      <tr><td colspan="5" class="kpi-cat">4. Customer Acquisition and Conversion</td></tr>
+      <tr><td>4.1</td><td>New customers acquired monthly?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerAcquisition, Dim Date</td><td>COUNTROWS by AcquisitionDateKey month</td></tr>
+      <tr><td>4.2</td><td>Conversion from first-time to repeat buyer?</td><td><span class="badge badge-g">✅ Full</span></td><td>Sales facts, Dim Customer (DateFirstPurchase)</td><td>Customers with 2+ distinct order dates / all customers</td></tr>
+      <tr><td>4.3</td><td>Average time to second purchase?</td><td><span class="badge badge-g">✅ Full</span></td><td>Sales facts, Dim Customer (DateFirstPurchase)</td><td>AVERAGEX: MIN(2nd order date) - DateFirstPurchase</td></tr>
+      <tr><td>4.4</td><td>Which customer segments have highest conversion?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Customer, sales facts</td><td>Repeat rate by AgeGroup, IncomeGroup, LifeStage</td></tr>
+      <tr><td colspan="5" class="kpi-cat">5. Sales Productivity</td></tr>
+      <tr><td>5.1</td><td>Average transaction value?</td><td><span class="badge badge-g">✅ Full</span></td><td>sales facts</td><td>SalesAmount / DISTINCTCOUNT(SalesOrderNumber)</td></tr>
+      <tr><td>5.2</td><td>Average items per transaction?</td><td><span class="badge badge-g">✅ Full</span></td><td>sales facts</td><td>SalesQuantity / DISTINCTCOUNT(SalesOrderNumber)</td></tr>
+      <tr><td>5.3</td><td>How to increase basket size?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>sales facts, Dim Promotion</td><td>Basket analysis via SalesOrderNumber grouping; cross-sell available — prescriptive recommendations require external logic</td></tr>
+      <tr><td>5.4</td><td>Cross-sell and up-sell effectiveness?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>sales facts, Dim Product</td><td>Multi-product orders per SalesOrderNumber; category pairing analysis possible — no formal recommendation engine</td></tr>
+      <tr><td colspan="5" class="kpi-cat">6–9. Territory, Seasonal, Forecasting, Customer Behavior</td></tr>
+      <tr><td>6.1</td><td>High vs. underperforming geographic areas?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Store, Dim Customer, sales facts</td><td>Revenue by StoreCountry, CustomerCountry</td></tr>
+      <tr><td>7.1</td><td>Seasonal sales patterns?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Date (EuropeSeason, NorthAmericaSeason, IsHoliday), sales facts</td><td>Sales by season + holiday flags</td></tr>
+      <tr><td>8.1</td><td>Projected sales for next month/quarter/year?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>Power BI forecast visual available but no DAX forecasting model; requires What-If parameters</td></tr>
+      <tr><td>9.1</td><td>Repeat purchase rate?</td><td><span class="badge badge-g">✅ Full</span></td><td>sales facts, Dim Customer</td><td>Customers with 2+ orders / total customers</td></tr>
+      <tr><td>9.2</td><td>Average time between purchases?</td><td><span class="badge badge-g">✅ Full</span></td><td>sales facts, Dim Date</td><td>AVERAGEX on inter-purchase days by customer</td></tr>
+      <tr><td>9.3</td><td>Customers at risk of churning?</td><td><span class="badge badge-g">✅ Full</span></td><td>sales facts, Dim Customer, Dim Date</td><td>Last purchase date > N days ago; CustomerLifecycleStage column in Dim Customer</td></tr>
+      <tr><td>9.4</td><td>Customer purchase frequency distribution?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>Frequency is computable, but full RFM segmentation table not built. Requires calculated table or DAX band grouping</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- CMO -->
+<div class="section" id="tab-cmo">
+  <div class="scroll-t">
+  <table>
+    <thead><tr><th>#</th><th>Business Question</th><th>Status</th><th>Required Tables / Columns</th><th>DAX Approach</th></tr></thead>
+    <tbody>
+      <tr><td colspan="5" class="kpi-cat">1. Campaign Performance</td></tr>
+      <tr><td>1.1</td><td>Overall effectiveness of promotional campaigns?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Promotion, sales facts</td><td>Sales with vs. without promotion; uplift %</td></tr>
+      <tr><td>1.2</td><td>Which promotions generated highest revenue?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Promotion, sales facts</td><td>SalesAmount by PromotionName ranked</td></tr>
+      <tr><td>1.3</td><td>ROI of each promotional campaign?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Promotion, Fact MarketingSpend, sales facts</td><td>No direct promotion cost in Fact MarketingSpend; MonthlySpend by channel is available but not mapped to individual promotions</td></tr>
+      <tr><td>1.4</td><td>Sales uplift in promotion vs. non-promotion periods?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Promotion (StartDate, EndDate), sales facts, Dim Date</td><td>CALCULATE(Sales, promotion active) vs baseline</td></tr>
+      <tr><td>1.5</td><td>Average discount % by promotion type?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Promotion (DiscountPercent, PromotionType), sales facts</td><td>AVERAGEX on DiscountPercent by PromotionType</td></tr>
+      <tr><td colspan="5" class="kpi-cat">2. Customer Segmentation</td></tr>
+      <tr><td>2.1</td><td>Key customer segments?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Customer (AgeGroup, IncomeGroup, LifeStage, Gender, Education, Occupation)</td><td>Revenue by all demographic segments</td></tr>
+      <tr><td>2.2</td><td>Most profitable segments?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Customer, sales facts</td><td>GrossProfit by segment</td></tr>
+      <tr><td>2.3</td><td>Size and growth of each segment?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Customer, Fact CustomerAcquisition, Dim Date</td><td>Customer count by segment, AcquisitionDateKey trend</td></tr>
+      <tr><td>2.4</td><td>How do segments respond to marketing?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Customer, Dim Promotion, sales facts</td><td>Promotion uptake rate by segment; no direct campaign response tracking table</td></tr>
+      <tr><td>2.5</td><td>CLV by customer segment?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Customer, sales facts</td><td>AVERAGEX(customers, revenue) grouped by segment</td></tr>
+      <tr><td colspan="5" class="kpi-cat">3. Customer Acquisition</td></tr>
+      <tr><td>3.1</td><td>CAC by source/channel?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact MarketingSpend, Fact CustomerAcquisition, Dim AcquisitionChannel</td><td>MonthlySpend / NewCustomersAcquired by channel</td></tr>
+      <tr><td>3.2</td><td>Most effective channels for acquisition?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact MarketingSpend, Dim AcquisitionChannel</td><td>CostPerAcquisition + ClickThroughRate by channel</td></tr>
+      <tr><td>3.3</td><td>Quality of customers from different channels?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerAcquisition, Dim AcquisitionChannel, sales facts</td><td>CLV by AcquisitionChannelKey — revenue per acquired customer by channel</td></tr>
+      <tr><td>3.4</td><td>New customer growth trend?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact CustomerAcquisition, Dim Date</td><td>NewCustomersAcquired MoM trend</td></tr>
+      <tr><td colspan="5" class="kpi-cat">4. Retention and Loyalty</td></tr>
+      <tr><td>4.1</td><td>Customer retention rate by cohort?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Customer (DateFirstPurchase), sales facts, Dim Date</td><td>Cohort month from DateFirstPurchase; active in subsequent months</td></tr>
+      <tr><td>4.2</td><td>Repeat purchase rate?</td><td><span class="badge badge-g">✅ Full</span></td><td>sales facts, Dim Customer</td><td>Customers with 2+ orders</td></tr>
+      <tr><td>4.3</td><td>Customers making 1, 2, 3, 4+ purchases?</td><td><span class="badge badge-g">✅ Full</span></td><td>sales facts, Dim Customer</td><td>COUNTROWS of orders per customer; frequency banding</td></tr>
+      <tr><td>4.4</td><td>What drives customer loyalty?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Customer, Dim Promotion, Fact CustomerSurvey, sales facts</td><td>Correlation between NPS/CSAT and repeat purchase rate; no direct loyalty program data</td></tr>
+      <tr><td>4.5</td><td>Churn rate and early warning signs?</td><td><span class="badge badge-g">✅ Full</span></td><td>sales facts, Dim Customer (CustomerLifecycleStage), Dim Date</td><td>Last purchase recency; CustomerLifecycleStage column already available</td></tr>
+      <tr><td colspan="5" class="kpi-cat">5. Product Marketing</td></tr>
+      <tr><td>5.1</td><td>Highest brand awareness (sales volume as proxy)?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (BrandName), sales facts</td><td>SalesQuantity by BrandName</td></tr>
+      <tr><td>5.2</td><td>Performance of new product launches?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (AvailableForSaleDate, CatalogueAgeYears), sales facts</td><td>Sales trend for products with recent AvailableForSaleDate</td></tr>
+      <tr><td>5.3</td><td>Which categories need more marketing support?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts, Fact SalesQuota</td><td>Categories below quota or with declining share</td></tr>
+      <tr><td>5.4</td><td>Product affinity — bought together?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact OnlineSales, Fact StoreSales</td><td>SalesOrderNumber basket grouping for co-occurrence; no formal association rules engine — approximation via DAX pair analysis</td></tr>
+      <tr><td colspan="5" class="kpi-cat">6–10. Brand, Pricing, Demographics, Journey, Budget</td></tr>
+      <tr><td>6.1</td><td>Brand performance in sales and margin?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (BrandName), sales facts</td><td>Revenue and GrossProfit by BrandName</td></tr>
+      <tr><td>6.2</td><td>Brand loyalty (repeat purchase of same brand)?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Product (BrandName), sales facts, Dim Customer</td><td>Customers buying same brand in 2+ orders; multi-period brand loyalty approximation</td></tr>
+      <tr><td>8.1</td><td>Customer profile (demographics)?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Customer (Age, Gender, Education, Occupation, MaritalStatus)</td><td>Distribution visuals across all demographic columns</td></tr>
+      <tr><td>9.1</td><td>Customer journey from first to repeat purchase?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Customer (DateFirstPurchase), sales facts</td><td>Time-to-2nd-purchase computable; full multi-touchpoint journey needs web analytics</td></tr>
+      <tr><td>9.2</td><td>Drop-off rate at each stage?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No funnel/session data. Cannot compute stage-by-stage drop-off without web analytics integration</td></tr>
+      <tr><td>10.1</td><td>Marketing budget allocation?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact MarketingSpend, Dim AcquisitionChannel</td><td>MonthlySpend by channel; CPA comparison for reallocation guidance</td></tr>
+      <tr><td>10.2</td><td>Marginal return on marketing spend?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>Requires regression or attribution model — not computable from current data without statistical modeling outside Power BI</td></tr>
+      <tr><td>10.3</td><td>Which initiatives deserve more investment?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact MarketingSpend, Dim AcquisitionChannel, Fact CustomerAcquisition</td><td>CPA + CLV-by-channel comparison as investment proxy</td></tr>
+      <tr><td>7.1</td><td>Price elasticity of demand?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>Requires statistical modeling (regression of price vs quantity). Not achievable in native DAX without external ML pipeline</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- Product Manager -->
+<div class="section" id="tab-pm">
+  <div class="scroll-t">
+  <table>
+    <thead><tr><th>#</th><th>Business Question</th><th>Status</th><th>Required Tables / Columns</th><th>DAX Approach</th></tr></thead>
+    <tbody>
+      <tr><td colspan="5" class="kpi-cat">1. Product Performance</td></tr>
+      <tr><td>1.1</td><td>Sales performance of each product?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts</td><td>SalesAmount, SalesQuantity by ProductKey</td></tr>
+      <tr><td>1.2</td><td>Top vs. underperforming products?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts</td><td>RANKX on SalesAmount; bottom N via TOPN</td></tr>
+      <tr><td>1.3</td><td>Revenue contribution by product?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts</td><td>Product Revenue / Total Revenue %</td></tr>
+      <tr><td>1.4</td><td>Profitability by product?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts</td><td>GrossProfit and Gross Margin % by ProductKey</td></tr>
+      <tr><td colspan="5" class="kpi-cat">2. Product Portfolio Analysis</td></tr>
+      <tr><td>2.1</td><td>Number of active products?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (ProductStatus, StopSaleDate)</td><td>COUNTROWS where ProductStatus = 'Active'</td></tr>
+      <tr><td>2.2</td><td>Sales concentration (products driving 80% of revenue)?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts</td><td>Cumulative % revenue; Pareto threshold measure</td></tr>
+      <tr><td>2.3</td><td>Which products to discontinue?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (ProductStatus, StopSaleDate, CatalogueAgeYears), sales facts</td><td>Low revenue + low margin + high return rate flag</td></tr>
+      <tr><td>2.4</td><td>Gaps in product portfolio?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Product (CategoryName, SubcategoryName)</td><td>Category coverage analysis computable; gap vs market requires external benchmark</td></tr>
+      <tr><td colspan="5" class="kpi-cat">3. Category Insights</td></tr>
+      <tr><td>3.1</td><td>Category and subcategory performance?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (CategoryName, SubcategoryName, ProductBreadcrumb), sales facts</td><td>All metrics by category hierarchy</td></tr>
+      <tr><td>3.2</td><td>Category mix trend?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts, Dim Date</td><td>Category share % over time</td></tr>
+      <tr><td>3.3</td><td>Growing vs. declining categories?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts, Dim Date</td><td>YoY revenue growth by category</td></tr>
+      <tr><td>3.4</td><td>Profitability by category?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts</td><td>GrossProfit % by CategoryName</td></tr>
+      <tr><td colspan="5" class="kpi-cat">4. Product Attributes Analysis</td></tr>
+      <tr><td>4.1</td><td>How do attributes affect sales (size, color, style, class)?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (ColorName, Size, SizeRange, StyleName, ClassName)</td><td>SalesAmount by each attribute column</td></tr>
+      <tr><td>4.2</td><td>Most popular colors/sizes/styles?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts</td><td>RANKX by SalesQuantity per attribute value</td></tr>
+      <tr><td>4.3</td><td>Underserved attribute combinations?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Product, sales facts</td><td>Attribute combinations with low/no sales computable; demand signal requires external data</td></tr>
+      <tr><td colspan="5" class="kpi-cat">5. Product Lifecycle</td></tr>
+      <tr><td>5.1</td><td>Sales trend from product launch to current?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (AvailableForSaleDate, CatalogueAgeYears), sales facts, Dim Date</td><td>Sales indexed to months-since-launch</td></tr>
+      <tr><td>5.2</td><td>Products in growth, maturity, or decline?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product, sales facts, Dim Date</td><td>3-period trend slope classification</td></tr>
+      <tr><td>5.3</td><td>Average product lifecycle?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (CatalogueAgeYears, StopSaleDate, AvailableForSaleDate)</td><td>AVERAGEX on lifecycle duration from date columns</td></tr>
+      <tr><td colspan="5" class="kpi-cat">6. Returns & Quality</td></tr>
+      <tr><td>6.1</td><td>Products with highest return rates?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, Dim Product, sales facts</td><td>ReturnQuantity / SalesQuantity by product RANKX</td></tr>
+      <tr><td>6.2</td><td>Quality issue with specific products?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, Dim ReturnReason, Dim Product</td><td>IsOperationalFailure filter by product</td></tr>
+      <tr><td>6.3</td><td>Correlation between product attributes and returns?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact Returns, Dim Product (attributes)</td><td>Return rate by ColorName, SizeRange etc. computable; statistical correlation requires R/Python</td></tr>
+      <tr><td>6.4</td><td>Brands/manufacturers with highest quality (lowest returns)?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Returns, Dim Product (Manufacturer, BrandName)</td><td>Return rate by Manufacturer and BrandName</td></tr>
+      <tr><td colspan="5" class="kpi-cat">7–11. Pricing, Inventory, Cross-sell, Competitive, Supplier</td></tr>
+      <tr><td>7.1</td><td>Price positioning of products?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (CatalogPrice, CatalogCost), sales facts</td><td>UnitPrice distribution; CatalogPrice vs actual UnitPrice</td></tr>
+      <tr><td>7.2</td><td>Price-volume relationship?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Dim Product, sales facts</td><td>UnitPrice vs SalesQuantity scatter; formal elasticity requires regression</td></tr>
+      <tr><td>8.1</td><td>Fastest inventory turnover products?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory, sales facts, Dim Product</td><td>Sales velocity; DaysInStock; Aging column in Fact Inventory</td></tr>
+      <tr><td>8.2</td><td>Slow-moving products tying up capital?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory (Aging, AgingTier, InventoryValue)</td><td>AgingTier = 'Aged' or high DaysInStock with high InventoryValue</td></tr>
+      <tr><td>8.4</td><td>Products that frequently stock out?</td><td><span class="badge badge-g">✅ Full</span></td><td>Fact Inventory (StockStatus, OnHandQuantity)</td><td>COUNTROWS where StockStatus = 'Out of Stock' by product</td></tr>
+      <tr><td>9.1</td><td>Products frequently bought together?</td><td><span class="badge badge-b">⚡ Partial</span></td><td>Fact OnlineSales, Fact StoreSales (SalesOrderNumber)</td><td>Basket co-occurrence via SalesOrderNumber grouping; formal association rules require Python/R</td></tr>
+      <tr><td>10.1</td><td>Product positioning vs. competitors?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>No external competitive pricing or market data in model</td></tr>
+      <tr><td>11.1</td><td>Which manufacturers deliver best-selling products?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (Manufacturer), sales facts</td><td>Revenue and Gross Margin % by Manufacturer</td></tr>
+      <tr><td>11.2</td><td>Profitability by manufacturer?</td><td><span class="badge badge-g">✅ Full</span></td><td>Dim Product (Manufacturer), sales facts</td><td>GrossProfit by Manufacturer</td></tr>
+      <tr><td>11.3</td><td>Supplier concentration risks?</td><td><span class="badge badge-r">❌ Gap</span></td><td>—</td><td>Manufacturer in Dim Product is a text attribute, not a supplier table. No supplier SKU diversity or dependency data</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- GAPS & RECS -->
+<div class="section" id="tab-gaps">
+  <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:12px">21 questions cannot be answered with the current model. They fall into 5 root-cause categories, each with a specific remediation path.</p>
+
+  <div class="gap-block">
+    <div class="gap-title">Gap 1 — No web analytics / session data (affects 6 questions)</div>
+    Impacted: Conversion Rate, Cart Abandonment Rate, Website Traffic, Customer Journey drop-off, Traffic Sources, Marginal Marketing Return.<br>
+    <span class="muted">Roles: CEO · CMO · COO · CSO</span>
+  </div>
+  <div class="rec-block">
+    <div class="rec-title">Recommendation 1 — Integrate a Web Analytics Fact Table</div>
+    Add a <code>gen.WebSessionEvents</code> synthetic table (or connect Google Analytics / Adobe Analytics export) with columns: <code>SessionID, CustomerKey, DateKey, HourOfDay, Source, Medium, LandingPage, PagesViewed, CartAdded (bit), PurchaseCompleted (bit), ConversionValue</code>. This single table unlocks 6 currently blocked questions with no model changes required — just a new fact added to the star.<br>
+    <span class="muted">Effort: Medium (2–3 days for synthetic data generation + 1 new fact view) · Impact: High</span>
+  </div>
+
+  <div class="gap-block">
+    <div class="gap-title">Gap 2 — No forecasting / What-If parameters (affects 4 questions)</div>
+    Impacted: Revenue projection next quarter/year, Sales forecast, Scenario modeling for financial targets.<br>
+    <span class="muted">Roles: CEO · CFO · CSO</span>
+  </div>
+  <div class="rec-block">
+    <div class="rec-title">Recommendation 2 — Add What-If Parameters + Forecast Measures</div>
+    Create 3 Power BI What-If parameter tables: <code>Growth Rate %</code> (0–50%), <code>Discount Sensitivity</code> (0–30%), <code>Churn Rate %</code> (0–25%). Build scenario DAX measures referencing these sliders. Supplement with Power BI built-in forecast visuals on time-series line charts. No new SQL tables needed — pure Power BI model additions.<br>
+    <span class="muted">Effort: Low (4–6 hours in Power BI) · Impact: High for executive credibility</span>
+  </div>
+
+  <div class="gap-block">
+    <div class="gap-title">Gap 3 — No external market / competitive data (affects 3 questions)</div>
+    Impacted: Market penetration rate, Competitor product positioning, Product mix vs. industry standards.<br>
+    <span class="muted">Roles: CEO · Product Manager</span>
+  </div>
+  <div class="rec-block">
+    <div class="rec-title">Recommendation 3 — Add a Static Market Benchmarks Table</div>
+    Create a small <code>dim.MarketBenchmarks</code> table with manually curated benchmark values: category-level market size, industry average return rates, average NPS by industry, CLV benchmarks. These are static reference values updated periodically. Link by <code>CategoryName</code> to Dim Product. This is the simplest possible gap closure — no generation script needed, just a loaded CSV or inline table.<br>
+    <span class="muted">Effort: Very Low (1 day) · Impact: Medium — unlocks market penetration and benchmark comparisons</span>
+  </div>
+
+  <div class="gap-block">
+    <div class="gap-title">Gap 4 — No time-of-day data (affects 1 question)</div>
+    Impacted: Time-of-day sales pattern (COO question 6.3).<br>
+    <span class="muted">Roles: COO</span>
+  </div>
+  <div class="rec-block">
+    <div class="rec-title">Recommendation 4 — Add HourOfDay to Fact Views (Synthetic)</div>
+    Since ContosoRetailDW does not contain timestamps, add a synthetic <code>HourOfDay</code> column to the <code>gen</code> layer with a realistic distribution (peak: 10–12am, 6–9pm for online; 11am–7pm for store) seeded by channel type. This is a single column addition to <code>10_fact_Views_v2.sql</code>. Alternatively, accept this as a permanent model limitation and document it.<br>
+    <span class="muted">Effort: Low (2–3 hours in SQL view layer) · Impact: Low-Medium</span>
+  </div>
+
+  <div class="gap-block">
+    <div class="gap-title">Gap 5 — No email / social media campaign data (affects 2 questions)</div>
+    Impacted: Email open & CTR rates, Social media engagement rate.<br>
+    <span class="muted">Roles: CMO</span>
+  </div>
+  <div class="rec-block">
+    <div class="rec-title">Recommendation 5 — Extend Fact MarketingSpend with Digital Metrics</div>
+    Add columns to <code>gen.FactMarketingSpend</code>: <code>EmailsSent, EmailOpens, EmailClicks, SocialImpressions, SocialEngagements, SocialFollowers</code> for channels where <code>ChannelCategory = 'Email'</code> or <code>'Social'</code>. This reuses the existing <code>05_gen_FactMarketingSpend_v2.sql</code> generation script with a conditional column block — no new table or relationship needed.<br>
+    <span class="muted">Effort: Low (4–6 hours to extend generation script) · Impact: Medium</span>
+  </div>
+
+  <div style="margin-top:16px;padding:10px 12px;border:1px solid var(--color-border-tertiary);border-radius:8px;font-size:12px;background:var(--color-background-secondary)">
+    <strong>Priority order for implementation:</strong> Rec 2 (What-If, zero SQL effort) → Rec 3 (benchmarks table, low effort) → Rec 5 (extend MarketingSpend) → Rec 1 (web analytics table) → Rec 4 (time-of-day, optional)
+  </div>
+</div>
+
+</div>
+<script>
+function showTab(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>

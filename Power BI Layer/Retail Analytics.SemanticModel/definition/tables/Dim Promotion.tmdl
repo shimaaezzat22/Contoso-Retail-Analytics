@@ -1,0 +1,142 @@
+table 'Dim Promotion'
+	lineageTag: e30df995-048d-49b4-8f13-7eb61a2fa544
+
+	column PromotionKey
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: 52d3d4bc-7bf6-4ef4-9d4a-b128e943ad1c
+		summarizeBy: none
+		sourceColumn: PromotionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionLabel
+		dataType: string
+		lineageTag: 3864fd8e-7fed-4000-a9e0-397353d55d5f
+		summarizeBy: none
+		sourceColumn: PromotionLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionName
+		dataType: string
+		lineageTag: 14e29060-3f4b-4028-8677-9e0bd8ca1f63
+		summarizeBy: none
+		sourceColumn: PromotionName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionDescription
+		dataType: string
+		lineageTag: 6de6876f-884b-4c7d-a774-c7fb00b00664
+		summarizeBy: none
+		sourceColumn: PromotionDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionType
+		dataType: string
+		lineageTag: 91e47d9e-8ce5-48e3-b68b-836c4ff4adec
+		summarizeBy: none
+		sourceColumn: PromotionType
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionCategory
+		dataType: string
+		lineageTag: 43b0d322-a20c-42c3-a88d-7a7de092d028
+		summarizeBy: none
+		sourceColumn: PromotionCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiscountPercent
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 09e9b1bf-2f82-4460-b684-444070cb48a2
+		summarizeBy: sum
+		sourceColumn: DiscountPercent
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MinQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 618b75e5-574e-496e-b0ca-3c7b95860c17
+		summarizeBy: sum
+		sourceColumn: MinQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column MaxQuantity
+		dataType: int64
+		formatString: 0
+		lineageTag: 388f539e-feec-4e78-a111-18e1a23d8b5a
+		summarizeBy: sum
+		sourceColumn: MaxQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiscountTier
+		dataType: string
+		lineageTag: 2aeec2c3-31bb-495e-9ae4-239993374d3f
+		summarizeBy: none
+		sourceColumn: DiscountTier
+
+		annotation SummarizationSetBy = Automatic
+
+	column StartDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a21c383c-2060-43c6-ab76-160ce85cac77
+		summarizeBy: none
+		sourceColumn: StartDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column EndDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9c1f9b34-d1ea-4377-9d02-7791b9f76d49
+		summarizeBy: none
+		sourceColumn: EndDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PromotionStatus
+		dataType: string
+		lineageTag: 51be6b30-9088-4891-81ea-3cb0d0343887
+		summarizeBy: none
+		sourceColumn: PromotionStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionDurationDays
+		dataType: int64
+		formatString: 0
+		lineageTag: bfad7578-d64c-408a-b9ba-b4fd5c20436b
+		summarizeBy: sum
+		sourceColumn: PromotionDurationDays
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Promotion' = m
+		mode: import
+		queryGroup: 'Loaded Dimensions'
+		source =
+				let
+					FileRow = DataSource{[Name="dim_vPromotion.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadDimParquet(BinaryData, "dim_vPromotion.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

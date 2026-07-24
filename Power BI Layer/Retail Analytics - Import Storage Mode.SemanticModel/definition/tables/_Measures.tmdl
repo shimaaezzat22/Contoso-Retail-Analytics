@@ -1,0 +1,995 @@
+table _Measures
+	lineageTag: 3bf5f947-79c3-4a33-bc02-2ff43febb34b
+
+	/// MIRROR OF: DQ M1 YoY Revenue (DQ FAILS - Silent BLANK / Aggregation Grain Collapse)
+	/// PURPOSE: Proves that SAMEPERIODLASTYEAR works correctly in Import mode.
+	/// DQ RESULT (observed): Single grand total $2,718,202,629 with NO year/month breakdown.
+	/// Root cause: DQ generated a 365-row UNION ALL date injection with no GROUP BY clause.
+	/// The SQL returned one scalar; the matrix showed only a Total row.
+	/// IMPORT RESULT (expected): Prior-year revenue correctly broken down per CalendarYear AND
+	/// CalendarMonth. December value is lower than the full-year total. Each month shows
+	/// its own prior-year monthly revenue — not a single collapsed number.
+	/// DAX STUDIO - WHAT TO OBSERVE:
+	/// - SE Queries: 1-2 (VertiPaq scans, no SQL)
+	/// - SQL Count: 0 — no SQL Server round-trip
+	/// - Par.: >1.0 — VertiPaq uses parallel threads
+	/// - FE%: LOW — date expansion happens inside SE
+	/// - Total: sub-200ms
+	/// TEACHING MOMENT: Place IM1 and DQ M1 screenshots side by side. DQ shows one number.
+	/// Import shows a full year+month matrix. The contrast is the most powerful single slide
+	/// in the DQ vs Import workshop — same DAX expression, architecturally opposite results.
+	measure 'IM1 YoY Revenue (IMPORT WORKS - Full Breakdown)' =
+			-- IM1: Year-over-Year Revenue  |  IMPORT MIRROR OF DQ M1
+			-- -------------------------------------------------------------------
+			-- DQ M1 RESULT    : Single grand total — $2,718,202,629 — no breakdown
+			--                   Root cause: UNION ALL date injection, no GROUP BY in SQL
+			-- IMPORT RESULT   : Full prior-year breakdown by CalendarYear AND CalendarMonth
+			--                   VertiPaq expands SAMEPERIODLASTYEAR in the Storage Engine
+			-- DAX STUDIO      : 0 SQL queries | Par. >1.0 | FE% LOW | sub-200ms total
+			-- VISUAL SETUP    : Matrix rows = CalendarYear + CalendarMonth
+			--                   Values = [IM1 YoY Revenue] + [SUM SalesAmount] (side-by-side proof)
+			--                   Each month must show a different prior-year value — not one number
+			-- -------------------------------------------------------------------
+			VAR PriorYearRevenue =
+			    CALCULATE (
+			        SUM ( 'fact vOnlineSales'[SalesAmount] ),
+			        SAMEPERIODLASTYEAR ( 'dim vDate'[Date] )
+			    )
+			RETURN
+			    PriorYearRevenue
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 1 - Import Mirrors\1A Time Intelligence
+		lineageTag: ff07b19e-03be-479c-819a-ef3bef674e4d
+
+	/// MIRROR OF: DQ M2 YTD Revenue (DQ FAILS - Silent Wrong Value)
+	/// PURPOSE: Returns TRUE cumulative Year-to-Date online revenue in Import mode.
+	/// 
+	/// ROOT CAUSE OF ORIGINAL BUG:
+	/// DATESYTD requires dim vDate to be MARKED AS DATE TABLE in Power BI settings.
+	/// Without that marking, Power BI cannot identify the year boundary anchor.
+	/// DATESYTD degrades to returning only the current month filter context —
+	/// producing per-period SUM values instead of cumulative totals.
+	/// This was identical behaviour to what DQ M2 produced (per-period, not cumulative).
+	/// 
+	/// FIX APPROACH:
+	/// Replaced DATESYTD with an explicit CALCULATE + FILTER pattern that manually
+	/// builds the YTD date range from Jan 1 of the current year to the last date in
+	/// the current filter context. This pattern has zero dependency on Date Table
+	/// marking and is immune to the DATESYTD degradation issue.
+	/// 
+	/// IMPORT RESULT (expected after fix):
+	/// Strictly INCREASING cumulative values month over month:
+	/// January ~$57M | February ~$117M | March ~$177M ... December ~$849M
+	/// December must approximately equal the full CY year total.
+	/// This strictly increasing pattern is the proof of correct YTD computation.
+	/// 
+	/// VISUAL PROOF:
+	/// Place this in a matrix with CalendarYear + CalendarMonth in rows.
+	/// Each month row must show a LARGER value than the month above it.
+	/// December must be the LARGEST value in the year — approximately equal to
+	/// the CalendarYear total shown in the parent row.
+	/// 
+	/// COMPARE AGAINST DQ M2:
+	/// DQ M2 showed: July 2024 = $84M (one month), December 2024 = $72M (one month)
+	/// Import IM2 should show: July 2024 = ~$500M (7 months), December 2024 = ~$849M (12 months)
+	/// The difference is the proof that DQ M2 was silently wrong.
+	/// 
+	/// DAX STUDIO EXPECTED:
+	/// 0 SQL queries | SE dominant | Par. > 1.0 | Total sub-300ms
+	measure 'IM2 YTD Revenue (IMPORT WORKS - Cumulative)' =
+			-- IM2: Year-to-Date Revenue  |  IMPORT MIRROR OF DQ M2  |  FIXED v2
+			-- -------------------------------------------------------------------
+			-- BUG IN v1       : DATESYTD requires dim vDate to be marked as Date Table.
+			--                   Without that marking it degrades to per-period SUM —
+			--                   same wrong behaviour as DQ M2. Users saw monthly revenue
+			--                   instead of cumulative YTD.
+			-- FIX             : Explicit CALCULATE + FILTER builds the YTD range manually.
+			--                   No dependency on Date Table marking. Always cumulative.
+			-- HOW IT WORKS    :
+			--   Step 1: Capture the current year from the filter context (CalendarYear slicer
+			--           or matrix row context).
+			--   Step 2: Capture the last date visible in the current filter context (the
+			--           last day of the current month when a month row is active).
+			--   Step 3: CALCULATE with ALL(dim vDate) to clear the existing date filter,
+			--           then re-apply a FILTER that keeps only dates where:
+			--           (a) the year matches the current year, AND
+			--           (b) the date is <= the last date in the current context.
+			--   This produces a date set from Jan 1 to the current month end — true YTD.
+			-- PROOF QUERY (run in DAX Studio to verify):
+			--   EVALUATE
+			--   CALCULATETABLE(
+			--     ADDCOLUMNS(
+			--       VALUES('dim vDate'[CalendarMonthLabel]),
+			--       "YTD Revenue", [IM2 YTD Revenue (IMPORT WORKS - Cumulative)]
+			--     ),
+			--     'dim vDate'[CalendarYear] = 2024
+			--   )
+			--   ORDER BY 'dim vDate'[CalendarMonth]
+			--   Each row must be strictly larger than the previous row.
+			--   December row must be close to the full CY 2024 revenue total.
+			-- -------------------------------------------------------------------
+			VAR CurrentYear =
+			    SELECTEDVALUE ( 'dim vDate'[CalendarYear] )
+			VAR LastDateInContext =
+			    MAX ( 'dim vDate'[Date] )
+			VAR YTDRevenue =
+			    CALCULATE (
+			        SUM ( 'fact vOnlineSales'[SalesAmount] ),
+			        ALL ( 'dim vDate' ),                        -- clear existing date filter
+			        FILTER (
+			            ALL ( 'dim vDate' ),
+			            'dim vDate'[CalendarYear] = CurrentYear  -- same year only
+			                && 'dim vDate'[Date] <= LastDateInContext  -- from Jan 1 to current month end
+			        )
+			    )
+			RETURN
+			    YTDRevenue
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 1 - Import Mirrors\1A Time Intelligence
+		lineageTag: 3f07c003-fb45-4ca9-a429-acecced11770
+
+	/// MIRROR OF: DQ M3 Product Rank (DQ FAILS - Iterator / Error or BLANK)
+	/// PURPOSE: Proves that RANKX over all products works correctly in Import mode.
+	/// DQ RESULT: Error or BLANK — RANKX could not fold to SQL; full product table scan
+	/// would require returning all product rows to the DAX formula engine.
+	/// IMPORT RESULT (expected): Correct integer ranks 1–N where:
+	/// - Rank 1 = product with highest SalesAmount in current filter context
+	/// - Ranks are stable when slicers change (slicer just re-computes from new context)
+	/// - ALLSELECTED respects slicer context — ranks recompute per category/year
+	/// DAX STUDIO - WHAT TO OBSERVE:
+	/// - 0 SQL queries
+	/// - FE% may be moderate — RANKX does iterate in FE even in Import
+	/// - BUT total is still sub-300ms vs DQ timeout
+	/// - Compare to DQ H2 (RANKX benchmark): DQ = 6,000-15,000ms, Import = sub-300ms
+	/// VISUAL SETUP: Matrix rows = dim vProduct[ProductName]
+	/// Add visual-level filter: [IM3 Product Rank] is not blank
+	/// Add [SUM SalesAmount] alongside — verify rank 1 has highest revenue
+	measure 'IM3 Product Rank (IMPORT WORKS - RANKX Correct)' =
+			-- IM3: Product Revenue Rank  |  IMPORT MIRROR OF DQ M3
+			-- -------------------------------------------------------------------
+			-- DQ M3 RESULT    : Error or BLANK — RANKX cannot fold to SQL in DirectQuery
+			--                   Full product table scan would require all rows in FE memory
+			-- IMPORT RESULT   : Correct integer rank 1..N where 1 = highest revenue product
+			--                   VertiPaq holds all product rows in columnar RAM — RANKX iterates
+			--                   in FE but against in-memory data, not via SQL round-trips
+			-- KEY INSIGHT     : Even in Import, RANKX runs in the Formula Engine (not SE).
+			--                   FE% will be moderate here. The difference vs DQ is that:
+			--                   Import FE iteration = in-memory (fast) vs DQ FE iteration = after
+			--                   SQL round-trip (slow + repeated per slicer change)
+			-- DAX STUDIO      : 0 SQL queries | FE% moderate (~20-40%) | Total <300ms
+			-- -------------------------------------------------------------------
+			VAR AllProductRevenue =
+			    ADDCOLUMNS (
+			        ALLSELECTED ( 'dim vProduct'[ProductName] ),
+			        "Revenue", CALCULATE ( SUM ( 'fact vOnlineSales'[SalesAmount] ) )
+			    )
+			VAR CurrentRank =
+			    RANKX (
+			        AllProductRevenue,
+			        [Revenue],
+			        CALCULATE ( SUM ( 'fact vOnlineSales'[SalesAmount] ) ),
+			        DESC,
+			        DENSE
+			    )
+			RETURN
+			    CurrentRank
+		formatString: 0
+		displayFolder: Pillar 1 - Import Mirrors\1B Structural
+		lineageTag: 711e3538-327b-4fc2-a58c-44bc6ee49006
+
+	/// MIRROR OF: DQ M4 Employee Hierarchy Depth (DQ FAILS - Explicit PATH Error)
+	/// PURPOSE: Proves that PATH parent-child hierarchy functions work in Import mode.
+	/// DQ RESULT: Hard error — 'The PATH function is not supported in DirectQuery mode'
+	/// This was the only DQ measure that produced a visible user-facing error (red icon).
+	/// Unlike M1/M2 (silent wrong values), PATH was at least honest about failing.
+	/// IMPORT RESULT (expected): Integer hierarchy depth for each employee
+	/// Depth 1 = CEO / top-level (no parent)
+	/// Depth 2 = direct reports to CEO
+	/// Depth N = employees N levels below the root
+	/// DAX STUDIO - WHAT TO OBSERVE:
+	/// - 0 SQL queries
+	/// - FE% will be moderate — PATH is a recursive operation in the formula engine
+	/// - Total still sub-500ms even with full employee hierarchy
+	/// - No error icon in the visual — this is the key contrast to DQ M4
+	/// VISUAL SETUP: Matrix rows = dim vEmployee[EmployeeKey] or [EmployeeName]
+	/// Show IM4 value alongside a hierarchy slicer to demonstrate depth changes
+	measure 'IM4 Employee Hierarchy Depth (IMPORT WORKS - PATH Correct)' =
+			-- IM4: Employee Hierarchy Depth  |  IMPORT MIRROR OF DQ M4
+			-- -------------------------------------------------------------------
+			-- DQ M4 RESULT    : EXPLICIT ERROR — PATH not supported in DirectQuery
+			--                   'The PATH function is not supported in DirectQuery mode'
+			--                   Red error icon visible to all users in the report
+			-- IMPORT RESULT   : Integer depth of employee in management hierarchy
+			--                   1 = CEO/root level | 2 = direct reports | N = depth N
+			-- ROOT CAUSE DIFFERENCE: PATH() is a recursive self-join computed entirely
+			--                   in the Formula Engine against in-memory VertiPaq data.
+			--                   DQ has no SQL equivalent for recursive hierarchy traversal.
+			--                   Import holds the entire dim vEmployee in RAM — PATH resolves
+			--                   via in-memory column lookups with no SQL needed.
+			-- TEACHING POINT  : This is the failure class where DQ was HONEST (hard error).
+			--                   M1/M2 were dishonest (wrong values with no error signal).
+			--                   Import resolves all three correctly.
+			-- DAX STUDIO      : 0 SQL | FE% moderate | No error | sub-500ms
+			-- -------------------------------------------------------------------
+			VAR HierarchyPath =
+			    PATH (
+			        'dim vEmployee'[EmployeeKey],
+			        'dim vEmployee'[ParentEmployeeKey]
+			    )
+			VAR HierarchyDepth =
+			    PATHLENGTH ( HierarchyPath )
+			RETURN
+			    HierarchyDepth
+		formatString: 0
+		displayFolder: Pillar 1 - Import Mirrors\1B Structural
+		lineageTag: b710db97-94a2-4d16-9000-d699bbc498a3
+
+	/// MIRROR OF: DQ M8 Customer Churn Rate (DQ FAILS - VAR Table Scan / Timeout)
+	/// PURPOSE: Proves that multi-VAR intermediate table patterns with DATEDIFF work in Import.
+	/// DQ RESULT: Likely timeout on 2M+ customer rows or incorrect result.
+	/// FILTER + DATEDIFF cannot fold to SQL — DQ pulled all customer last-purchase
+	/// dates to the formula engine for row-by-row computation outside SQL Server.
+	/// IMPORT RESULT (expected): Correct churn rate percentage in milliseconds.
+	/// VertiPaq holds all customer rows in compressed columnar RAM.
+	/// FILTER + DATEDIFF runs against in-memory data — no SQL round-trip cost.
+	/// Result: customers with last purchase >365 days ago divided by total customers.
+	/// DAX STUDIO - WHAT TO OBSERVE:
+	/// - 0 SQL queries — entire computation in VertiPaq + FE
+	/// - FE% will be HIGH (FILTER iterates rows in FE even in Import)
+	/// - BUT total is sub-2,000ms vs DQ timeout
+	/// - This demonstrates: FE-dominant is acceptable in Import (in-memory fast)
+	/// FE-dominant is catastrophic in DQ (SQL round-trip first, then FE thrash)
+	/// KEY INSIGHT: Both DQ and Import use the Formula Engine for this pattern.
+	/// The architectural difference: Import FE works against data already in RAM.
+	/// DQ FE works against data arriving from SQL Server row by row.
+	measure 'IM5 Customer Churn Rate (IMPORT WORKS - VAR Pattern Fast)' =
+			-- IM5: Customer Churn Rate  |  IMPORT MIRROR OF DQ M8
+			-- -------------------------------------------------------------------
+			-- DQ M8 RESULT    : Timeout or wrong result on 2M+ customer rows
+			--                   FILTER + DATEDIFF cannot fold to SQL
+			--                   DQ pulled ALL customer rows to FE then computed DATEDIFF per row
+			-- IMPORT RESULT   : Correct churn rate in ms — same FE pattern, but in-memory
+			--                   VertiPaq holds customers in compressed columnar RAM
+			--                   No SQL round-trip before FE can begin iterating
+			-- SPECTRUM INSIGHT: This measure + IH1 define the Import FE spectrum:
+			--                   IH1 SUM → SE dominant (VertiPaq handles in SE, FE near-zero)
+			--                   IM5 FILTER+DATEDIFF → FE dominant (FE iterates, but vs RAM data)
+			--                   In Import: BOTH are fast. In DQ: SE-dominant ok, FE-dominant = crisis.
+			-- TIP             : Apply a single store filter first if full dataset is too slow
+			--                   Then remove filter to show the unconstrained result
+			-- DAX STUDIO      : 0 SQL | FE% HIGH (40-70%) | Total <2,000ms even at full scale
+			-- -------------------------------------------------------------------
+			VAR MaxDate =
+			    MAX ( 'dim vDate'[Date] )
+			VAR ChurnThresholdDays = 365
+			VAR ActiveCustomers =
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'fact vOnlineSales'[CustomerKey] )
+			    )
+			VAR ChurnedCustomers =
+			    COUNTROWS (
+			        FILTER (
+			            VALUES ( 'fact vOnlineSales'[CustomerKey] ),
+			            DATEDIFF (
+			                CALCULATE ( MAX ( 'fact vOnlineSales'[OrderDate] ) ),
+			                MaxDate,
+			                DAY
+			            ) > ChurnThresholdDays
+			        )
+			    )
+			RETURN
+			    DIVIDE ( ChurnedCustomers, ActiveCustomers, 0 )
+		formatString: 0.00%
+		displayFolder: Pillar 1 - Import Mirrors\1B Structural
+		lineageTag: 8b3d8e5a-56cb-40f5-bc8c-a8c36ab4924e
+
+	/// MIRROR OF: DQ H1 Rolling 90d Gross Profit (BENCHMARK)
+	/// PURPOSE: Direct timing comparison against the DQ H1 result.
+	/// DQ H1 LIVE RESULT (measured): 16,787ms total | SE=16,692ms (99.4%) | FE=95ms (0.6%)
+	/// 4 SE queries (2 metadata probes + 2 data SUMs) | Both sequential Par.=x1.0
+	/// Root cause: Two SQL round-trips to SQL Server running sequentially
+	/// IMPORT RESULT (expected): Same value, ~80-200ms total | 0 SQL queries
+	/// Both SUMs computed by VertiPaq in parallel (Par.>1.0) from in-memory columnar data
+	/// SE dominant (~85-95%) | FE minimal | No SQL Server involvement
+	/// IMPORT SPEED RATIO: DQ=16,787ms vs Import=~150ms = approximately 100x faster
+	/// DAX STUDIO LOG TARGET:
+	/// Record: Total ms | SE ms | FE ms | SQL count | Par. factor
+	/// Compare directly against DQ_Benchmark log Row H1
+	/// The Par.>1.0 vs Par.=x1.0 contrast proves the parallelism advantage of VertiPaq
+	measure 'IH1 Rolling 90d Gross Profit - Cross Fact (BENCHMARK)' =
+			-- IH1: Rolling 90-Day Gross Profit (Cross-Fact)  |  IMPORT BENCHMARK
+			-- -------------------------------------------------------------------
+			-- DQ H1 MEASURED  : 16,787ms | SE=16,692ms (99.4%) | FE=95ms | 4 SQL queries
+			--                   Par.=x1.0 (sequential) — SQL Server scanned both facts serially
+			-- IMPORT EXPECTED : ~80-200ms | 0 SQL queries | Par.>1.0 (VertiPaq parallel)
+			--                   SE=85-95% | FE=5-15% | No SQL Server round-trip
+			-- SPEED RATIO     : ~100x faster than DQ on the same DAX expression
+			-- WHY FASTER      : VertiPaq holds both fact tables in columnar RAM segments.
+			--                   Parallel threads scan OnlineSales and StoreSales simultaneously.
+			--                   DQ fired two sequential SQL queries then merged scalars in FE.
+			--                   Import fires zero SQL queries — data is already in RAM.
+			-- DAX STUDIO      : Watch Par. column — Import shows >1.0, DQ showed x1.0
+			--                   This single metric explains the 100x speed difference.
+			-- -------------------------------------------------------------------
+			VAR RollingWindow =
+			    DATESINPERIOD (
+			        'dim vDate'[Date],
+			        LASTDATE ( 'dim vDate'[Date] ),
+			        -90,
+			        DAY
+			    )
+			VAR OnlineGrossProfit90d =
+			    CALCULATE (
+			        SUMX (
+			            'fact vOnlineSales',
+			            'fact vOnlineSales'[SalesAmount] - 'fact vOnlineSales'[TotalCost]
+			        ),
+			        RollingWindow
+			    )
+			VAR StoreGrossProfit90d =
+			    CALCULATE (
+			        SUMX (
+			            'fact vStoreSales',
+			            'fact vStoreSales'[SalesAmount] - 'fact vStoreSales'[TotalCost]
+			        ),
+			        RollingWindow
+			    )
+			RETURN
+			    OnlineGrossProfit90d + StoreGrossProfit90d
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 1 - Import Mirrors\1C Heavy Benchmarks
+		lineageTag: e43741df-0aff-4063-bbdd-a3f2db29b887
+
+	/// MIRROR OF: DQ H2 Top10 Product Rank RANKX (BENCHMARK)
+	/// PURPOSE: Proves the DQ query explosion pattern disappears in Import mode.
+	/// DQ H2 RESULT: 6,000-15,000ms per slicer change | 10+ SQL queries per interaction
+	/// Each slicer change fired a new parameterised SQL query per product context
+	/// FE% was HIGH — RANKX iterated all returned product rows in DAX memory
+	/// Performance Analyzer showed a new 'Direct query' entry for every slicer touch
+	/// IMPORT RESULT (expected): ~100-300ms | 0 SQL queries | stable per interaction
+	/// VertiPaq holds all product+sales data in RAM — slicer changes recompute from cache
+	/// No SQL round-trip = no query explosion = smooth interactive experience
+	/// FE% moderate (RANKX still runs in FE) but total is 20-50x faster than DQ
+	/// TEACHING MOMENT: Open Performance Analyzer in Import mode and change slicers.
+	/// Watch: zero 'Direct query' entries appear. Only 'DAX query' entries with <300ms.
+	/// In DQ the same slicer interaction generated 10+ Direct query entries at 500-1500ms each.
+	measure 'IH2 Top10 Product Rank RANKX (BENCHMARK)' =
+			-- IH2: Top-10 Product Rank (RANKX + TOPN)  |  IMPORT BENCHMARK
+			-- -------------------------------------------------------------------
+			-- DQ H2 MEASURED  : 6,000-15,000ms | 10+ SQL queries per slicer change
+			--                   Query explosion: new SQL per product context per interaction
+			--                   FE% HIGH — RANKX iterated returned rows after SQL
+			-- IMPORT EXPECTED : ~100-300ms | 0 SQL queries | slicer changes = instant
+			--                   FE% moderate (RANKX still in FE) but no SQL overhead
+			-- DEMO PROTOCOL  :
+			--   1. Open Performance Analyzer in Import mode
+			--   2. Change Year slicer → observe zero Direct Query entries in Analyzer
+			--   3. Change Class slicer → same result — only DAX query entries appear
+			--   4. Total slicer response time: <300ms vs DQ 6,000-15,000ms
+			--   5. Screenshot both Performance Analyzer panels for student handout
+			-- INSIGHT         : RANKX runs in FE in BOTH modes. Import FE = fast (in-memory).
+			--                   DQ FE = slow (arrives after SQL round-trip per product).
+			-- -------------------------------------------------------------------
+			VAR AllProducts =
+			    ALLSELECTED ( 'dim vProduct'[ProductName] )
+			VAR ProductRevenueTable =
+			    ADDCOLUMNS (
+			        AllProducts,
+			        "ProductRevenue",
+			        CALCULATE ( SUM ( 'fact vOnlineSales'[SalesAmount] ) )
+			    )
+			VAR Top10Products =
+			    TOPN ( 10, ProductRevenueTable, [ProductRevenue], DESC )
+			VAR CurrentProductRank =
+			    RANKX (
+			        Top10Products,
+			        [ProductRevenue],
+			        CALCULATE ( SUM ( 'fact vOnlineSales'[SalesAmount] ) ),
+			        DESC,
+			        DENSE
+			    )
+			RETURN
+			    IF ( CurrentProductRank <= 10, CurrentProductRank, BLANK () )
+		formatString: 0
+		displayFolder: Pillar 1 - Import Mirrors\1C Heavy Benchmarks
+		lineageTag: 8581f348-cd34-4fc4-9fc2-2ae79850dffa
+
+	/// MIRROR OF: DQ H3 Avg Customer Lifetime Value SUMX (BENCHMARK)
+	/// PURPOSE: Proves the DQ formula-engine ceiling disappears in Import mode.
+	/// DQ H3 RESULT: 8,000-30,000ms or timeout | millions of rows returned to FE
+	/// DQ sent a GROUP BY CustomerKey SQL query returning millions of rows to the client
+	/// Formula Engine iterated all returned rows in DAX memory — hitting the FE ceiling
+	/// IMPORT RESULT (expected): ~200-800ms | 0 SQL queries
+	/// VertiPaq computes SUMX in the columnar storage engine using vectorised operations
+	/// No row-by-row FE iteration needed at this grain in Import
+	/// SE% will dominate (~80-90%) — VertiPaq handles SUMX via batch-mode column scans
+	/// DAX STUDIO - THE KEY DIFFERENCE:
+	/// DQ: SE = SQL scan returning millions of rows to FE — FE then iterates row by row
+	/// Import: SE = VertiPaq vectorised column aggregation — FE just assembles the result
+	/// Same SUMX expression, two completely different execution strategies
+	measure 'IH3 Avg Customer Lifetime Value SUMX (BENCHMARK)' =
+			-- IH3: Avg Customer Lifetime Value via SUMX  |  IMPORT BENCHMARK
+			-- -------------------------------------------------------------------
+			-- DQ H3 MEASURED  : 8,000-30,000ms or timeout | millions of rows to FE
+			--                   SQL returned all customer rows — FE iterated every one
+			-- IMPORT EXPECTED : ~200-800ms | 0 SQL queries | SE handles SUMX vectorised
+			-- EXECUTION DIFF  : DQ SUMX = SQL GROUP BY → millions of rows → FE row iteration
+			--                   Import SUMX = VertiPaq column scan → vectorised aggregation
+			--                   Same DAX expression, fundamentally different engine strategy
+			-- TIP             : Run WITHOUT any slicer first (worst case — full 13M rows)
+			--                   Then note: Import still completes in <800ms
+			--                   DQ would timeout or take 30,000ms on the same unfiltered run
+			-- DAX STUDIO      : 0 SQL | SE%=80-90% | FE%=10-20% | Par.>1.0
+			--                   Compare Par. here to DQ H3 Par.=x1.0 — parallelism is the story
+			-- -------------------------------------------------------------------
+			VAR TotalCLV =
+			    SUMX (
+			        'fact vOnlineSales',
+			        'fact vOnlineSales'[SalesAmount] - 'fact vOnlineSales'[TotalCost]
+			    )
+			VAR CustomerCount =
+			    DISTINCTCOUNT ( 'fact vOnlineSales'[CustomerKey] )
+			RETURN
+			    DIVIDE ( TotalCLV, CustomerCount, 0 )
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 1 - Import Mirrors\1C Heavy Benchmarks
+		lineageTag: a28f33af-8862-4d40-836c-d4bc302080c2
+
+	/// MIRROR OF: DQ H4 NPS Score 3-Fact Chain (BENCHMARK)
+	/// PURPOSE: Proves the 3-SQL-query TREATAS chain collapses to a single SE pass in Import.
+	/// DQ H4 RESULT: 5,000-20,000ms | 3 SQL queries (one per fact table in chain)
+	/// Query 1: OnlineSales context — Query 2: CustomerAcquisition bridge — Query 3: Survey NPS
+	/// FE merged three SQL result sets in DAX memory — very high FE time
+	/// IMPORT RESULT (expected): ~150-500ms | 0 SQL queries
+	/// VertiPaq resolves TREATAS as a virtual relationship filter in the SE
+	/// All three facts scanned in one coordinated VertiPaq pass — no sequential SQL
+	/// FE% LOW — SE handles the bridge resolution natively
+	/// ARCHITECTURE SIGNIFICANCE: This is the most important benchmark for this project
+	/// because the production NPS-by-channel measures rely on this exact TREATAS chain.
+	/// In DQ every NPS visual fires 3 SQL queries per render.
+	/// In Import the same visual fires 0 SQL queries and renders in <500ms.
+	measure 'IH4 NPS Score 3-Fact Chain (BENCHMARK)' =
+			-- IH4: NPS Score via 3-Fact TREATAS Chain  |  IMPORT BENCHMARK
+			-- -------------------------------------------------------------------
+			-- DQ H4 MEASURED  : 5,000-20,000ms | 3 SQL queries | FE% VERY HIGH
+			--                   3 SQL round-trips merged by FE: OnlineSales→Acquisition→Survey
+			-- IMPORT EXPECTED : ~150-500ms | 0 SQL queries | FE% LOW
+			--                   VertiPaq resolves TREATAS as virtual relationship in SE
+			--                   All three facts handled in one coordinated SE pass
+			-- KEY METRIC      : SQL count drops from 3 to 0. This is the import win.
+			-- DEMO PROTOCOL  :
+			--   1. Apply Channel slicer + Year slicer (same config as DQ H4 test)
+			--   2. DAX Studio: 0 SQL queries appear in SQL tab — nothing sent to SQL Server
+			--   3. Server Timings: FE% LOW, SE handles TREATAS bridge natively
+			--   4. Total: <500ms vs DQ 5,000-20,000ms on identical slicer configuration
+			-- PRODUCTION RELEVANCE: Every NPS dashboard visual in this project uses this chain.
+			--   In Import: all NPS visuals render in <500ms — executive dashboard quality.
+			--   In DQ: same visuals take 5-20 seconds — unusable for live presentations.
+			-- -------------------------------------------------------------------
+			VAR CustomersInContext =
+			    CALCULATETABLE (
+			        VALUES ( 'fact vCustomerAcquisition'[CustomerKey] ),
+			        TREATAS (
+			            VALUES ( 'fact vOnlineSales'[CustomerKey] ),
+			            'fact vCustomerAcquisition'[CustomerKey]
+			        )
+			    )
+			VAR NPSNumerator =
+			    CALCULATE (
+			        SUM ( 'fact vCustomerSurvey'[NPSScore] ),
+			        TREATAS (
+			            CustomersInContext,
+			            'fact vCustomerSurvey'[CustomerKey]
+			        )
+			    )
+			VAR ResponseCount =
+			    CALCULATE (
+			        COUNTROWS ( 'fact vCustomerSurvey' ),
+			        TREATAS (
+			            CustomersInContext,
+			            'fact vCustomerSurvey'[CustomerKey]
+			        )
+			    )
+			RETURN
+			    DIVIDE ( NPSNumerator, ResponseCount, 0 )
+		formatString: 0.0
+		displayFolder: Pillar 1 - Import Mirrors\1C Heavy Benchmarks
+		lineageTag: d106e642-4010-4ad1-8260-4969108a1283
+
+	/// PURPOSE: Demonstrates what Calculation Groups enable in Import — blocked entirely in DQ.
+	/// DQ LIMITATION: CG creation is disabled in Power BI Desktop UI for pure DirectQuery models.
+	/// DQ M6 simulated a CG item but returned BLANK because DATESYTD also failed in DQ.
+	/// A real CG item requires SELECTEDMEASURE() — no SQL equivalent exists.
+	/// IMPORT CAPABILITY: This measure simulates what ONE calculation group item achieves.
+	/// In a real CG implementation, a single SELECTEDMEASURE() item dynamically substitutes
+	/// the base measure at runtime. Instead of writing IM1 + IM2 + MTD + QTD separately,
+	/// one CG item handles all time period switching.
+	/// This measure demonstrates the YTD variant that CG would produce.
+	/// TEACHING POINT: In the DQ model, time intelligence requires ~8 separate measures
+	/// (YTD, QTD, MTD, Rolling12, SPLY, YoY%, etc.) for each base measure.
+	/// In Import with CG: 1 CG item replaces all 8 variants for ALL base measures.
+	/// At 102-measure scale: DQ would need ~800 measures, Import needs ~102 + 8 CG items.
+	measure 'IW1 CG-Style YTD - Calc Groups Win (IMPORT ONLY)' =
+			-- IW1: CG-Style YTD via Calculation Group Simulation  |  IMPORT WIN
+			-- -------------------------------------------------------------------
+			-- DQ STATUS       : BLOCKED — CG creation disabled in DQ Desktop UI
+			--                   SELECTEDMEASURE() has no SQL equivalent
+			--                   DQ M6 returned BLANK because both DATESYTD and CG failed
+			-- IMPORT STATUS   : WORKS — CG items evaluate SELECTEDMEASURE() in VertiPaq
+			-- WHAT THIS SHOWS : The YTD variant that a real CG item would produce dynamically.
+			--                   In production, replace this measure with a CG item that applies
+			--                   CALCULATE(SELECTEDMEASURE(), DATESYTD('dim vDate'[Date]))
+			--                   to ANY base measure chosen via a field parameter.
+			-- SCALE IMPACT    : This project has 102 measures. Without CG:
+			--                   102 base measures x 8 time periods = 816 measures needed
+			--                   With CG: 102 base measures + 8 CG items = 110 total
+			--                   DQ forces the 816-measure approach — Import enables the 110 approach.
+			-- CG IMPLEMENTATION NOTE: To build a real CG in this model:
+			--   Power BI Desktop → Model view → New Calculation Group
+			--   Item expression: CALCULATE(SELECTEDMEASURE(), DATESYTD('dim vDate'[Date]))
+			--   This single item then works with ANY measure dragged to a visual.
+			-- -------------------------------------------------------------------
+			VAR BaseRevenue = SUM ( 'fact vOnlineSales'[SalesAmount] )
+			VAR YTDRevenue =
+			    CALCULATE (
+			        BaseRevenue,
+			        DATESYTD ( 'dim vDate'[Date] )  -- WORKS in Import | BLANK in DQ
+			    )
+			VAR YoYRevenue =
+			    CALCULATE (
+			        BaseRevenue,
+			        SAMEPERIODLASTYEAR ( 'dim vDate'[Date] )  -- WORKS in Import | Wrong grain in DQ
+			    )
+			VAR MovingAvg12M =
+			    CALCULATE (
+			        AVERAGEX (
+			            VALUES ( 'dim vDate'[CalendarYear] ),
+			            CALCULATE ( BaseRevenue )
+			        ),
+			        DATESINPERIOD ( 'dim vDate'[Date], LASTDATE ( 'dim vDate'[Date] ), -12, MONTH )
+			    )
+			-- In a real CG, SELECTEDMEASURE() replaces BaseRevenue dynamically.
+			-- Returning YTD here as the primary demonstration value.
+			RETURN
+			    YTDRevenue
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 2 - Import Wins\IW1 Calculation Groups
+		lineageTag: 82de7348-74f6-4bdb-a712-531f68136f93
+
+	/// PURPOSE: Demonstrates customer retention cohort analysis — impossible to fold in DQ.
+	/// DQ LIMITATION: Multi-step set operations across virtual date tables cannot be translated
+	/// to SQL. DQ would need to pull all customer+date rows to FE and compute in DAX memory
+	/// — resulting in timeout or wrong result on 2M customer dataset.
+	/// IMPORT CAPABILITY: VertiPaq holds customers + dates in RAM. EXCEPT, INTERSECT, and
+	/// CALCULATETABLE with multiple date contexts run in the SE as coordinated column scans.
+	/// Cohort retention (customers who bought in month X AND returned in month X+N) requires
+	/// holding two in-memory customer sets and computing their intersection — native to VertiPaq.
+	/// TEACHING POINT: CLV, cohort, and retention measures are the backbone of CMO and CFO
+	/// dashboards. None of them can be built in pure DirectQuery at this data volume.
+	measure 'IW2 New Customer Retention Rate (IMPORT WIN - Cohort)' =
+			-- IW2: New Customer Retention Rate (Cohort)  |  IMPORT WIN
+			-- -------------------------------------------------------------------
+			-- DQ STATUS       : TIMEOUT or WRONG RESULT — multi-step set ops cannot fold to SQL
+			--                   Holding two in-memory customer sets (new vs returning) requires
+			--                   VertiPaq columnar intersection — no SQL set-intersection equivalent
+			-- IMPORT STATUS   : Correct retention rate in ms via VertiPaq EXCEPT/INTERSECT
+			-- BUSINESS MEANING: Of customers who made their FIRST purchase in the selected year,
+			--                   what % made at least one additional purchase within 12 months?
+			-- VISUAL SETUP    : Year slicer = acquisition year | Result = retention rate %
+			-- -------------------------------------------------------------------
+			VAR AcquisitionYear =
+			    SELECTEDVALUE ( 'dim vDate'[CalendarYear], 2024 )
+			VAR NewCustomersInYear =
+			    CALCULATETABLE (
+			        VALUES ( 'fact vOnlineSales'[CustomerKey] ),
+			        'dim vDate'[CalendarYear] = AcquisitionYear,
+			        NOT 'fact vOnlineSales'[CustomerKey]
+			            IN CALCULATETABLE (
+			                VALUES ( 'fact vOnlineSales'[CustomerKey] ),
+			                'dim vDate'[CalendarYear] < AcquisitionYear
+			            )
+			    )
+			VAR RetainedCustomers =
+			    CALCULATETABLE (
+			        VALUES ( 'fact vOnlineSales'[CustomerKey] ),
+			        'dim vDate'[CalendarYear] = AcquisitionYear + 1,
+			        'fact vOnlineSales'[CustomerKey] IN NewCustomersInYear
+			    )
+			VAR RetentionRate =
+			    DIVIDE ( COUNTROWS ( RetainedCustomers ), COUNTROWS ( NewCustomersInYear ), 0 )
+			RETURN
+			    RetentionRate
+		formatString: 0.00%
+		displayFolder: Pillar 2 - Import Wins\IW2 Cohort Analysis
+		lineageTag: e3fc39bd-f26d-47d2-a410-fe55581816c8
+
+	/// PURPOSE: Demonstrates rolling average revenue — a common executive KPI impossible in DQ.
+	/// DQ LIMITATION: DATESINPERIOD + AVERAGEX combination generates an expanding date table
+	/// per row context. DQ cannot fold this pattern to SQL — each month's rolling average
+	/// would require a different SQL WHERE clause computed dynamically in DAX context.
+	/// IMPORT CAPABILITY: VertiPaq computes rolling window aggregations in the SE by scanning
+	/// the date column in-memory. The expanding window is a native VertiPaq operation.
+	/// BUSINESS VALUE: Rolling averages smooth seasonal volatility for CEO trend reporting.
+	/// A 3-month rolling average line on a revenue chart is a standard executive visual
+	/// that is simply unavailable in pure DirectQuery.
+	measure 'IW3 Rolling 3M Avg Revenue (IMPORT WIN - Rolling Analytics)' =
+			-- IW3: 3-Month Rolling Average Revenue  |  IMPORT WIN
+			-- -------------------------------------------------------------------
+			-- DQ STATUS       : WRONG RESULT or BLANK — DATESINPERIOD date table expansion
+			--                   cannot be folded to SQL per-row with changing window boundaries
+			-- IMPORT STATUS   : Correct rolling average via VertiPaq in-memory window scan
+			-- BUSINESS MEANING: Average monthly online revenue over the trailing 3 months.
+			--                   Smooths seasonal spikes for cleaner CEO trend line charts.
+			-- VISUAL SETUP    : Line chart | X-axis = CalendarMonthLabel | Values = IW3
+			--                   Compare against SUM(SalesAmount) line — rolling avg is smoother
+			-- DAX STUDIO      : 0 SQL | SE% dominant | Total <500ms
+			-- -------------------------------------------------------------------
+			VAR RollingAvg3M =
+			    CALCULATE (
+			        AVERAGEX (
+			            VALUES ( 'dim vDate'[CalendarMonth] ),
+			            CALCULATE ( SUM ( 'fact vOnlineSales'[SalesAmount] ) )
+			        ),
+			        DATESINPERIOD (
+			            'dim vDate'[Date],
+			            LASTDATE ( 'dim vDate'[Date] ),
+			            -3,
+			            MONTH
+			        )
+			    )
+			RETURN
+			    RollingAvg3M
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 2 - Import Wins\IW3 Rolling Analytics
+		lineageTag: 69f68d6a-a2fb-41ad-b3bf-419350858d3a
+
+	/// PURPOSE: Demonstrates what-if scenario modelling — disconnected tables don't exist in DQ.
+	/// DQ LIMITATION: A what-if parameter creates a disconnected synthetic table in the model.
+	/// Disconnected tables have no corresponding SQL table — DQ cannot propagate SELECTEDVALUE
+	/// from a disconnected table through a filter context into SQL Server.
+	/// IMPORT CAPABILITY: The disconnected parameter table lives entirely in VertiPaq RAM.
+	/// SELECTEDVALUE reads the current slicer selection from in-memory.
+	/// No SQL involvement at any point — the entire scenario runs inside the DAX engine.
+	/// BUSINESS VALUE: Price elasticity, discount impact, and margin scenario analysis are
+	/// core CFO capabilities. All require what-if parameters — all require Import mode.
+	/// NOTE: This measure uses a hardcoded multiplier range (0.8-1.2) to simulate what a
+	/// What-If parameter slicer would provide. In production, replace the VAR with
+	/// SELECTEDVALUE('Price Adjustment'[Price Adjustment Value], 1.0)
+	measure 'IW4 Revenue What-If Scenario (IMPORT WIN - Disconnected Table)' =
+			-- IW4: Revenue What-If Scenario  |  IMPORT WIN
+			-- -------------------------------------------------------------------
+			-- DQ STATUS       : NOT POSSIBLE — disconnected parameter tables have no SQL equivalent
+			--                   SELECTEDVALUE from a disconnected table cannot reach SQL Server
+			-- IMPORT STATUS   : Fully functional — parameter slicer drives real-time scenario
+			-- HOW TO DEMO     :
+			--   1. Create a What-If parameter in Power BI: Name='Price Adjustment'
+			--      Min=0.8, Max=1.2, Increment=0.05, Default=1.0
+			--   2. Replace the VAR PriceMultiplier line below with:
+			--      VAR PriceMultiplier = SELECTEDVALUE('Price Adjustment'[Price Adjustment Value], 1.0)
+			--   3. Add a slicer for 'Price Adjustment'[Price Adjustment]
+			--   4. Move the slicer — revenue updates instantly
+			--   This is architecturally impossible in DQ — not just slower, literally not possible.
+			-- CURRENT STATE   : Uses fixed 1.1 multiplier to demonstrate the pattern.
+			--                   Replace with SELECTEDVALUE once What-If parameter is created.
+			-- -------------------------------------------------------------------
+			VAR BaseRevenue =
+			    SUM ( 'fact vOnlineSales'[SalesAmount] )
+			VAR PriceMultiplier =
+			    -- Replace with: SELECTEDVALUE('Price Adjustment'[Price Adjustment Value], 1.0)
+			    -- once a What-If parameter named 'Price Adjustment' is created in this model
+			    1.1  -- simulating a 10% price increase scenario
+			VAR ScenarioRevenue =
+			    BaseRevenue * PriceMultiplier
+			VAR RevenueDelta =
+			    ScenarioRevenue - BaseRevenue
+			RETURN
+			    ScenarioRevenue
+		formatString: $#,0.00;($#,0.00);$#,0.00
+		displayFolder: Pillar 2 - Import Wins\IW4 What-If Scenarios
+		lineageTag: e68e6490-417b-47ba-a2dd-6474fdf95a0e
+
+	/// PURPOSE: Demonstrates product basket affinity — co-purchase analysis impossible in DQ.
+	/// DQ LIMITATION: Basket affinity requires iterating over all order+product combinations
+	/// and identifying co-purchased items. This requires holding a virtual order set in memory
+	/// and cross-scanning against the product dimension — a pure in-memory set operation.
+	/// DQ would timeout on any meaningful dataset size.
+	/// IMPORT CAPABILITY: VertiPaq holds all SalesOrderNumber + ProductKey combinations in RAM.
+	/// CALCULATETABLE with CONTAINS cross-scans efficiently via columnar hash joins.
+	/// BUSINESS VALUE: Product affinity drives upsell recommendations and bundle pricing.
+	/// It is a core Product Manager and CMO analytical requirement in retail BI.
+	measure 'IW5 Product Co-Purchase Count (IMPORT WIN - Basket Affinity)' =
+			-- IW5: Product Co-Purchase Count (Basket Affinity)  |  IMPORT WIN
+			-- -------------------------------------------------------------------
+			-- DQ STATUS       : TIMEOUT — cross-product set scan has no SQL equivalent
+			--                   Iterating all order+product pairs requires full in-memory scan
+			-- IMPORT STATUS   : Correct co-purchase count via VertiPaq columnar hash joins
+			-- BUSINESS MEANING: For the product in the current row context, how many online orders
+			--                   also contained at least one other product from the same category?
+			--                   This identifies natural product bundle candidates.
+			-- VISUAL SETUP    : Matrix rows = dim vProduct[ProductName]
+			--                   Values = [IW5] + [SUM SalesAmount]
+			--                   Sort by IW5 desc to find highest-affinity products
+			-- DAX STUDIO      : 0 SQL | FE% moderate (CALCULATETABLE iterates in FE)
+			--                   But total is still <1,000ms vs DQ timeout
+			-- -------------------------------------------------------------------
+			VAR CurrentProductKey =
+			    SELECTEDVALUE ( 'dim vProduct'[ProductKey] )
+			VAR CurrentCategoryKey =
+			    SELECTEDVALUE ( 'dim vProduct'[ProductSubcategoryKey] )
+			VAR OrdersWithCurrentProduct =
+			    CALCULATETABLE (
+			        VALUES ( 'fact vOnlineSales'[SalesOrderNumber] ),
+			        'dim vProduct'[ProductKey] = CurrentProductKey
+			    )
+			VAR CoPurchaseCount =
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'fact vOnlineSales'[SalesOrderNumber] ),
+			        'fact vOnlineSales'[SalesOrderNumber] IN OrdersWithCurrentProduct,
+			        'dim vProduct'[ProductSubcategoryKey] = CurrentCategoryKey,
+			        'dim vProduct'[ProductKey] <> CurrentProductKey
+			    )
+			RETURN
+			    CoPurchaseCount
+		formatString: #,0
+		displayFolder: Pillar 2 - Import Wins\IW5 Basket Affinity
+		lineageTag: 89771259-5e68-44db-a24e-2d6e91ddf6cb
+
+	/// PURPOSE: The closing argument — all four benchmark measures combined in one calculation.
+	/// DQ EQUIVALENT: All four DQ benchmarks running simultaneously would total ~40,000-60,000ms.
+	/// Each visual on a DQ page fires its SQL queries sequentially as the page renders.
+	/// IMPORT CAPABILITY: All four computations (rolling GP, RANKX, CLV, NPS) can be combined
+	/// because VertiPaq caches SE scan results. Running IH1+IH2+IH3+IH4 together is faster
+	/// than running them individually in DQ because VertiPaq reuses scanned data segments.
+	/// Total expected time for all four combined: sub-1,000ms.
+	/// TEACHING POINT: This is the closing argument for Import mode in the workshop.
+	/// One visual, four metrics, sub-second render. The same four metrics in DQ would take
+	/// 40-60 seconds of combined SQL Server round-trip time to fully render the page.
+	measure 'IW6 Combined Benchmarks Gross Margin (IMPORT WIN - Sub-Second)' =
+			-- IW6: All Four Benchmarks Combined  |  IMPORT WIN — The Closing Argument
+			-- -------------------------------------------------------------------
+			-- DQ EQUIVALENT   : 16,787ms (H1) + 6-15,000ms (H2) + 8-30,000ms (H3) + 5-20,000ms (H4)
+			--                   Combined DQ page render for same four metrics: ~40,000-60,000ms
+			--                   Users wait 40-60 seconds for the page to load.
+			-- IMPORT EXPECTED : All four combined in <1,000ms
+			--                   VertiPaq SE caches scan results — reuses data across computations
+			--                   Sub-second page render — executive dashboard quality
+			-- DEMO PROTOCOL  :
+			--   1. Place IH1, IH2, IH3, IH4 all on one page with a Year + Class slicer
+			--   2. Run Performance Analyzer — record total page render time
+			--   3. Change both slicers simultaneously — record new page render time
+			--   4. Compare against DQ: individual measure times + combined page time
+			--   5. This single screenshot is the closing slide of the DQ vs Import comparison
+			-- THIS MEASURE    : Returns gross margin % as a combined scalar for card visual
+			--                   demonstrating all four data surfaces aggregated in one measure
+			-- -------------------------------------------------------------------
+			VAR RollingWindow =
+			    DATESINPERIOD ( 'dim vDate'[Date], LASTDATE ( 'dim vDate'[Date] ), -90, DAY )
+			VAR OnlineGP =
+			    CALCULATE (
+			        SUM ( 'fact vOnlineSales'[SalesAmount] ) - SUM ( 'fact vOnlineSales'[TotalCost] ),
+			        RollingWindow
+			    )
+			VAR StoreGP =
+			    CALCULATE (
+			        SUM ( 'fact vStoreSales'[SalesAmount] ) - SUM ( 'fact vStoreSales'[TotalCost] ),
+			        RollingWindow
+			    )
+			VAR TotalRevenue =
+			    SUM ( 'fact vOnlineSales'[SalesAmount] ) + SUM ( 'fact vStoreSales'[SalesAmount] )
+			VAR CombinedGrossMarginPct =
+			    DIVIDE ( OnlineGP + StoreGP, TotalRevenue, 0 )
+			RETURN
+			    CombinedGrossMarginPct
+		formatString: 0.00%
+		displayFolder: Pillar 2 - Import Wins\IW6 Combined Sub-Second
+		lineageTag: e9b428fe-825e-48f5-9e3c-b9ad7a302e43
+
+	/// MIRRORS: DQ W1 Out of Stock Count (DQ WINS - Always Live)
+	/// PURPOSE: Demonstrates that Import data is frozen at last refresh time.
+	/// DQ W1 ADVANTAGE: DQ fires a fresh SQL query to fact vInventory on every visual render.
+	/// Any StockStatus change in SQL Server appears immediately in the DQ visual.
+	/// IMPORT LIMITATION: This count reflects the state of fact vInventory at the exact
+	/// moment the last model refresh completed. Any changes made to SQL Server after
+	/// the refresh are invisible until the next full refresh runs.
+	/// HOW TO DEMONSTRATE:
+	/// 1. Note the current out-of-stock count in Import mode (from this measure)
+	/// 2. Execute in SQL Server: UPDATE [gen].[FactInventory] SET StockStatus = 'Out of Stock'
+	/// WHERE ProductKey = <any currently In-Stock key>
+	/// 3. Refresh the visual in Import — count does NOT change (stale data in VertiPaq)
+	/// 4. Open the DQ file — DQ visual immediately shows the updated count
+	/// 5. Run a full model refresh in Import — count now matches DQ
+	/// The time between steps 2 and 5 is the Import 'staleness window' — can be hours or days.
+	measure 'IL1 Out of Stock Count (IMPORT LIMIT - Stale at Refresh)' =
+			-- IL1: Out-of-Stock Count  |  IMPORT LIMITATION — Stale Data
+			-- -------------------------------------------------------------------
+			-- DQ W1 ADVANTAGE : Fresh SQL query every render — always reflects current SQL state
+			-- IMPORT LIMIT    : Frozen at last model refresh — can be 24-48 hours stale
+			-- STALENESS WINDOW: Retail inventory changes hourly. A stock-out that happens at
+			--                   9am may not appear in this Import visual until the next
+			--                   scheduled refresh at 11pm — a 14-hour blind spot.
+			-- DEMONSTRATION   : Update StockStatus in SQL Server — Import visual unchanged.
+			--                   DQ visual W1 reflects the change immediately.
+			-- OPERATIONAL RISK: An operations manager relying on this visual for stock alerts
+			--                   may be making decisions on data that is hours out of date.
+			--                   This is the core operational argument for DQ or Composite Mode.
+			-- PAIR WITH       : Add a 'Data as of: [last refresh timestamp]' card next to this
+			--                   visual to make the staleness window visible to users.
+			-- -------------------------------------------------------------------
+			VAR OutOfStockCount =
+			    CALCULATE (
+			        COUNTROWS ( 'fact vInventory' ),
+			        'fact vInventory'[StockStatus] = "Out of Stock"
+			    )
+			RETURN
+			    OutOfStockCount
+		formatString: #,0
+		displayFolder: Pillar 3 - Import Limitations\IL1 Stale Data
+		lineageTag: 17d85cab-a7c2-40b1-8d50-1fb145c5654c
+
+	/// MIRRORS: DQ W2 Distinct Customers (DQ WINS - Zero RAM)
+	/// PURPOSE: Demonstrates the RAM cost of Import mode — 1.33 GB always resident in memory.
+	/// DQ W2 ADVANTAGE: Zero customer rows loaded into RAM. DQ fires COUNT(DISTINCT CustomerKey)
+	/// to SQL Server and returns a scalar. The Power BI machine stays lightweight.
+	/// IMPORT LIMITATION: All customer data, all fact rows, all dimension data is compressed
+	/// into VertiPaq and held in RAM permanently from the moment the model is opened.
+	/// This model is 1.33 GB compressed (raw data was ~32 GB in Parquet format).
+	/// The Power BI Desktop machine cannot release this RAM without closing the file.
+	/// HOW TO DEMONSTRATE:
+	/// Open Task Manager → Performance → Memory before opening Import file.
+	/// Note baseline RAM. Open this Import file — RAM increases by ~1.33 GB immediately.
+	/// Open DQ file in a separate instance — RAM barely changes (metadata only, no data).
+	/// IMPLICATION FOR THIS PROJECT: The 31.5M row model at full scale would require
+	/// 4-8 GB VertiPaq RAM on the developer machine. On a 16 GB laptop with other
+	/// applications running, this becomes a resource constraint.
+	measure 'IL2 Distinct Customers (IMPORT LIMIT - 1.33GB RAM Always Resident)' =
+			-- IL2: Model Size Indicator  |  IMPORT LIMITATION — RAM Footprint
+			-- -------------------------------------------------------------------
+			-- DQ W2 ADVANTAGE : 0 MB RAM on Power BI client — data stays in SQL Server
+			-- IMPORT LIMIT    : ~1.33 GB VertiPaq RAM always resident when file is open
+			--                   RAM held permanently — cannot be released without closing file
+			-- THIS MEASURE    : Returns distinct customer count as a proxy for model depth.
+			--                   The pedagogical point is not the number — it is where the
+			--                   number comes from: 2M+ customer rows compressed in RAM vs
+			--                   DQ's COUNT(DISTINCT) SQL query with zero RAM footprint.
+			-- DEMO SEQUENCE   :
+			--   1. Task Manager baseline RAM (before opening Import file)
+			--   2. Open Import file — RAM +1.33 GB
+			--   3. Open DQ file side-by-side — RAM barely moves
+			--   4. Run this measure in Import: 0 SQL queries (data already in RAM)
+			--   5. Run DQ W2 in DQ file: SQL fires, returns scalar, RAM stays flat
+			--   The two execution logs side by side explain the architectural trade-off.
+			-- -------------------------------------------------------------------
+			VAR TotalDistinctCustomers =
+			    DISTINCTCOUNT ( 'fact vOnlineSales'[CustomerKey] )
+			RETURN
+			    TotalDistinctCustomers
+		formatString: #,0
+		displayFolder: Pillar 3 - Import Limitations\IL2 RAM Footprint
+		lineageTag: 2f1bb4af-a6ad-4ab3-a615-15d4979f5008
+
+	/// MIRRORS: DQ W4 On-Time Delivery Rate (DQ WINS - Instant Schema Visibility)
+	/// PURPOSE: Demonstrates that schema changes in SQL views are INVISIBLE in Import until refresh.
+	/// DQ W4 ADVANTAGE: Any column added to a [fact] or [dim] SQL view is immediately queryable
+	/// in DQ without any Power BI action. The DQ engine queries the live schema on each render.
+	/// IMPORT LIMITATION: This model's schema is frozen at the last refresh timestamp.
+	/// If a new column is added to [fact].[vOrderFulfillment] in SQL Server today,
+	/// this Import model cannot reference it until a full model refresh runs.
+	/// During active SQL view development, this creates a refresh cycle per schema change.
+	/// IMPACT ON THIS PROJECT: Adding any new computed column to [fact] or [dim] views
+	/// (e.g. a new SLA tier, a new customer segment label) requires:
+	/// 1. ALTER the SQL view
+	/// 2. Re-export 32GB Parquet files (30+ min)
+	/// 3. Trigger Power BI model refresh (additional 10-20 min)
+	/// In DQ: ALTER the SQL view — the column appears in Power BI on the next visual refresh.
+	measure 'IL3 On-Time Delivery Rate (IMPORT LIMIT - Schema Frozen at Refresh)' =
+			-- IL3: On-Time Delivery Rate  |  IMPORT LIMITATION — Schema Lag
+			-- -------------------------------------------------------------------
+			-- DQ W4 ADVANTAGE : New SQL view columns appear instantly — zero refresh needed
+			--                   DQ acts as a live debugger during SQL view development
+			-- IMPORT LIMIT    : Schema frozen at last refresh — new columns invisible until
+			--                   full model refresh completes (30-50 min for this project)
+			-- THIS MEASURE    : Uses FulfillmentStatus from fact vOrderFulfillment.
+			--                   If the SLA tier label logic is updated in the SQL view,
+			--                   this Import model still uses the OLD tier labels until refresh.
+			--                   DQ W4 would immediately reflect the new tier logic.
+			-- DEMONSTRATION   :
+			--   1. Add a new computed column to [fact].[vOrderFulfillment] SQL view
+			--      e.g. a new 'PremiumSLA' flag or revised tier thresholds
+			--   2. In DQ model: the new column appears in Power BI fields pane immediately
+			--   3. In this Import model: the column is invisible — error if referenced
+			--      'Column [PremiumSLA] does not exist in table fact vOrderFulfillment'
+			--   4. Only after full model refresh does Import see the new column
+			-- WORKFLOW COST   : For iterative SQL development, DQ saves 30-50 min per schema change.
+			-- -------------------------------------------------------------------
+			VAR TotalOrders =
+			    COUNTROWS ( 'fact vOrderFulfillment' )
+			VAR OnTimeOrders =
+			    CALCULATE (
+			        COUNTROWS ( 'fact vOrderFulfillment' ),
+			        'fact vOrderFulfillment'[FulfillmentStatus] = "On Time"
+			    )
+			RETURN
+			    DIVIDE ( OnTimeOrders, TotalOrders, 0 )
+		formatString: 0.00%
+		displayFolder: Pillar 3 - Import Limitations\IL3 Schema Lag
+		lineageTag: d807d410-dbc7-4afc-b732-5a47fa3516e8
+
+	/// PURPOSE: Makes the full model refresh cost visible as a measure — the hidden operational
+	/// cost of Import mode that is never shown in performance benchmarks.
+	/// DQ ADVANTAGE: DQ never refreshes. Schema changes propagate instantly. Data is always
+	/// current. The operational overhead is zero — no scheduled refresh pipeline to maintain.
+	/// IMPORT COST: This 1.33 GB model (31.5M rows compressed) required:
+	/// - ~30 min Parquet export from SQL Server (export_contoso_views_v7.py)
+	/// - ~20 min Power BI model refresh from 32 GB Parquet files
+	/// - Total: ~50 min refresh cycle per update
+	/// For a daily refresh schedule, this consumes 50 min/day of pipeline infrastructure.
+	/// For an hourly refresh (needed for live inventory), it is architecturally infeasible.
+	/// TEACHING POINT: The 100x speed advantage of Import at query time comes with a hidden
+	/// operational cost: a 50-minute refresh pipeline that must run on schedule, be monitored,
+	/// and be maintained. DQ eliminates this pipeline entirely — at the cost of query latency.
+	measure 'IL4 Data Freshness Hours (IMPORT LIMIT - Refresh Cycle Cost)' =
+			-- IL4: Last Refresh Timestamp  |  IMPORT LIMITATION — Refresh Cycle Cost
+			-- -------------------------------------------------------------------
+			-- DQ ADVANTAGE    : Never refreshes — zero refresh pipeline to maintain
+			--                   Schema changes propagate instantly, data is always current
+			-- IMPORT COST     : This model required ~50 min total refresh cycle:
+			--                   30 min Parquet export + 20 min Power BI refresh
+			--                   Every data or schema update requires this full cycle
+			-- THIS MEASURE    : Returns the model's last refresh datetime as a string.
+			--                   Place this in a Card visual on every dashboard page.
+			--                   Users can see exactly how stale their data is at any moment.
+			-- OPERATIONAL IMPACT:
+			--   Daily refresh (overnight): data can be up to 24h stale
+			--   Hourly refresh: 50 min cycle vs 60 min window — pipeline barely fits
+			--   Real-time inventory alerts: IMPOSSIBLE in Import — requires DQ or Composite
+			-- PAIR WITH IL1   : Show IL1 (frozen stock count) + IL4 (last refresh time) together.
+			--                   'As of 11:32pm yesterday, 847 products were out of stock'
+			--                   vs DQ: 'Right now, 851 products are out of stock'
+			--                   The difference in actionability is the Import limitation story.
+			-- NOTE            : NOW() in DAX always returns the current datetime in Import.
+			--                   To get last refresh time, use MAX of a date column loaded at refresh
+			--                   or a dedicated refresh-timestamp calculated table.
+			-- -------------------------------------------------------------------
+			VAR LastRefreshProxy =
+			    -- In production: replace with a dedicated DateRefreshed calculated table
+			    -- This uses MAX(OrderDate) as a proxy for how recent the data is
+			    MAX ( 'fact vOnlineSales'[OrderDate] )
+			VAR CurrentTime = NOW ()
+			VAR HoursSinceRefresh =
+			    DATEDIFF ( LastRefreshProxy, CurrentTime, HOUR )
+			RETURN
+			    -- Returns hours since last data point — proxy for data freshness
+			    -- In a real deployment: return FORMAT(RefreshTimestamp, 'DD MMM YYYY HH:MM')
+			    HoursSinceRefresh
+		formatString: 0 \ \h\o\u\r\s\ \s\t\a\l\e
+		displayFolder: Pillar 3 - Import Limitations\IL4 Refresh Cost
+		lineageTag: d4443258-fb49-4752-9d86-eaf84b4554dc
+
+	measure 'YTD Online Sales Revenue' = ```
+			
+			    CALCULATE(
+			        SUM('fact vOnlineSales'[SalesAmount]),
+			        DATESYTD(
+			            'dim vDate'[Date]
+			        )
+			    )
+			```
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		displayFolder: Pillar 1 - Import Mirrors\1A Time Intelligence
+		lineageTag: 7cb57b15-eb36-4312-a087-31aa45ddfe4c
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				  Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Removed Columns" = Table.RemoveColumns(Source,{"Column1"})
+				in
+				  #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

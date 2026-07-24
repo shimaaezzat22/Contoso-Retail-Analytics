@@ -1,0 +1,84 @@
+table 'Dim AcquisitionChannel'
+	lineageTag: 1db6a67a-7170-48f3-bbc3-92b6a4ce1b29
+
+	column AcquisitionChannelKey
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: df132304-c76a-4cab-a3f0-0ab7214e8a1a
+		summarizeBy: none
+		sourceColumn: AcquisitionChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelName
+		dataType: string
+		lineageTag: 0c8c0b43-c2a1-44ad-8c18-7d8e387ce47b
+		summarizeBy: none
+		sourceColumn: ChannelName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelCategory
+		dataType: string
+		lineageTag: b7e389f2-1bb6-44b9-9437-a15f7065ccdc
+		summarizeBy: none
+		sourceColumn: ChannelCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsDigital
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 63282799-697d-4f12-9d58-e45f65f10a75
+		summarizeBy: none
+		sourceColumn: IsDigital
+
+		annotation SummarizationSetBy = Automatic
+
+	column EstimatedCACLow
+		dataType: double
+		formatString: $#,0.00
+		lineageTag: 9a781091-2b97-4c31-9972-7a20d32343a3
+		summarizeBy: sum
+		sourceColumn: EstimatedCACLow
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EstimatedCACHigh
+		dataType: double
+		formatString: $#,0.00
+		lineageTag: f49d5e0b-49f0-49ad-83f7-7c68d7b8e82c
+		summarizeBy: sum
+		sourceColumn: EstimatedCACHigh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CACMidpoint
+		dataType: decimal
+		formatString: $#,0.00
+		lineageTag: be229ad1-e442-4232-9591-3fd8e194a068
+		summarizeBy: sum
+		sourceColumn: CACMidpoint
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	partition 'Dim AcquisitionChannel' = m
+		mode: import
+		queryGroup: 'Loaded Dimensions'
+		source =
+				let
+					FileRow = DataSource{[Name="dim_vAcquisitionChannel.parquet"]},
+					BinaryData = FileRow[Content],
+					ProcessedData = fxLoadDimParquet(BinaryData, "dim_vAcquisitionChannel.parquet")
+				in
+					ProcessedData
+
+	annotation PBI_ResultType = Table
+

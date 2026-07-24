@@ -1,0 +1,48 @@
+table 'dim vChannel'
+	lineageTag: 764c708a-411b-482a-b31a-27cd597bbfb5
+
+	column ChannelKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 144b41e1-b485-4c2d-b02c-53bfec8611c2
+		summarizeBy: count
+		sourceColumn: ChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelLabel
+		dataType: string
+		lineageTag: 2600f31d-40b3-43ac-969f-5490fc351ec3
+		summarizeBy: none
+		sourceColumn: ChannelLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelName
+		dataType: string
+		lineageTag: 4dbf15d2-7ad8-476c-b7f5-2469d0ffbce4
+		summarizeBy: none
+		sourceColumn: ChannelName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelDescription
+		dataType: string
+		lineageTag: 80b134d7-dabe-4598-b7d5-44bbad275bc8
+		summarizeBy: none
+		sourceColumn: ChannelDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dim vChannel' = m
+		mode: import
+		source =
+				let
+				  Source = Sql.Databases("localhost\SQLEXPRESS"),
+				  #"Navigation 1" = Source{[Name = "ContosoRetailDW"]}[Data],
+				  #"Navigation 2" = #"Navigation 1"{[Schema = "dim", Item = "vChannel"]}[Data]
+				in
+				  #"Navigation 2"
+
+	annotation PBI_ResultType = Table
+

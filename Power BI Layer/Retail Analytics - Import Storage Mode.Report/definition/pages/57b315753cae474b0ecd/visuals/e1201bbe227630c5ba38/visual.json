@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "e1201bbe227630c5ba38",
+  "position": {
+    "x": 563.33333333333337,
+    "y": 88.888888888888886,
+    "z": 1,
+    "height": 300,
+    "width": 300
+  },
+  "visual": {
+    "visualType": "card",
+    "autoSelectVisualType": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "IL1 Out of Stock Count (IMPORT LIMIT - Stale at Refresh)"
+                }
+              },
+              "queryRef": "_Measures.IL1 Out of Stock Count (IMPORT LIMIT - Stale at Refresh)",
+              "nativeQueryRef": "IL1 Out of Stock Count (IMPORT LIMIT - Stale at Refresh)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

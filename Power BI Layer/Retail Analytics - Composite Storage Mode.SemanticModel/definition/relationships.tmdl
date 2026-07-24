@@ -1,0 +1,96 @@
+relationship AutoDetected_e0303220-a44e-4a8d-9e17-b31b2dc02d6e
+	fromColumn: 'fact vCustomerAcquisition'.AcquisitionChannelKey
+	toColumn: 'dim vAcquisitionChannel'.AcquisitionChannelKey
+
+relationship AutoDetected_87894704-7d3f-4aef-9aff-8600b27e2bd2
+	fromColumn: 'fact vMarketingSpend'.AcquisitionChannelKey
+	toColumn: 'dim vAcquisitionChannel'.AcquisitionChannelKey
+
+relationship AutoDetected_81da565f-70fd-4872-9696-1111f5c149dd
+	fromColumn: 'fact vSalesQuota'.ChannelName
+	toColumn: 'dim vChannel'.ChannelName
+
+relationship AutoDetected_03a060c5-6245-4566-9de7-0bbe0c18d50e
+	fromColumn: 'fact vExchangeRate'.CurrencyKey
+	toColumn: 'dim vCurrency'.CurrencyKey
+
+relationship AutoDetected_a458e9d4-952b-46cb-b5b5-b00684949e15
+	fromColumn: 'fact vSalesQuota'.CurrencyKey
+	toColumn: 'dim vCurrency'.CurrencyKey
+
+relationship AutoDetected_97866e26-269a-44d6-a95b-7301bd6532fe
+	crossFilteringBehavior: bothDirections
+	fromCardinality: one
+	fromColumn: 'fact vCustomerAcquisition'.CustomerKey
+	toColumn: 'dim vCustomer'.CustomerKey
+
+relationship AutoDetected_169db8cd-0bb3-4856-b9cf-9ef096fb21b8
+	fromColumn: 'fact vCustomerSurvey'.CustomerKey
+	toColumn: 'dim vCustomer'.CustomerKey
+
+relationship AutoDetected_20686ec3-7cc0-4cdf-9b3b-040e57ccb063
+	fromColumn: 'fact vReturns'.CustomerKey
+	toColumn: 'dim vCustomer'.CustomerKey
+
+relationship AutoDetected_0f5030bc-5745-40c7-a581-a01ece28e0ed
+	fromColumn: 'fact vExchangeRate'.DateKey
+	toColumn: 'dim vDate'.DateKey
+
+relationship AutoDetected_a2c0ca8d-e006-42b2-9730-3bed462faab9
+	fromColumn: 'fact vSalesQuota'.DateKey
+	toColumn: 'dim vDate'.DateKey
+
+relationship AutoDetected_430482f2-6398-4d1a-bb0e-0813d1a9e885
+	fromColumn: 'fact vOrderPayment'.PaymentMethodKey
+	toColumn: 'dim vPaymentMethod'.PaymentMethodKey
+
+relationship AutoDetected_8b359850-4e6c-467a-9588-05998f93d721
+	fromColumn: 'fact vReturns'.ProductKey
+	toColumn: 'dim vProduct'.ProductKey
+
+relationship AutoDetected_7d6c53a6-776a-4f24-bd80-814953f6bff2
+	fromColumn: 'fact vSalesQuota'.ProductKey
+	toColumn: 'dim vProduct'.ProductKey
+
+relationship AutoDetected_ad31dc98-720b-452e-8a08-6eedf6842ed3
+	fromColumn: 'fact vReturns'.ReturnReasonKey
+	toColumn: 'dim vReturnReason'.ReturnReasonKey
+
+relationship AutoDetected_15bb0056-9b70-41bf-83ff-cb2d627b9bdf
+	fromColumn: 'fact vReturns'.StoreKey
+	toColumn: 'dim vStore'.StoreKey
+
+relationship AutoDetected_e3c4ccb7-c9c7-46a3-ae30-566a872efe7c
+	fromColumn: 'fact vSalesQuota'.StoreKey
+	toColumn: 'dim vStore'.StoreKey
+
+relationship AutoDetected_7cb467fa-66f0-4317-b5b6-252daa224ef1
+	crossFilteringBehavior: bothDirections
+	fromCardinality: one
+	fromColumn: 'fact vOrderPayment'.SalesOrderNumber
+	toColumn: 'fact vOrderFulfillment'.SalesOrderNumber
+
+relationship AutoDetected_0c3ad7f7-4f7a-4613-9ca8-187ec8a23476
+	fromColumn: 'fact vReturns'.SalesOrderNumber
+	toColumn: 'fact vOrderFulfillment'.SalesOrderNumber
+
+relationship AutoDetected_b7c19d04-cf5c-47ae-bf4a-614ff3060142
+	fromColumn: 'agg vOnlineSalesDailySummary'.CurrencyKey
+	toColumn: 'dim vCurrency'.CurrencyKey
+
+relationship AutoDetected_87a322dd-b7b3-43f1-8df3-afa68db5639a
+	fromColumn: 'agg vOnlineSalesDailySummary'.DateKey
+	toColumn: 'dim vDate'.DateKey
+
+relationship AutoDetected_99799ac7-4f1c-4dff-99c2-f21275305dbe
+	fromColumn: 'agg vOnlineSalesDailySummary'.ProductKey
+	toColumn: 'dim vProduct'.ProductKey
+
+relationship AutoDetected_3fab41c4-75f2-4c92-a485-39129df3e8c6
+	fromColumn: 'agg vOnlineSalesDailySummary'.PromotionKey
+	toColumn: 'dim vPromotion'.PromotionKey
+
+relationship AutoDetected_14cbd498-c0ce-4e43-807c-9a5394b5f4ef
+	fromColumn: 'agg vOnlineSalesDailySummary'.StoreKey
+	toColumn: 'dim vStore'.StoreKey
+
