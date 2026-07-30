@@ -2,7 +2,7 @@
 -- ║                                                                              ║
 -- ║   PROJECT    : Contoso Retail — End-to-End BI Analytics                     ║
 -- ║   PROGRAMME  : DEPI — Data Analysis with Power BI Track                     ║
--- ║   AUTHOR     : Waleed Mouhammed                                              ║
+-- ║   AUTHOR     : Shimaa Ezzat                                              ║
 -- ║   ENGINE     : SQL Server 2025 (T-SQL)                                      ║
 -- ║   SCRIPT     : 09 — Dimension Views ([dim] schema)                          ║
 -- ║   VERSION    : 1.0                                                           ║
