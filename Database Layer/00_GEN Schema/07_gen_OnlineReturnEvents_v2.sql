@@ -9,7 +9,7 @@
   ┌─────────────────────────────────────────────────────────────────────────┐
   │  PROJECT IDENTITY                                                       │
   ├─────────────────────────────────────────────────────────────────────────┤
-  │  Author          : Waleed Mouhammed                                     │
+  │  Author          : Shimaa Ezzat                                         │
   │  Programme       : DEPI — Data Analysis Track                           │
   │  Project         : Contoso Retail DW — End-to-End BI Analytics          │
   │  Engine          : SQL Server 2025 (T-SQL)                              │
